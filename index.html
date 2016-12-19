@@ -156,7 +156,7 @@
 						// Sets the item's hover and click color behavior
 						li.addEventListener('mouseenter', function(){
 							this.style.backgroundColor = disabled ? '#E5E5E5' : '#B2EBF2';
-							this.style.whiteSpace = '';
+							this.style.whiteSpace = 'pre-line';
 							this.style.height = '';
 							if (itemplaceholder.subcontext) {
 								var context = new ContextMenu(itemplaceholder.subcontext), rect = li.getBoundingClientRect();
@@ -218,9 +218,17 @@
 
 		!function(){
 			// Run on page load
-			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), history = [], contextmenus = 
+			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), history = [], contextmenus =
 				[new ContextMenu({
 					items: [{
+						name: '[Name]',
+						disabled: true,
+						pad: false,
+						css: {
+							fontFamily: 'monospace',
+							fontSize: '1.2em'
+						}
+					},{
 						name: 'Insert Child',
 						title: 'Inserts a child node into the selected node'
 					},{
@@ -233,8 +241,43 @@
 							deselect();
 							element.alias.style.boxShadow = '0 0 5px 3px #00acc1';
 							var pendingUpdate;
-							element.innerHTML = element.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-f\d]+);)/g, '<span style="background:#00acc1;color:#fff;">$&</span>');
-							element.alias.addEventListener('blur', function() {
+							element.innerHTML = element.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-f\d]+);)/g, '<span style="border:1px solid black;margin:-1px;border-radius:5px;;background:rgba(0,172,193,.3);pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
+
+							Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
+								element.addEventListener('click', function() {
+									var a = document.createElement('a'), count = 0, sequence = element.getAttribute('data-sequence');
+									a.innerHTML = sequence;
+
+									var index = origIndex = Array.prototype.indexOf.call(element.parentNode.childNodes, element);
+									if (index && element.parentNode.childNodes[index - 1].nodeType == 3) index--;
+									for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
+										if (children[i].className == 'html-escape-sequence-replacer' && children[i + 1] && children[i + 1].nodeType == 3) index --;
+										else continue;
+										if (i && children[i - 1].nodeType == 3) index--;
+									}
+									for (var i = origIndex - 1; i >= 0; i--) {
+										if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
+										if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
+									}
+
+									// If the edited element is nested inside the selected element (i.e. its a descendant of the selected element) the parentNode.alias returns undefined
+									// This fixes that by travelling up the hierarchy until it reaches a parent with a valid alias (uses the pseudo body element as a last resort) and going back down, assigning each of the ancestors their proper alias
+									// Eventually, parentNode.alias points to the right element
+									if (!element.parentNode.alias) {
+										!function alias (element) {
+											console.log(element,element.parentNode)
+											if (!element.parentNode.parentNode.alias) alias(element.parentNode);
+											element.parentNode.alias = element.parentNode.parentNode.alias.children[Array.prototype.indexOf.call(element.parentNode.parentNode.children, element.parentNode)]
+										}(element)
+									}
+									element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))(' + sequence + ')(.*$)'), function(_,$1,$2,$3){
+										return $1 + a.innerText + $3;
+									})
+									element.parentNode.alias.dispatchEvent(new Event('keypress'));
+									element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
+								})
+							});
+							element.alias.addEventListener('blur', function(e) {
 								overlay.style.pointerEvents = '';
 								this.removeAttribute('contenteditable');
 								element.alias.style.boxShadow = boxshadow;
@@ -249,45 +292,59 @@
 									pendingUpdate = 0;
 									element.alias.style.boxShadow = boxshadow;
 									overlayUpdate();
+									if (!blurred) overlay.style.pointerEvents = 'none';
+									for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
+										if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
+											children[i - 1].textContent += children[i].textContent;
+											children[i].parentNode.removeChild(children[i]);
+										}
+									}
 									if (!blurred) {
 										element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border:1px solid black;margin:-1px;border-radius:5px;;background:rgba(0,172,193,.3);pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
 										Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
 											element.addEventListener('click', function() {
 												var a = document.createElement('a'), count = 0, sequence = element.getAttribute('data-sequence');
 												a.innerHTML = sequence;
-												
+
 												var index = origIndex = Array.prototype.indexOf.call(element.parentNode.childNodes, element);
-												if (element.parentNode.childNodes[index - 1].nodeType == 3) index--;
 												for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
-													if (children[i].className == 'html-escape-sequence-replacer' && children[i + 1] && children[i + 1].nodeType == 3) index --;
-													else continue;
-													if (i && children[i - 1].nodeType == 3) index--;
+													if (children[i].className == 'html-escape-sequence-replacer') {
+														if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+														if (children[i + 1] && children[i + 1].nodeType == 3) index--;
+													} else if (children[i].nodeType == 3) {
+														if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+													}
 												}
-												for (var i = origIndex - 1; i >= 0; i--) {
+												for (var children = element.parentNode.childNodes, i = origIndex - 1; i >= 0; i--) {
 													if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
 													if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
 												}
 
-												// If the edited element is nested inside the selected element (i.e. its a descendant of the selected element) the parentNode.alias returns undefined
-												// This fixes that by travelling up the hierarchy until it reaches a parent with a valid alias (uses the pseudo body element as a last resort) and going back down, assigning each of the ancestors their proper alias
-												// Eventually, parentNode.alias points to the right element
 												if (!element.parentNode.alias) {
 													!function alias (element) {
-														console.log(element,element.parentNode)
 														if (!element.parentNode.parentNode.alias) alias(element.parentNode);
-														element.parentNode.alias = element.parentNode.parentNode.alias.children[Array.prototype.indexOf.call(element.parentNode.parentNode.children, element.parentNode)]
+														var children = element.parentNode.parentNode.childNodes, index = Array.prototype.indexOf.call(children, element.parentNode);
+														for (var i = index - 2; i >= 0; i--) {
+															if (children[i].className == 'html-escape-sequence-replacer') {
+																if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+																if (children[i + 1] && children[i + 1].nodeType == 3) index--;
+															} else if (children[i].nodeType == 3) {
+																if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+															}
+														}
+														element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
 													}(element)
 												}
 												element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))(' + sequence + ')(.*$)'), function(_,$1,$2,$3){
 													return $1 + a.innerText + $3;
-												})
+												});
 												element.parentNode.alias.dispatchEvent(new Event('keypress'));
 												element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
 											})
 										})
 									}
 									element.alias.style.boxShadow = blurred ? boxshadow : '0 0 5px 3px #00acc1';
-								}, 15)
+								}, 10)
 							})
 							close();
 						},
@@ -336,7 +393,8 @@
 				e.stopPropagation();
 				overlay.dispatchEvent(new Event('click'));
 				if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
-				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0
+				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
+				if (!index) contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">body</span>' + (framewindow.document.body.id ? '<span style="color:#009"><wbr>#' + framewindow.document.body.id + '</span>' : '') + (framewindow.document.body.className ? '<span style="color:#F44"><wbr>.' + framewindow.document.body.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
 				document.body.appendChild(contextmenus[index].node);
 				var style = contextmenus[index].node.getBoundingClientRect();
 				contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
@@ -377,7 +435,7 @@
 				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay');
 				if (!replaceHistory) {
 					history.currentEntry += 1;
-					history[history.currentEntry] = framewindow.document.body.innerHTML;	
+					history[history.currentEntry] = framewindow.document.body.innerHTML;
 					var temp = history.currentEntry;
 					history = history.slice(0,history.currentEntry + 1);
 					history.currentEntry = temp;
@@ -397,7 +455,8 @@
 								e.stopPropagation();
 								clonednode.dispatchEvent(new Event('click'));
 								if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
-								var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0
+								var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
+								if (!index) contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + clonednode.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009"><wbr>#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className ? '<span style="color:#F44"><wbr>.' + clonednode.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
 								document.body.appendChild(contextmenus[index].node);
 								var style = contextmenus[index].node.getBoundingClientRect();
 								contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
@@ -472,7 +531,7 @@
 			setInterval(function() {
 				var opacity = -Math.abs((currentFrame = (currentFrame + 1) % 50) - 25) + 25;
 				Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
-					element.style.backgroundColor = 'rgba(0,172,193,'+.012*opacity+')';
+					element.style.backgroundColor = 'rgba(0,172,193,'+(.006*opacity+.15)+')';
 				})
 			}, 20);
 			overlayUpdate();
