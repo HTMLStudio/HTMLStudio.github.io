@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang='en-US'>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>HTML Studio</title>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400' rel='stylesheet' type='text/css'>
+	<style type="text/css">
+		body, html {
+			margin: 0;
+			height: 100%;
+		}
+
+		#measurementReference {
+			height: 1rem;
+			width: 1pt;
+			visibility: hidden;
+			pointer-events: none;
+			position: absolute;
+		}
+		.contextmenuitem {
+			background: #F2F2F2;
+			font-family: Arial,Calibri, Sego UI, Arial, sans-serif;
+		}
+
+		.contextmenu {
+			padding: .2em 0;
+			background-color: #F2F2F2;
+			border: 1px solid #DDD;
+			box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
+		}
+
+		.contextmenu:not(.subcontextmenu) {
+			font-size: 88%;
+		}
+
+		#framecontainer {
+			height: 100%;
+			width: auto;
+		}
+
+		#frame, #frameoverlay, #frameback {
+			height: 100%;
+			width: 100%;
+		}
+
+		#frameback {
+			background: #90A4AE;
+			background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAIAAAADnC86AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AwRFQ0T3Dgy0QAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAQklEQVRYw+3WsQkAIAxFQRXnyMgZMpM4gqCgzb0+HPwqPTPbaVV1fDvap8BgMBgMBoPfN2/+pogwNRgMBoPBYPC+BUKAB6LfGhNrAAAAAElFTkSuQmCC');
+		}
+
+		#frame {
+			position: absolute;
+			top: 0;
+			left: 0;
+			border: 0;
+		}
+
+		#frameoverlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		[data-selected-element=selected] {
+		}
+	</style>
+</head>
+<body>
+	<div id='measurementReference'></div>
+	<div id='toolbarcontainer'></div>
+	<div id='framecontainer'>
+		<div id='frameback'></div>
+		<iframe id='frame'></iframe>
+		<div id='frameoverlay'></div>
+	</div>
+	<script type="text/javascript">
+		!function(){
+			window.em = function(){
+				return Math.round(document.getElementById('measurementReference').getBoundingClientRect().height * (arguments.length ? +arguments[0]: 1) * 1000) / 1000 + (arguments[1] ? 'px' : 0);
+			}
+			window.pt = function(){
+				return Math.round(document.getElementById('measurementReference').getBoundingClientRect().width * (arguments.length ? +arguments[0] : 1) * 1000) / 1000 + (arguments[1] ? 'px' : 0);
+			}
+			window.ContextMenu = function ContextMenu (args) {
+				this.getItem = function(arg){
+					return this.node.children[arg||0];
+				}
+				this.node = document.createElement('ul');
+				this.node.root = this.node;
+				this.id = this.node.id = 'context-' + new Date().getTime().toString(36);
+				this.node.className = 'contextmenu';
+				this.node.style.listStyle = 'none';
+				this.node.style.display = 'inline-block';
+				this.node.style.position = 'absolute';
+				this.node.style.left = this.node.style.top = '0';
+				for (var i = args.items.length - 1; i >= 0; i--) {
+					(function(){
+						var li = document.createElement('li'), image = document.createElement('div'), text = document.createElement('span'), textcontainer = document.createElement('div'), nopad = 'pad' in args.items[i] && !args.items[i].pad, itemplaceholder = args.items[i];
+						li.className = 'contextmenuitem';
+						li.id = this.id + '-item-' + i;
+						li.root = this.node;
+						var disabled = args.items[i].disabled;
+						Object.defineProperty(li, 'disabled', {
+							get: function() {return disabled},
+							set: function(v) {disabled = v; (li.children[1] || li.firstChild).style.color = v ? '#AAA' : ''},
+							enumerable: true,
+							configurable: true
+						})
+						li.func = args.items[i].func;
+						// Sets image if pad is true or not included
+						if (nopad) {
+							li.style.width = 'calc(12rem + 1.7em)';
+						} else {
+							if (args.items[i].image) image.style.backgroundImage = 'url("' + args.items[i].image + '")';
+							// Sets image styles
+							image.className = 'contextmenuitemimage'
+							image.style.width = '1.4em';
+							image.style.height = '1.4em';
+							image.style.backgroundSize = '100% 100%';
+							image.style.display = 'inline-block';
+							image.style.position = 'absolute';
+							image.style.left = '.3em';
+							image.style.top = '0em';
+							image.style.pointerEvents = 'none';
+							image.root = this.node;
+							li.style.paddingLeft = '2.1em';
+							li.appendChild(image);
+						}
+						textcontainer.style.width = 'auto';
+						textcontainer.style.textOverflow = 'ellipsis';
+						textcontainer.style.overflowX = 'hidden';
+						textcontainer.style.pointerEvents = 'none';
+						textcontainer.root = this.node;
+						textcontainer.className = 'contextmenuitemtextcontainer';
+						if (disabled) textcontainer.style.color = '#AAA';
+						li.appendChild(textcontainer)
+						// Sets the item's text
+						text.className = 'contextmenuitemtext';
+						text.innerHTML = args.items[i].name || ' ';
+						text.style.pointerEvents = 'none';
+						text.style.MozUserSelect = '-moz-none';
+						text.style.WebkitUserSelect = 'none';
+						text.style.MsUserSelect = 'none';
+						text.style.userSelect = 'none';
+						text.root = this.node;
+						textcontainer.appendChild(text);
+						// Sets the item's title if one is defined
+						if (args.items[i].title) li.title = args.items[i].title
+						// Sets the item's callback function if one is defined
+						if (args.items[i].func) li.addEventListener('click', function(e){
+							if (!disabled) li.func.call(this,e,function(){
+								li.style.background = '#f5F5F5';
+								li.root.parentNode.removeChild(li.root);
+							})
+						});
+						// Sets the item's hover and click color behavior
+						li.addEventListener('mouseenter', function(){
+							this.style.backgroundColor = disabled ? '#E5E5E5' : '#B2EBF2';
+							this.style.whiteSpace = '';
+							this.style.height = '';
+							if (itemplaceholder.subcontext) {
+								var context = new ContextMenu(itemplaceholder.subcontext), rect = li.getBoundingClientRect();
+								context.node.parent = li;
+								context.node.className += ' subcontextmenu';
+								context.node.style.top = em(-.2) - 1 + 'px';
+								context.node.style.left = rect.width + 'px';
+								context.node.style.position = 'absolute';
+								this.appendChild(context.node)
+							}
+						});
+						li.addEventListener('mouseleave', function(e){
+							this.style.backgroundColor = '';
+							this.style.whiteSpace = 'nowrap';
+							this.style.height = '1.4em';
+							if (itemplaceholder.subcontext) {
+								for (var i = this.children.length - 1; i >= 0; i--) {
+									if (this.children[i].className.includes('subcontextmenu')) this.removeChild(this.children[i]);
+								}
+							}
+						})
+						li.addEventListener('mousedown', function(){this.style.backgroundColor = disabled ? '#E5E5E5' : '#A7ACEF'});
+						li.addEventListener('mouseup', function(){this.style.backgroundColor = disabled ? '#E5E5E5' : '#B2EBF2'});
+						li.style.padding = li.style.paddingLeft ? '.05em .4em .05em 2.1em' : '.05em .4em';
+						li.style.width = li.style.width || '12rem';
+						li.style.height = li.style.minHeight = '1.4em';
+						li.style.textOverflow = 'ellipsis';
+						li.style.whiteSpace = 'nowrap';
+						li.style.position = 'relative';
+						if (args.items[i].separate) {
+							li.style.marginBottom = 'calc(.4em + 1px)';
+							var separator = document.createElement('div');
+							separator.className = 'contextmenuitemseparator';
+							separator.style.width = nopad ? 'calc(12rem + 1.7em)' : '12rem';
+							separator.style.height = '1px';
+							separator.style.backgroundColor = '#C5C5C5';
+							separator.style.position = 'relative';
+							separator.style.top = '-.2em';
+							separator.style.left = nopad ? '.4em' : '2.1em';
+							this.node.insertBefore(separator, this.node.firstChild)
+						}
+						if (args.css) {
+							for (var item in args.css) {
+								li.style[item] = args.css[item];
+							}
+						}
+						if (args.items[i].css) {
+							for (var item in args.items[i].css) {
+								li.style[item] = args.items[i].css[item];
+							}
+						}
+						// Appends item to overall context menu
+						this.node.insertBefore(li, this.node.firstChild);
+					}).call(this)
+				}
+			}
+		}();
+
+
+		!function(){
+			// Run on page load
+			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), history = [], contextmenus = 
+				[new ContextMenu({
+					items: [{
+						name: 'Insert Child',
+						title: 'Inserts a child node into the selected node'
+					},{
+						name: 'Edit Text',
+						func: function(_,close) {
+							var element = this.root.originElement, boxshadow = element.alias.style.boxShadow, blurred = 0;
+							element.alias.setAttribute('contenteditable','');
+							overlay.style.pointerEvents = 'none';
+							element.alias.focus();
+							deselect();
+							element.alias.style.boxShadow = '0 0 5px 3px #00acc1';
+							var pendingUpdate;
+							element.innerHTML = element.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-f\d]+);)/g, '<span style="background:#00acc1;color:#fff;">$&</span>');
+							element.alias.addEventListener('blur', function() {
+								overlay.style.pointerEvents = '';
+								this.removeAttribute('contenteditable');
+								element.alias.style.boxShadow = boxshadow;
+								blurred = 1;
+							});
+							element.alias.addEventListener('keypress', function(e) {
+								if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey)) {
+									element.alias.blur();
+								};
+								if (pendingUpdate) return;
+								pendingUpdate = setTimeout(function() {
+									pendingUpdate = 0;
+									element.alias.style.boxShadow = boxshadow;
+									overlayUpdate();
+									if (!blurred) {
+										element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border:1px solid black;margin:-1px;border-radius:5px;;background:rgba(0,172,193,.3);pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
+										Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
+											element.addEventListener('click', function() {
+												var a = document.createElement('a'), count = 0, sequence = element.getAttribute('data-sequence');
+												a.innerHTML = sequence;
+												
+												var index = origIndex = Array.prototype.indexOf.call(element.parentNode.childNodes, element);
+												if (element.parentNode.childNodes[index - 1].nodeType == 3) index--;
+												for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
+													if (children[i].className == 'html-escape-sequence-replacer' && children[i + 1] && children[i + 1].nodeType == 3) index --;
+													else continue;
+													if (i && children[i - 1].nodeType == 3) index--;
+												}
+												for (var i = origIndex - 1; i >= 0; i--) {
+													if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
+													if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
+												}
+
+												// If the edited element is nested inside the selected element (i.e. its a descendant of the selected element) the parentNode.alias returns undefined
+												// This fixes that by travelling up the hierarchy until it reaches a parent with a valid alias (uses the pseudo body element as a last resort) and going back down, assigning each of the ancestors their proper alias
+												// Eventually, parentNode.alias points to the right element
+												if (!element.parentNode.alias) {
+													!function alias (element) {
+														console.log(element,element.parentNode)
+														if (!element.parentNode.parentNode.alias) alias(element.parentNode);
+														element.parentNode.alias = element.parentNode.parentNode.alias.children[Array.prototype.indexOf.call(element.parentNode.parentNode.children, element.parentNode)]
+													}(element)
+												}
+												element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))(' + sequence + ')(.*$)'), function(_,$1,$2,$3){
+													return $1 + a.innerText + $3;
+												})
+												element.parentNode.alias.dispatchEvent(new Event('keypress'));
+												element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
+											})
+										})
+									}
+									element.alias.style.boxShadow = blurred ? boxshadow : '0 0 5px 3px #00acc1';
+								}, 15)
+							})
+							close();
+						},
+						title: 'Allows you to edit the element\'s textual content'
+					},{
+						name: 'Edit as HTML',
+						image: 'edit_as_html.svg',
+						title: 'Allows you to edit the node\'s HTML'
+					},{
+						name: 'Delete Node',
+						func: function(_,close) {
+							this.root.originElement.alias.parentNode.removeChild(this.root.originElement.alias);
+							overlayUpdate();
+							close();
+						},
+						title: 'Removes node from DOM'
+					}]
+				}),
+				new ContextMenu({
+					items: [{
+						name: 'Delete Nodes',
+						func: function(_,close) {
+							var elements = document.querySelectorAll('[data-selected-element=selected]');
+							for (var i = elements.length - 1; i >= 0; i--) {
+								if (elements[i].alias.parentNode) elements[i].alias.parentNode.removeChild(elements[i].alias);
+							}
+							overlayUpdate();
+							close();
+						}
+					}]
+				})];
+			history.currentEntry = -1;
+			framewindow.document.body.innerHTML = 'This is the <span style="color: #00acc1; font-family: monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
+			framewindow.document.body.style.background = 'white';
+			framewindow.document.body.style.textAlign = 'center';
+			framewindow.document.body.style.fontSize = '1.5em';
+			framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
+			framewindow.document.body.style.margin = '0';
+			overlay.alias = framewindow.document.body;
+			history.push(document.getElementById('frame').contentWindow.document.body.innerHTML);
+
+
+			// Overlay event listeners
+			overlay.addEventListener('contextmenu', function(e){
+				e.preventDefault();
+				e.stopPropagation();
+				overlay.dispatchEvent(new Event('click'));
+				if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
+				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0
+				document.body.appendChild(contextmenus[index].node);
+				var style = contextmenus[index].node.getBoundingClientRect();
+				contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
+				contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
+				contextmenus[index].node.originElement = overlay;
+			});
+			overlay.addEventListener('click', function(e) {
+				e.stopPropagation();
+				if (e.shiftKey) {
+					overlay.setAttribute('data-selected-element', overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+				} else {
+					overlay.setAttribute('data-selected-element', document.querySelectorAll('[data-selected-element=selected]').length > 1 || !e.isTrusted ? 'selected' : overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+					overlay.style.background = 'rgba(0,0,0,0)';
+					Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
+						if (element == overlay) return;
+						element.setAttribute('data-selected-element', '');
+						element.style.background = 'rgba(0,0,0,0)';
+					})
+				}
+			})
+
+
+
+
+			// Function to update overlay to match iframe
+			function overlayUpdate (replaceHistory) {
+				if (!document.getElementById('frame').contentWindow.document.body) {
+					var doc = document.getElementById('frame').contentWindow.document, body = doc.createElement('body');
+					doc.documentElement.appendChild(body);
+					document.getElementById('frameoverlay').alias = body;
+					body.innerHTML = 'The <span style="color: #00acc1; font-family: monospace;">&lt;body&gt;</span> element should not be deleted.<br>All content in the document should be kept as children of the <span>&lt;body&gt;</span> element.';
+					body.style.margin = '0';
+					body.style.textAlign = 'center';
+					body.style.fontFamily = 'Arial, sans-serif';
+					body.style.background = 'white';
+					body.style.fontSize = '1.5em';
+				}
+				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay');
+				if (!replaceHistory) {
+					history.currentEntry += 1;
+					history[history.currentEntry] = framewindow.document.body.innerHTML;	
+					var temp = history.currentEntry;
+					history = history.slice(0,history.currentEntry + 1);
+					history.currentEntry = temp;
+				}
+				framewindow.document.body.alias = overlay;
+				overlay.innerHTML = '';
+				for (var i = elements.length - 1; i >= 0; i--) {
+					function clone (parent) {
+						var clonednode = this.cloneNode();
+						this.alias = clonednode;
+						clonednode.alias = this;
+						if (clonednode instanceof Element) {
+
+							// On right click pesudo element
+							clonednode.addEventListener('contextmenu', function(e){
+								e.preventDefault();
+								e.stopPropagation();
+								clonednode.dispatchEvent(new Event('click'));
+								if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
+								var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0
+								document.body.appendChild(contextmenus[index].node);
+								var style = contextmenus[index].node.getBoundingClientRect();
+								contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
+								contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
+								contextmenus[index].node.originElement = clonednode
+							});
+
+							// On left click pseudo element
+							clonednode.addEventListener('click', function(e) {
+								e.stopPropagation();
+								if (e.shiftKey) {
+									clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+								} else {
+									clonednode.setAttribute('data-selected-element', document.querySelectorAll('[data-selected-element=selected]').length > 1 || !e.isTrusted ? 'selected' : clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+									clonednode.style.background = 'rgba(0,0,0,0)';
+									Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
+										if (element == clonednode) return;
+										element.setAttribute('data-selected-element', '');
+										element.style.background = 'rgba(0,0,0,0)';
+									})
+								}
+								if (document.selection) document.selection.empty();
+								else if (getSelection) getSelection().removeAllRanges();
+							})
+							clonednode.style.cursor = 'crosshair';
+							clonednode.style.color = 'rgba(0,0,0,0)';
+							clonednode.style.background = 'rgba(0,0,0,0)';
+						}
+						parent.insertBefore(clonednode, parent.firstChild);
+						if (this.childNodes.length) {
+							for (var i = this.childNodes.length - 1; i >= 0; i--) {
+								clone.call(this.childNodes[i], clonednode)
+							}
+						}
+					};
+					clone.call(elements[i],overlay);
+				}
+				var styles = framewindow.document.body.style;
+				for (var style in styles) {
+					overlay.style[style] = framewindow.document.body.style[style];
+				};
+				overlay.style.cursor = 'crosshair';
+				overlay.style.color = 'rgba(0,0,0,0)';
+				overlay.style.background = 'rgba(0,0,0,0)';
+			}
+
+
+			// Deselects all elements and set their background back to transparent
+			function deselect () {
+				Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
+					element.setAttribute('data-selected-element','');
+					element.style.background = 'rgba(0,0,0,0)';
+				})
+			}
+
+
+			window.addEventListener('keypress', function(e) {
+				if (e.charCode == 122 && e.ctrlKey) {
+					history.currentEntry = Math.max(history.currentEntry - 1, 0);
+					framewindow.document.body.innerHTML = history[history.currentEntry];
+					overlayUpdate(true);
+				} else if (e.charCode == 121 && e.ctrlKey) {
+					history.currentEntry = Math.min(history.currentEntry + 1, history.length - 1);
+					framewindow.document.body.innerHTML = history[history.currentEntry];
+					overlayUpdate(true);
+				}
+			})
+
+
+			//Interval for controlling selected elements' backgrounds
+			var currentFrame = 0;
+			setInterval(function() {
+				var opacity = -Math.abs((currentFrame = (currentFrame + 1) % 50) - 25) + 25;
+				Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
+					element.style.backgroundColor = 'rgba(0,172,193,'+.012*opacity+')';
+				})
+			}, 20);
+			overlayUpdate();
+		}();
+
+
+		window.addEventListener('mousedown',function(e){
+			if (!document.getElementsByClassName('contextmenu')[0] || e.target.className.includes('contextmenu')) return;
+			document.body.removeChild(document.getElementsByClassName('contextmenu')[0] || {});
+		});
+	</script>
+</body>
+</html>
