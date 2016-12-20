@@ -74,6 +74,7 @@
 		<div id='frameoverlay'></div>
 	</div>
 	<script type="text/javascript">
+		"use strict";
 		!function(){
 			window.em = function(){
 				return Math.round(document.getElementById('measurementReference').getBoundingClientRect().height * (arguments.length ? +arguments[0]: 1) * 1000) / 1000 + (arguments[1] ? 'px' : 0);
@@ -102,7 +103,11 @@
 						var disabled = args.items[i].disabled;
 						Object.defineProperty(li, 'disabled', {
 							get: function() {return disabled},
-							set: function(v) {disabled = v; (li.children[1] || li.firstChild).style.color = v ? '#AAA' : ''},
+							set: function(v) {
+								disabled = v;
+								(li.children[1] || li.firstChild).style.color = v ? '#AAA' : ''
+								li.title = itemplaceholder[v && itemplaceholder.disabledtitle ? 'disabledtitle' : 'title'];
+							},
 							enumerable: true,
 							configurable: true
 						})
@@ -145,7 +150,8 @@
 						text.root = this.node;
 						textcontainer.appendChild(text);
 						// Sets the item's title if one is defined
-						if (args.items[i].title) li.title = args.items[i].title
+						if (args.items[i].title && (!disabled || !args.items[i].disabledtitle)) li.title = args.items[i].title;
+						else if (args.items[i].disabledtitle && disabled) li.title = args.items[i].disabledtitle;
 						// Sets the item's callback function if one is defined
 						if (args.items[i].func) li.addEventListener('click', function(e){
 							if (!disabled) li.func.call(this,e,function(){
@@ -229,7 +235,10 @@
 							fontSize: '1.2em'
 						}
 					},{
-						name: 'Insert Child',
+						name: 'Edit Styles&#133;',
+						title: 'Allows you to edit the element\'s CSS'
+					},{
+						name: 'Insert Child&#133;',
 						title: 'Inserts a child node into the selected node'
 					},{
 						name: 'Edit Text',
@@ -241,57 +250,47 @@
 							deselect();
 							element.alias.style.boxShadow = '0 0 5px 3px #00acc1';
 							var pendingUpdate;
-							element.innerHTML = element.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-f\d]+);)/g, '<span style="border:1px solid black;margin:-1px;border-radius:5px;;background:rgba(0,172,193,.3);pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
-
-							Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
-								element.addEventListener('click', function() {
-									var a = document.createElement('a'), count = 0, sequence = element.getAttribute('data-sequence');
-									a.innerHTML = sequence;
-
-									var index = origIndex = Array.prototype.indexOf.call(element.parentNode.childNodes, element);
-									if (index && element.parentNode.childNodes[index - 1].nodeType == 3) index--;
-									for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
-										if (children[i].className == 'html-escape-sequence-replacer' && children[i + 1] && children[i + 1].nodeType == 3) index --;
-										else continue;
-										if (i && children[i - 1].nodeType == 3) index--;
-									}
-									for (var i = origIndex - 1; i >= 0; i--) {
-										if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
-										if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
-									}
-
-									// If the edited element is nested inside the selected element (i.e. its a descendant of the selected element) the parentNode.alias returns undefined
-									// This fixes that by travelling up the hierarchy until it reaches a parent with a valid alias (uses the pseudo body element as a last resort) and going back down, assigning each of the ancestors their proper alias
-									// Eventually, parentNode.alias points to the right element
-									if (!element.parentNode.alias) {
-										!function alias (element) {
-											console.log(element,element.parentNode)
-											if (!element.parentNode.parentNode.alias) alias(element.parentNode);
-											element.parentNode.alias = element.parentNode.parentNode.alias.children[Array.prototype.indexOf.call(element.parentNode.parentNode.children, element.parentNode)]
-										}(element)
-									}
-									element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))(' + sequence + ')(.*$)'), function(_,$1,$2,$3){
-										return $1 + a.innerText + $3;
-									})
-									element.parentNode.alias.dispatchEvent(new Event('keypress'));
-									element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
-								})
-							});
 							element.alias.addEventListener('blur', function(e) {
+								function temp(e){
+									element.alias.dispatchEvent(new Event('blur'));
+									framewindow.removeEventListener('click', temp);
+									this.removeEventListener('click', temp2);
+								}
+								function temp2(e) {
+									e.stopPropagation();
+									framewindow.removeEventListener('click', temp);
+									this.removeEventListener('click', temp2);
+								}
+								if (this.noblur) {
+									// This only occurs if an HTML escape sequence replacer was clicked on
+									// The contenteditable element remains contenteditable, but the user has the option to click inside the element (continue editing text, keep contenteditable), or outside the element (stop editing, take away contenteditable)
+									e.preventDefault();
+									this.noblur = false;
+									this.focus();
+									framewindow.addEventListener('click', temp);
+									this.addEventListener('click', temp2);
+									return;
+								}
+								framewindow.removeEventListener('click', temp);
+								this.removeEventListener('click', temp2);
 								overlay.style.pointerEvents = '';
 								this.removeAttribute('contenteditable');
 								element.alias.style.boxShadow = boxshadow;
 								blurred = 1;
+								overlayUpdate();
 							});
+							element.alias.addEventListener('dblclick', function() {
+								this.dispatchEvent(new Event('blur'));
+							})
 							element.alias.addEventListener('keypress', function(e) {
 								if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey)) {
-									element.alias.blur();
+									element.alias.dispatchEvent(new Event('blur'));
 								};
 								if (pendingUpdate) return;
 								pendingUpdate = setTimeout(function() {
 									pendingUpdate = 0;
 									element.alias.style.boxShadow = boxshadow;
-									overlayUpdate();
+									overlayUpdate(!e.isTrusted);
 									if (!blurred) overlay.style.pointerEvents = 'none';
 									for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
 										if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
@@ -300,13 +299,34 @@
 										}
 									}
 									if (!blurred) {
-										element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border:1px solid black;margin:-1px;border-radius:5px;;background:rgba(0,172,193,.3);pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
+										element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border-radius:.2em;background:#00acc1;color:white;pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
+										var preelement = element
 										Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
-											element.addEventListener('click', function() {
-												var a = document.createElement('a'), count = 0, sequence = element.getAttribute('data-sequence');
-												a.innerHTML = sequence;
-
-												var index = origIndex = Array.prototype.indexOf.call(element.parentNode.childNodes, element);
+											var a = document.createElement('a'), sequence = element.getAttribute('data-sequence');
+											a.innerHTML = sequence;
+											if (a.innerText == sequence) {
+												element.parentNode.removeChild(element);
+												return;
+											}
+											if (!element.parentNode.alias) {
+												!function alias (element) {
+													if (!element.parentNode.parentNode.alias) alias(element.parentNode);
+													var children = element.parentNode.parentNode.childNodes, index = Array.prototype.indexOf.call(children, element.parentNode);
+													for (var i = index - 2; i >= 0; i--) {
+														if (children[i].className == 'html-escape-sequence-replacer') {
+															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+															if (children[i + 1] && children[i + 1].nodeType == 3) index--;
+														} else if (children[i].nodeType == 3) {
+															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+														}
+													}
+													element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
+												}(element)
+											};
+											element.title = 'Click to replace with "' + a.innerText + '"';
+											element.addEventListener('mousedown', function(e) {
+												preelement.alias.noblur = true;
+												var count = 0, index = Array.prototype.indexOf.call(element.parentNode.childNodes, element), origIndex = index;
 												for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
 													if (children[i].className == 'html-escape-sequence-replacer') {
 														if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
@@ -335,8 +355,8 @@
 														element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
 													}(element)
 												}
-												element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))(' + sequence + ')(.*$)'), function(_,$1,$2,$3){
-													return $1 + a.innerText + $3;
+												element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))' + sequence + '(.*$)'), function(_,$1,$2){
+													return $1 + a.innerText + $2;
 												});
 												element.parentNode.alias.dispatchEvent(new Event('keypress'));
 												element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
@@ -345,12 +365,13 @@
 									}
 									element.alias.style.boxShadow = blurred ? boxshadow : '0 0 5px 3px #00acc1';
 								}, 10)
-							})
+							});
+							element.alias.dispatchEvent(new Event('keypress'));
 							close();
 						},
 						title: 'Allows you to edit the element\'s textual content'
 					},{
-						name: 'Edit as HTML',
+						name: 'Edit as HTML&#133;',
 						image: 'svg/edit_as_html.svg',
 						title: 'Allows you to edit the node\'s HTML'
 					},{
@@ -360,7 +381,8 @@
 							overlayUpdate();
 							close();
 						},
-						title: 'Removes node from DOM'
+						title: 'Removes node from the document',
+						disabledtitle: 'This node cannot be removed from the document'
 					}]
 				}),
 				new ContextMenu({
@@ -369,7 +391,7 @@
 						func: function(_,close) {
 							var elements = document.querySelectorAll('[data-selected-element=selected]');
 							for (var i = elements.length - 1; i >= 0; i--) {
-								if (elements[i].alias.parentNode) elements[i].alias.parentNode.removeChild(elements[i].alias);
+								if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
 							}
 							overlayUpdate();
 							close();
@@ -384,17 +406,17 @@
 			framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
 			framewindow.document.body.style.margin = '0';
 			overlay.alias = framewindow.document.body;
-			history.push(document.getElementById('frame').contentWindow.document.body.innerHTML);
 
 
 			// Overlay event listeners
 			overlay.addEventListener('contextmenu', function(e){
 				e.preventDefault();
 				e.stopPropagation();
-				overlay.dispatchEvent(new Event('click'));
-				if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
+				if (!index) overlay.dispatchEvent(new Event('click'));
+				if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 				if (!index) contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">body</span>' + (framewindow.document.body.id ? '<span style="color:#009"><wbr>#' + framewindow.document.body.id + '</span>' : '') + (framewindow.document.body.className ? '<span style="color:#F44"><wbr>.' + framewindow.document.body.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
+				if (!index) contextmenus[index].getItem(5).disabled = true;
 				document.body.appendChild(contextmenus[index].node);
 				var style = contextmenus[index].node.getBoundingClientRect();
 				contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
@@ -433,7 +455,7 @@
 					body.style.fontSize = '1.5em';
 				}
 				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay');
-				if (!replaceHistory) {
+				if (!replaceHistory && framewindow.document.body.innerHTML != history[history.currentEntry]) {
 					history.currentEntry += 1;
 					history[history.currentEntry] = framewindow.document.body.innerHTML;
 					var temp = history.currentEntry;
@@ -447,16 +469,17 @@
 						var clonednode = this.cloneNode();
 						this.alias = clonednode;
 						clonednode.alias = this;
-						if (clonednode instanceof Element) {
+						if (clonednode instanceof Element || clonednode.nodeType == 1) {
 
 							// On right click pesudo element
 							clonednode.addEventListener('contextmenu', function(e){
 								e.preventDefault();
 								e.stopPropagation();
-								clonednode.dispatchEvent(new Event('click'));
-								if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 								var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
+								if (!index) clonednode.dispatchEvent(new Event('click'));
+								if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 								if (!index) contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + clonednode.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009"><wbr>#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className ? '<span style="color:#F44"><wbr>.' + clonednode.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
+								if (!index) contextmenus[index].getItem(5).disabled = false;
 								document.body.appendChild(contextmenus[index].node);
 								var style = contextmenus[index].node.getBoundingClientRect();
 								contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
@@ -496,7 +519,9 @@
 				}
 				var styles = framewindow.document.body.style;
 				for (var style in styles) {
-					overlay.style[style] = framewindow.document.body.style[style];
+					try {
+						overlay.style[style] = framewindow.document.body.style[style];
+					} catch (_) {}
 				};
 				overlay.style.cursor = 'crosshair';
 				overlay.style.color = 'rgba(0,0,0,0)';
@@ -526,12 +551,17 @@
 			})
 
 
-			//Interval for controlling selected elements' backgrounds
+			//Interval for controlling pulsating backgrounds
 			var currentFrame = 0;
 			setInterval(function() {
-				var opacity = -Math.abs((currentFrame = (currentFrame + 1) % 50) - 25) + 25;
+				currentFrame = (currentFrame + 1) % 50;
+				var opacity = -Math.abs(currentFrame - 25) + 25, bgcolor = 'rgb(' + opacity * 2 + ',' + Math.round(opacity * 2 + 172) + ',' + Math.round(opacity * 2 + 193) +')', tcolor = 'rgb(' + Math.round((-opacity + 25) * 2.55 + 191) + ',' + Math.round((-opacity + 25) * 2.55 + 191) + ',' + Math.round((-opacity + 25) * 2.55 + 191) +')';
 				Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
 					element.style.backgroundColor = 'rgba(0,172,193,'+(.006*opacity+.15)+')';
+				});
+				Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
+					//element.style.backgroundColor = bgcolor;
+					element.style.color = tcolor;
 				})
 			}, 20);
 			overlayUpdate();
