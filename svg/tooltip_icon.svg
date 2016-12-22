@@ -2,6 +2,15 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+  <defs>
+    <filter style="color-interpolation-filters:sRGB;" id="filter3448">
+      <feFlood flood-opacity="0.498039" flood-color="rgb(0,0,0)" result="flood"/>
+      <feComposite in="flood" in2="SourceGraphic" operator="out" result="composite1"/>
+      <feGaussianBlur in="composite1" stdDeviation="2" result="blur"/>
+      <feOffset dx="0" dy="0" result="offset"/>
+      <feComposite in="offset" in2="SourceGraphic" operator="atop" result="composite2"/>
+    </filter>
+  </defs>
   <g transform="translate(0,-992.36216)">
     <rect width="60" height="60" x="0" y="992.36218" style="fill:#00acc1"/>
     <circle style="fill:#f2f2f2;filter:url(#filter3448)" cx="30" cy="1022.3622" r="22.5"/>
