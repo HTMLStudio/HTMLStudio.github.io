@@ -2,12 +2,13 @@
 <html lang='en-US'>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-	<title>HTML Studio</title>
+	<title>HTML Studio &#183; ChristianFigueroa.GitHub.io</title>
 	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400' rel='stylesheet' type='text/css'>
 	<style type="text/css">
 		body, html {
 			margin: 0;
 			height: 100%;
+			position: relative;
 		}
 
 		#measurementReference {
@@ -16,6 +17,8 @@
 			visibility: hidden;
 			pointer-events: none;
 			position: absolute;
+			top: -1rem;
+			left: -1pt;
 		}
 		.contextmenuitem {
 			background: #F2F2F2;
@@ -34,8 +37,9 @@
 		}
 
 		#framecontainer {
-			height: 100%;
+			min-height: 80%;
 			width: auto;
+			position: relative;
 		}
 
 		#frame, #frameoverlay, #frameback {
@@ -59,19 +63,160 @@
 			position: absolute;
 			top: 0;
 			left: 0;
+			overflow: auto;
 		}
 
-		[data-selected-element=selected] {
+		#toolbarcontainer {
+			height: 20%;
+			background: #F0F0F0;
+			border-bottom: 1px solid #888;
+			margin-bottom: -1px;
+			z-index: 1;
+			position: relative;
+			box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
+		}
+
+		#headersectionbar {
+			padding-left: 8%;
+			font-size: 0;
+			position: absolute;
+			top: calc(1% + 2.2rem);
+		}
+
+		.headersection {
+			display: inline-block;
+			font-family: Arial, sans-serif;
+			padding: .3em .55em;
+			vertical-align: top;
+			cursor: default;
+			position: relative;
+			font-size: initial;
+		}
+
+		.headersection:hover {
+			background: #DDD;
+		}
+
+		#titlebar {
+			text-align: center;
+			position: absolute;
+			width: 100%;
+			font-family: Arial, sans-serif;
+			margin-top: .5%;
+		}
+
+		#title {
+			min-width: 20%;
+			max-width: 85%;
+			display: inline-block;
+			font-size: 1.2rem;
+			background: #F0F0F0;
+			border: 0;
+			text-align: center;
+			font-family: Arial, sans-serif;
+			padding: .05rem 0;
+		}
+
+		#title:hover, #title:focus {
+			background: #FFF;
+			box-shadow: 0 0 5px 2px rgba(0,172,193,.4);
+			border: 1px solid #00acc1;
+			margin: -1px;
+		}
+
+		#titlewidth {
+			display: inline;
+			position: absolute;
+			visibility: hidden;
+			pointer-events: none;
+			max-width: 85%;
+			left: 0;
+			font-size: 1.2rem;
+		}
+
+		.placeholder {
+			color: rgba(0,0,0,.38);
+			font-style: italic;
+		}
+
+		#logo {
+			height: 100%;
+			display: inline-block;
+			width: 7%;
+			background: #00acc1;
+		}
+
+		#tooltip {
+			background: #F2F2F2;
+			width: 50%;
+			height: 8vh;
+			position: absolute;
+			top: 90%;
+			left: 25%;
+			box-shadow: .3rem .3rem .6rem 0 rgba(0,0,0,.6);
+			border: 1px solid #CCC;
+			margin: -1px;
+			border-radius: 20vh 8vh 8vh 20vh;
+		}
+
+		#tooltip_icon {
+			height: 6vh;
+			width: 6vh;
+			border-radius: 50%;
+			background: url("../Desktop/tooltip_icon.svg");
+			box-shadow: 0 0 3px 1.5px rgba(0,0,0,.3);
+			background-size: contain;
+			top: 1vh;
+			left: 1vh;
+			position: absolute;
+		}
+
+		#tooltipinner {
+			padding-left: 8vh;
+			height: 100%;
+			width: auto;
+		}
+
+		#tooltiptextcont {
+			width: 100%;
+			height: 100%;
+			display: table;
+		}
+
+		#tooltiptext {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: center;
+			font-family: Arial, sans-serif;
 		}
 	</style>
 </head>
 <body>
 	<div id='measurementReference'></div>
-	<div id='toolbarcontainer'></div>
+	<div id='toolbarcontainer'>
+		<div id='titlebar'>
+			<input type='text' id='title' placeholder='Untitled HTML Document' title='Click to edit'>
+			<div id='titlewidth'></div>
+		</div>
+		<div id='headersectionbar'>
+			<div class='headersection' id='section_file'>File</div>
+			<div class='headersection' id='section_edit'>Edit</div>
+			<div class='headersection' id='section_view'>View</div>
+		</div>
+		<div id='logo'></div>
+	</div>
 	<div id='framecontainer'>
 		<div id='frameback'></div>
 		<iframe id='frame'></iframe>
 		<div id='frameoverlay'></div>
+	</div>
+	<div id='tooltip'>
+		<div id='tooltip_icon'></div>
+		<div id='tooltipinner'>
+			<div id='tooltiptextcont'>
+				<div id='tooltiptext'>Extra information will appear here</div>
+			</div>
+		</div>
 	</div>
 	<script type="text/javascript">
 		"use strict";
@@ -84,7 +229,9 @@
 			}
 			window.ContextMenu = function ContextMenu (args) {
 				this.getItem = function(arg){
-					return this.node.children[arg||0];
+					for (var children = this.node.children, i = children.length - 1; i >= 0; i--) {
+						if (children[i].id == this.id + '-item-' + (arg||0)) return children[i]
+					}
 				}
 				this.node = document.createElement('ul');
 				this.node.root = this.node;
@@ -94,6 +241,7 @@
 				this.node.style.display = 'inline-block';
 				this.node.style.position = 'absolute';
 				this.node.style.left = this.node.style.top = '0';
+				this.node.style.zIndex = 1000;
 				for (var i = args.items.length - 1; i >= 0; i--) {
 					(function(){
 						var li = document.createElement('li'), image = document.createElement('div'), text = document.createElement('span'), textcontainer = document.createElement('div'), nopad = 'pad' in args.items[i] && !args.items[i].pad, itemplaceholder = args.items[i];
@@ -155,7 +303,7 @@
 						// Sets the item's callback function if one is defined
 						if (args.items[i].func) li.addEventListener('click', function(e){
 							if (!disabled) li.func.call(this,e,function(){
-								li.style.background = '#f5F5F5';
+								li.style.background = '#F5F5F5';
 								li.root.parentNode.removeChild(li.root);
 							})
 						});
@@ -187,21 +335,25 @@
 						li.addEventListener('mousedown', function(){this.style.backgroundColor = disabled ? '#E5E5E5' : '#A7ACEF'});
 						li.addEventListener('mouseup', function(){this.style.backgroundColor = disabled ? '#E5E5E5' : '#B2EBF2'});
 						li.style.padding = li.style.paddingLeft ? '.05em .4em .05em 2.1em' : '.05em .4em';
+						li.style.paddingTop = '.075em';
+						li.style.paddingBottom = '.025em';
+						li.style.paddingRight = '.4em';
+						li.style.paddingLeft = li.style.paddingLeft || '.4em';
 						li.style.width = li.style.width || '12rem';
 						li.style.height = li.style.minHeight = '1.4em';
 						li.style.textOverflow = 'ellipsis';
 						li.style.whiteSpace = 'nowrap';
 						li.style.position = 'relative';
 						if (args.items[i].separate) {
-							li.style.marginBottom = 'calc(.4em + 1px)';
+							li.style.marginBottom = 'calc(.2em + 1px)';
 							var separator = document.createElement('div');
 							separator.className = 'contextmenuitemseparator';
-							separator.style.width = nopad ? 'calc(12rem + 1.7em)' : '12rem';
+							separator.style.width = 'calc(12rem + 1.7em)';
 							separator.style.height = '1px';
 							separator.style.backgroundColor = '#C5C5C5';
 							separator.style.position = 'relative';
-							separator.style.top = '-.2em';
-							separator.style.left = nopad ? '.4em' : '2.1em';
+							separator.style.top = '-.15em';
+							separator.style.left = '.4em';
 							this.node.insertBefore(separator, this.node.firstChild)
 						}
 						if (args.css) {
@@ -224,7 +376,20 @@
 
 		!function(){
 			// Run on page load
-			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), history = [], contextmenus =
+			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), history = {
+				entries: JSON.parse(localStorage.getItem('documentHistoryEntries')) || [],
+				update: function() {
+					if (~this.currentEntry && framewindow.document.body.innerHTML == this.entries[this.currentEntry].html && document.getElementById('title').value == this.entries[this.currentEntry].title) return;
+					this.currentEntry += 1;
+					this.entries[this.currentEntry] = {
+						html: framewindow.document.body.innerHTML,
+						title: document.getElementById('title').value
+					}
+					this.entries = this.entries.slice(0,this.currentEntry + 1);
+					localStorage.setItem('documentHistoryEntries', JSON.stringify(this.entries))
+					localStorage.setItem('documentHistoryCurrentEntry', this.currentEntry)
+				}
+			}, contextmenus =
 				[new ContextMenu({
 					items: [{
 						name: '[Name]',
@@ -233,13 +398,15 @@
 						css: {
 							fontFamily: 'monospace',
 							fontSize: '1.2em'
-						}
+						},
+						separate: true
 					},{
 						name: 'Edit Styles&#133;',
 						title: 'Allows you to edit the element\'s CSS'
 					},{
 						name: 'Insert Child&#133;',
-						title: 'Inserts a child node into the selected node'
+						title: 'Inserts a child node into the selected node',
+						separate: true
 					},{
 						name: 'Edit Text',
 						func: function(_,close) {
@@ -278,6 +445,7 @@
 								element.alias.style.boxShadow = boxshadow;
 								blurred = 1;
 								overlayUpdate();
+								history.update();
 							});
 							element.alias.addEventListener('dblclick', function() {
 								this.dispatchEvent(new Event('blur'));
@@ -290,7 +458,8 @@
 								pendingUpdate = setTimeout(function() {
 									pendingUpdate = 0;
 									element.alias.style.boxShadow = boxshadow;
-									overlayUpdate(!e.isTrusted);
+									overlayUpdate();
+									if (e.isTrusted) history.update();
 									if (!blurred) overlay.style.pointerEvents = 'none';
 									for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
 										if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
@@ -300,7 +469,7 @@
 									}
 									if (!blurred) {
 										element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border-radius:.2em;background:#00acc1;color:white;pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
-										var preelement = element
+										var preelement = element;
 										Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
 											var a = document.createElement('a'), sequence = element.getAttribute('data-sequence');
 											a.innerHTML = sequence;
@@ -373,12 +542,14 @@
 					},{
 						name: 'Edit as HTML&#133;',
 						image: 'svg/edit_as_html.svg',
-						title: 'Allows you to edit the node\'s HTML'
+						title: 'Allows you to edit the node\'s HTML',
+						separate: true
 					},{
 						name: 'Delete Node',
 						func: function(_,close) {
 							this.root.originElement.alias.parentNode.removeChild(this.root.originElement.alias);
 							overlayUpdate();
+							history.update();
 							close();
 						},
 						title: 'Removes node from the document',
@@ -394,17 +565,61 @@
 								if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
 							}
 							overlayUpdate();
+							history.update();
 							close();
 						}
 					}]
+				}),
+				new ContextMenu({
+					items: [{
+						name: 'New',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					},{
+						name: 'Open&#133;',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					},{
+						name: 'Download File&#133;',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					}]
+				}),
+				new ContextMenu({
+					items: [{
+						name: 'Undo',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					},{
+						name: 'Redo',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					}]
+				}),
+				new ContextMenu({
+					items: [{
+						name: 'Toolbar',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					},{
+						name: 'Full Page',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					},{
+						name: 'HTML Tree',
+						disabled: true,
+						disabledtitle: 'Work in Progress'
+					}]
 				})];
-			history.currentEntry = -1;
-			framewindow.document.body.innerHTML = 'This is the <span style="color: #00acc1; font-family: monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
+			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
+			framewindow.document.body.innerHTML = history.entries.length ? history.entries[history.currentEntry].html : 'This is the <span style="color: #00acc1; font-family: monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
+			if (history.entries.length) document.getElementById('title').value = history.entries[history.currentEntry].title;
 			framewindow.document.body.style.background = 'white';
 			framewindow.document.body.style.textAlign = 'center';
 			framewindow.document.body.style.fontSize = '1.5em';
 			framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
 			framewindow.document.body.style.margin = '0';
+			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
 			overlay.alias = framewindow.document.body;
 
 
@@ -426,23 +641,28 @@
 			overlay.addEventListener('click', function(e) {
 				e.stopPropagation();
 				if (e.shiftKey) {
-					overlay.setAttribute('data-selected-element', overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
-				} else {
-					overlay.setAttribute('data-selected-element', document.querySelectorAll('[data-selected-element=selected]').length > 1 || !e.isTrusted ? 'selected' : overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
 					overlay.style.background = 'rgba(0,0,0,0)';
-					Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
-						if (element == overlay) return;
-						element.setAttribute('data-selected-element', '');
-						element.style.background = 'rgba(0,0,0,0)';
-					})
+					overlay.setAttribute('data-selected-element', overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+					var nodes = document.querySelectorAll('[data-selected-element=selected]');
+					if (nodes.length>1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
+					else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+					else document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+				} else {
+					overlay.style.background = 'rgba(0,0,0,0)';
+					var selected = overlay.getAttribute('data-selected-element') == 'selected';
+					deselect();
+					overlay.setAttribute('data-selected-element', document.querySelectorAll('[data-selected-element=selected]').length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
+					if (selected) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+					else document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + overlay.alias.nodeName.toLowerCase() + '</span>' + (overlay.alias.id ? '<span style="color:#009">#' + overlay.alias.id + '</span>' : '') + (overlay.alias.className ? '<span style="color:#F44">.' + overlay.alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
 				}
+				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
+				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 			})
 
 
 
-
 			// Function to update overlay to match iframe
-			function overlayUpdate (replaceHistory) {
+			function overlayUpdate () {
 				if (!document.getElementById('frame').contentWindow.document.body) {
 					var doc = document.getElementById('frame').contentWindow.document, body = doc.createElement('body');
 					doc.documentElement.appendChild(body);
@@ -455,13 +675,6 @@
 					body.style.fontSize = '1.5em';
 				}
 				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay');
-				if (!replaceHistory && framewindow.document.body.innerHTML != history[history.currentEntry]) {
-					history.currentEntry += 1;
-					history[history.currentEntry] = framewindow.document.body.innerHTML;
-					var temp = history.currentEntry;
-					history = history.slice(0,history.currentEntry + 1);
-					history.currentEntry = temp;
-				}
 				framewindow.document.body.alias = overlay;
 				overlay.innerHTML = '';
 				for (var i = elements.length - 1; i >= 0; i--) {
@@ -471,7 +684,7 @@
 						clonednode.alias = this;
 						if (clonednode instanceof Element || clonednode.nodeType == 1) {
 
-							// On right click pesudo element
+							// On right click pseudo element
 							clonednode.addEventListener('contextmenu', function(e){
 								e.preventDefault();
 								e.stopPropagation();
@@ -491,18 +704,22 @@
 							clonednode.addEventListener('click', function(e) {
 								e.stopPropagation();
 								if (e.shiftKey) {
-									clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
-								} else {
-									clonednode.setAttribute('data-selected-element', document.querySelectorAll('[data-selected-element=selected]').length > 1 || !e.isTrusted ? 'selected' : clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
 									clonednode.style.background = 'rgba(0,0,0,0)';
-									Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
-										if (element == clonednode) return;
-										element.setAttribute('data-selected-element', '');
-										element.style.background = 'rgba(0,0,0,0)';
-									})
+									clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+									var nodes = document.querySelectorAll('[data-selected-element=selected]');
+									if (nodes.length>1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
+									else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+									else document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+								} else {
+									clonednode.style.background = 'rgba(0,0,0,0)';
+									var selected = clonednode.getAttribute('data-selected-element') == 'selected';
+									deselect();
+									clonednode.setAttribute('data-selected-element', document.querySelectorAll('[data-selected-element=selected]').length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
+									if (selected) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+									else document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + clonednode.alias.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009">#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className ? '<span style="color:#F44">.' + clonednode.alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
 								}
-								if (document.selection) document.selection.empty();
-								else if (getSelection) getSelection().removeAllRanges();
+								if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
+								else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 							})
 							clonednode.style.cursor = 'crosshair';
 							clonednode.style.color = 'rgba(0,0,0,0)';
@@ -538,17 +755,90 @@
 			}
 
 
-			window.addEventListener('keypress', function(e) {
+
+			var sectionopen = false;
+			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function (element,index,array){
+				element.addEventListener('mousedown', function (e){
+					e.stopPropagation();
+					sectionopen = !sectionopen;
+					if (sectionopen) {
+						dispatchEvent(new MouseEvent('mousedown'));
+						document.body.appendChild(contextmenus[index + 2].node);
+						contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
+						contextmenus[index + 2].node.style.top = this.getBoundingClientRect().bottom - em() + 'px';
+						this.style.background = '#DDD';
+					} else {
+						document.body.removeChild(contextmenus[index + 2].node);
+						this.style.background = '';
+					};
+					setTimeout(function(){
+						if (document.selection) document.selection.empty();
+						else if (getSelection) getSelection().removeAllRanges();
+					},0)
+				});
+
+				element.addEventListener('mouseenter', function (){
+					if (!sectionopen) return;
+					Array.prototype.forEach.call(array, function(element, index) {
+						element.style.background = '';
+						try{
+							document.body.removeChild(contextmenus[index + 2].node);
+						}catch(_){}
+					});
+					dispatchEvent(new MouseEvent('mousedown'));
+					document.body.appendChild(contextmenus[index + 2].node);
+					contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
+					contextmenus[index + 2].node.style.top = this.getBoundingClientRect().bottom - em() + 'px';
+					this.style.background = '#DDD';
+				});
+			});
+
+			document.getElementById('title').addEventListener('keypress', function(e) {
+				if (e.keyCode == 13) return this.blur();
+				setTimeout(function(){
+					if (!this.value) this.style.fontStyle = 'italic';
+					else this.style.fontStyle = ''
+					var width = document.getElementById('titlewidth');
+					width.innerText = this.value;
+					document.getElementById('title').style.width = width.scrollWidth + em(.6) + 'px';
+					document.title = (this.value || 'HTML Studio') + ' \xb7 ChristianFigueroa.GitHub.io';
+					framewindow.document.querySelector('title').innerText = this.value || 'Untitled HTML Document';
+				}.bind(this),0);
+			});
+
+			document.getElementById('title').addEventListener('blur', function(){history.update()})
+
+			document.getElementById('title').dispatchEvent(new Event('keypress'));
+
+
+			window.addEventListener('mousedown',function(e){
+				if (!document.getElementsByClassName('contextmenu')[0] || (e.target.className && e.target.className.includes('contextmenu'))) return;
+				document.body.removeChild(document.getElementsByClassName('contextmenu')[0] || {});
+				if (sectionopen) {
+					Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element, index) {
+						element.style.background = '';
+					});
+					sectionopen = false;
+				}
+			});
+
+			function windowkeypress(e) {
 				if (e.charCode == 122 && e.ctrlKey) {
 					history.currentEntry = Math.max(history.currentEntry - 1, 0);
-					framewindow.document.body.innerHTML = history[history.currentEntry];
-					overlayUpdate(true);
+					framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
+					document.getElementById('title').value = history.entries[history.currentEntry].title;
+					overlayUpdate();
+					localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
 				} else if (e.charCode == 121 && e.ctrlKey) {
-					history.currentEntry = Math.min(history.currentEntry + 1, history.length - 1);
-					framewindow.document.body.innerHTML = history[history.currentEntry];
-					overlayUpdate(true);
+					history.currentEntry = Math.min(history.currentEntry + 1, history.entries.length - 1);
+					framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
+					document.getElementById('title').value = history.entries[history.currentEntry].title;
+					overlayUpdate();
+					localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
 				}
-			})
+			}
+			window.addEventListener('keypress', windowkeypress);
+			framewindow.addEventListener('keypress', windowkeypress);
 
 
 			//Interval for controlling pulsating backgrounds
@@ -565,13 +855,8 @@
 				})
 			}, 20);
 			overlayUpdate();
+			history.update();
 		}();
-
-
-		window.addEventListener('mousedown',function(e){
-			if (!document.getElementsByClassName('contextmenu')[0] || e.target.className.includes('contextmenu')) return;
-			document.body.removeChild(document.getElementsByClassName('contextmenu')[0] || {});
-		});
 	</script>
 </body>
 </html>
