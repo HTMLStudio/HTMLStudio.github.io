@@ -9,6 +9,7 @@
 			margin: 0;
 			height: 100%;
 			position: relative;
+			overflow-y: hidden;
 		}
 
 		#measurementReference {
@@ -40,11 +41,15 @@
 			min-height: 80%;
 			width: auto;
 			position: relative;
+			overflow-y: auto;
 		}
 
-		#frame, #frameoverlay, #frameback {
-			height: 100%;
+		#framecontainer > * {
+			min-height: 100%;
 			width: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
 		}
 
 		#frameback {
@@ -53,17 +58,20 @@
 		}
 
 		#frame {
-			position: absolute;
-			top: 0;
-			left: 0;
 			border: 0;
+			overflow-y: hidden;
 		}
 
 		#frameoverlay {
-			position: absolute;
-			top: 0;
-			left: 0;
-			overflow: auto;
+			overflow: hidden;
+		}
+
+		#overlaygrid {
+			pointer-events: none;
+			background: url("svg/grid.svg");
+			background-size: contain;
+			opacity: .4;
+			display: none;
 		}
 
 		#toolbarcontainer {
@@ -209,6 +217,7 @@
 		<div id='frameback'></div>
 		<iframe id='frame'></iframe>
 		<div id='frameoverlay'></div>
+		<div id='overlaygrid'></div>
 	</div>
 	<div id='tooltip'>
 		<div id='tooltip_icon'></div>
@@ -248,23 +257,33 @@
 						li.className = 'contextmenuitem';
 						li.id = this.id + '-item-' + i;
 						li.root = this.node;
-						var disabled = args.items[i].disabled;
-						Object.defineProperty(li, 'disabled', {
-							get: function() {return disabled},
-							set: function(v) {
-								disabled = v;
-								(li.children[1] || li.firstChild).style.color = v ? '#AAA' : ''
-								li.title = itemplaceholder[v && itemplaceholder.disabledtitle ? 'disabledtitle' : 'title'];
+						var disabled = args.items[i].disabled, toggled = args.items[i].toggled || false;
+						Object.defineProperties(li, {
+							disabled: {
+								get: function() {return disabled},
+								set: function(v) {
+									disabled = !!v;
+									(li.children[1] || li.firstChild).style.color = v ? '#AAA' : ''
+									li.title = itemplaceholder[v && itemplaceholder.disabledtitle ? 'disabledtitle' : 'title'];
+								},
+								enumerable: true,
+								configurable: true
 							},
-							enumerable: true,
-							configurable: true
+							toggled: {
+								get: function() {return toggled},
+								set: function(v) {
+									toggled = !!v;
+									if (itemplaceholder.toggle && !nopad) (li.firstChild).style.backgroundImage = 'url("svg/' + (v ? 'checkmark' : 'transparent') + '.svg")'
+								}
+							}
 						})
 						li.func = args.items[i].func;
 						// Sets image if pad is true or not included
 						if (nopad) {
 							li.style.width = 'calc(12rem + 1.7em)';
 						} else {
-							if (args.items[i].image) image.style.backgroundImage = 'url("' + args.items[i].image + '")';
+							if (args.items[i].toggle) image.style.backgroundImage = args.items[i].toggled ? 'url("svg/checkmark.svg")' : 'url("https://christianfigueroa.github.io/assets/transparent.png")';
+							else if (args.items[i].image) image.style.backgroundImage = 'url("' + args.items[i].image + '")';
 							// Sets image styles
 							image.className = 'contextmenuitemimage'
 							image.style.width = '1.4em';
@@ -304,7 +323,7 @@
 						if (args.items[i].func) li.addEventListener('click', function(e){
 							if (!disabled) li.func.call(this,e,function(){
 								li.style.background = '#F5F5F5';
-								li.root.parentNode.removeChild(li.root);
+								if (li.root.parentNode) li.root.parentNode.removeChild(li.root);
 							})
 						});
 						// Sets the item's hover and click color behavior
@@ -588,12 +607,35 @@
 				new ContextMenu({
 					items: [{
 						name: 'Undo',
-						disabled: true,
-						disabledtitle: 'Work in Progress'
+						func: undo,
+						title: 'Reverts most recent change',
+						disabledtitle: 'There are no changes to be undone'
 					},{
 						name: 'Redo',
-						disabled: true,
-						disabledtitle: 'Work in Progress'
+						func: redo,
+						title: 'Restores most recent change',
+						disabledtitle: 'There are no changes to be redone',
+						separate: true
+					},{
+						name: 'Select all',
+						func: function(_,close) {
+							var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
+							for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
+								elements[i].setAttribute('data-selected-element', 'selected');
+								close();
+								closeHeaders();
+								document.getElementById('tooltiptext').innerHTML = elements.length + ' nodes selected'
+							}
+						},
+						title: 'Selects all nodes in the document'
+					},{
+						name: 'Select none',
+						func: function(_,close) {
+							deselect();
+							close();
+							closeHeaders();
+							document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here'},
+						title: 'Deselects all nodes in the document'
 					}]
 				}),
 				new ContextMenu({
@@ -608,7 +650,19 @@
 					},{
 						name: 'HTML Tree',
 						disabled: true,
-						disabledtitle: 'Work in Progress'
+						disabledtitle: 'Work in Progress',
+						separate: true
+					},{
+						name: 'Grid',
+						func: function(_,close) {
+							this.toggled = !this.toggled;
+							if (this.toggled) document.getElementById('overlaygrid').style.display = 'block';
+							else document.getElementById('overlaygrid').style.display = '';
+							close();
+							closeHeaders();
+						},
+						title: 'Toggles the overlay grid for the document',
+						toggle: true
 					}]
 				})];
 			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
@@ -620,6 +674,7 @@
 			framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
 			framewindow.document.body.style.margin = '0';
 			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
+			framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = 'hidden';
 			overlay.alias = framewindow.document.body;
 
 
@@ -743,6 +798,7 @@
 				overlay.style.cursor = 'crosshair';
 				overlay.style.color = 'rgba(0,0,0,0)';
 				overlay.style.background = 'rgba(0,0,0,0)';
+				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = iframe.style.height = overlay.getBoundingClientRect().height + 'px';
 			}
 
 
@@ -755,9 +811,8 @@
 			}
 
 
-
 			var sectionopen = false;
-			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function (element,index,array){
+			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element,index,array){
 				element.addEventListener('mousedown', function (e){
 					e.stopPropagation();
 					sectionopen = !sectionopen;
@@ -792,21 +847,34 @@
 					this.style.background = '#DDD';
 				});
 			});
+			function closeHeaders() {
+				Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element) {
+					sectionopen = false;
+					contextmenus.forEach(function(context) {
+						if (context.parentNode == document.body) document.body.removeChild(context.node);
+					});
+					element.style.background = '';
+				})
+			}
 
 			document.getElementById('title').addEventListener('keypress', function(e) {
 				if (e.keyCode == 13) return this.blur();
 				setTimeout(function(){
 					if (!this.value) this.style.fontStyle = 'italic';
-					else this.style.fontStyle = ''
+					else this.style.fontStyle = '';
 					var width = document.getElementById('titlewidth');
 					width.innerText = this.value;
 					document.getElementById('title').style.width = width.scrollWidth + em(.6) + 'px';
 					document.title = (this.value || 'HTML Studio') + ' \xb7 ChristianFigueroa.GitHub.io';
-					framewindow.document.querySelector('title').innerText = this.value || 'Untitled HTML Document';
+					framewindow.document.querySelector('title').innerText = this.value;
 				}.bind(this),0);
 			});
 
-			document.getElementById('title').addEventListener('blur', function(){history.update()})
+			document.getElementById('title').addEventListener('blur', function(){
+				history.update();
+				if (!this.value) this.style.fontStyle = 'italic';
+				else this.style.fontStyle = '';
+			})
 
 			document.getElementById('title').dispatchEvent(new Event('keypress'));
 
@@ -822,26 +890,42 @@
 				}
 			});
 
+			function undo () {
+				history.currentEntry = Math.max(history.currentEntry - 1, 0);
+				framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
+				var title = document.getElementById('title');
+				title.value = history.entries[history.currentEntry].title;
+				if (!title.value) title.style.fontStyle = 'italic';
+				else title.style.fontStyle = '';
+				overlayUpdate();
+				localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
+				contextmenus[3].getItem(0).disabled = !history.currentEntry;
+				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
+				deselect();
+			}
+			function redo () {
+				history.currentEntry = Math.min(history.currentEntry + 1, history.entries.length - 1);
+				framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
+				var title = document.getElementById('title');
+				title.value = history.entries[history.currentEntry].title;
+				title.value = history.entries[history.currentEntry].title;
+				if (!title.value) title.style.fontStyle = 'italic';
+				else title.style.fontStyle = '';
+				overlayUpdate();
+				localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
+				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
+				contextmenus[3].getItem(0).disabled = !history.currentEntry;
+				deselect();
+			}
 			function windowkeypress(e) {
-				if (e.charCode == 122 && e.ctrlKey) {
-					history.currentEntry = Math.max(history.currentEntry - 1, 0);
-					framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
-					document.getElementById('title').value = history.entries[history.currentEntry].title;
-					overlayUpdate();
-					localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
-				} else if (e.charCode == 121 && e.ctrlKey) {
-					history.currentEntry = Math.min(history.currentEntry + 1, history.entries.length - 1);
-					framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
-					document.getElementById('title').value = history.entries[history.currentEntry].title;
-					overlayUpdate();
-					localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
-				}
+				if (e.charCode == 122 && e.ctrlKey) undo();
+				else if (e.charCode == 121 && e.ctrlKey) redo();
 			}
 			window.addEventListener('keypress', windowkeypress);
 			framewindow.addEventListener('keypress', windowkeypress);
 
 
-			//Interval for controlling pulsating backgrounds
+			// Main interval
 			var currentFrame = 0;
 			setInterval(function() {
 				currentFrame = (currentFrame + 1) % 50;
@@ -852,8 +936,10 @@
 				Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
 					//element.style.backgroundColor = bgcolor;
 					element.style.color = tcolor;
-				})
+				});
 			}, 20);
+
+
 			overlayUpdate();
 			history.update();
 		}();
