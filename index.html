@@ -3,8 +3,19 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<title>HTML Studio &#183; ChristianFigueroa.GitHub.io</title>
-	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:600' rel='stylesheet' type='text/css'>
 	<style type="text/css">
+		@font-face {
+			font-family: 'BPreplay';
+			font-style: italic;
+			font-weight: 700;
+			src: local('BPreplay Bold Italic'),,
+				 local('BPreplay-BoldItalic')
+				 url('/assets/BPreplay-BoldItalics.woff2') format('woff2'),
+				 url('/assets/BPreplay-BoldItalics.woff') format('woff'),
+				 url('/assets/BPreplay-BoldItalics.ttf') format('truetype');
+		}
+
 		body, html {
 			margin: 0;
 			height: 100%;
@@ -54,7 +65,8 @@
 
 		#frameback {
 			background: #90A4AE;
-			background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAIAAAADnC86AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AwRFQ0T3Dgy0QAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAQklEQVRYw+3WsQkAIAxFQRXnyMgZMpM4gqCgzb0+HPwqPTPbaVV1fDvap8BgMBgMBoPfN2/+pogwNRgMBoPBYPC+BUKAB6LfGhNrAAAAAElFTkSuQmCC');
+			background-image: url("svg/back.svg");
+			background-size: contain;
 		}
 
 		#frame {
@@ -75,10 +87,9 @@
 		}
 
 		#toolbarcontainer {
-			height: 20%;
+			height: calc(20% - 1px);
 			background: #F0F0F0;
 			border-bottom: 1px solid #888;
-			margin-bottom: -1px;
 			z-index: 1;
 			position: relative;
 			box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
@@ -197,6 +208,202 @@
 			text-align: center;
 			font-family: Arial, sans-serif;
 		}
+
+		#open_file {
+			display: none;
+		}
+
+		#dialogcover {
+			z-index: 500;
+			background: rgba(0,0,0,.7);
+			height: 100vh;
+			width: 100vw;
+			position: absolute;
+			display: none;
+			top: 0;
+			left: 0;
+		}
+
+		.dialog { 
+			width: 50%;
+			height: 75vh;
+			background: #F0F0F0;
+			text-align: center;
+			border-radius: .6em;
+			margin-left: calc(25% - 1px);
+			margin-top: calc(12.5vh - 1px);
+			border: 1px solid #AAA;
+			box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
+			font-family: Arial, sans-serif;
+			position: relative;
+			display: none;
+		}
+
+		.dialog>span {
+			font-size: 1.1em;
+			display: block;
+			margin: .2em 0;
+		}
+
+		.dialog>.content {
+			height: calc(75vh - 5.9em - 1px);
+			width: calc(100% - 4.5em);
+			position: relative;
+			left: .5em;
+			border-radius: inherit;
+			background: #FFF;
+			border: 1px solid #AAA;
+			margin: -1px -1px .5em;
+			padding: .75em 1.75em;
+			overflow: auto;
+		}
+
+		.dialog>.exit {
+			height: 1.2em;
+			width: 1.2em;
+			position: absolute;
+			top: .26em;
+			right: .5em;
+			background: rgba(0, 0, 0, 0) url("svg/exit.svg") 50% 50%/70% 70% no-repeat;
+			border: 1px solid #AAA;
+			margin: -1px;
+			border-radius: .3em;
+			cursor: pointer;
+		}
+
+		.dialog>.exit.disabled {
+			background: #F0F0F0;
+			cursor: default;
+		}
+
+		.dialog>.option {
+			background: #FFF;
+			display: inline-block;
+			padding: .3em .5em;
+			font-family: Arial, sans-serif;
+			float: right;
+			border-radius: .3em;
+			border: 1px solid #AAA;
+			margin: -1px .5em -1px -1px;
+			cursor: pointer;
+			position: static;
+			width: initial;
+		}
+
+		.dialog>.option:hover {
+			background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
+		}
+
+		.dialog>.option:active {
+			background: linear-gradient(to bottom, #BBB 0%,#DDD 100%);
+			box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
+		}
+
+		.dialog>.option.disabled {
+			background: #F0F0F0;
+			color: #999;
+			box-shadow: initial;
+			cursor: default;
+		}
+
+		.dialog>.content h3 {
+			font-weight: normal;
+			font-family: Arial, sans-serif;
+			margin: 0;
+		}
+
+		#id1 {
+			width: calc(100% - 2em);
+			height: 40vh;
+			background: #FFF;
+			border: 1em dashed #00acc1;
+			display: table;
+			table-layout: fixed;
+			margin-bottom: .75em;
+		}
+
+		#id1.active {
+			border-color: #008ca1;
+		}
+
+		#id2 {
+			margin-top: 2.5em;
+			cursor: pointer;
+		}
+
+		#id3 {
+			font-size: 10vh;
+			display: block;
+		}
+
+		#id5 {
+			font-size: 7vh;
+			font-family: "BPreplay", Arial, sans-serif;
+			font-style: italic;
+			font-weight: 700;
+		}
+
+		#id4 {
+			height: 100%;
+			width: 100%;
+			vertical-align: middle;
+			display: table-cell;
+			color: #00acc1;
+			font-family: "BPreplay", Arial, sans-serif;
+			font-style: italic;
+			font-weight: 700;
+			pointer-events: none;
+		}
+
+		#id6 {
+			font-family: Arial, sans-serif;
+			height: 100%;
+			text-align: left;
+			font-style: normal;
+			font-weight: normal;
+		}
+
+		#id7 {
+			font-family: "Open Sans", Arial, sans-serif;
+			font-weight: normal;
+			padding: 2.5vh;
+			font-size: 3.5vh;
+			color: #000;
+			font-weight: 600;
+			border: 1vh solid #FFF;
+			border-radius: 3vh;
+		}
+
+		#id8 {
+			font-size: 5vh;
+			color:#00acc1;
+			font-family: "BPreplay", Arial, sans-serif;
+			font-weight: 700;
+			font-style: italic;
+			display: block;
+			margin: 5vh 1em;
+			line-height: 1.3;
+			text-align: center;
+		}
+
+		#ide {
+			padding: 0;
+			height: calc(75vh - 4.4em - 1px);
+			width: calc(100% - 1em);
+		}
+
+		#idf {
+			height: calc(75vh - 6.9em - 1px);
+			width: calc(100% - 3.5em);
+			margin: 0;
+			padding: .75em 1.75em;
+			border: 0;
+			resize: none;
+		}
+
+		#id1.active #id4 {
+			color: #008ca1;
+		}
 	</style>
 </head>
 <body>
@@ -227,6 +434,35 @@
 			</div>
 		</div>
 	</div>
+	<div id='dialogcover'>
+		<div id='dialog_open_file' class='dialog'>
+			<span>Open File</span>
+			<div class='content' id='idb'>
+				<h3>Select a file to replace the current document. Keep in mind <strong style='text-decoration:underline'>this action cannot be undone</strong> and any unsaved changes will be deleted.</h3>
+				<form id='id2'>
+					<div id='id1' ondragover='return this.className="active",false' ondragend='return this.className="",false' ondragleave='return this.className="",false'>
+						<div id='id4'>
+							<span id='id3'>Drop a file here</span>
+							<span id='id5'>or click to select one</span>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='option exit' tabindex='0' id='ida'>Cancel</div>
+			<div class='option disabled' tabindex='0' id='id9'>Open File</div>
+		</div>
+		<div id='dialog_edit_html' class='dialog'>
+			<span>Edit Node as HTML</span>
+			<div class='content' id='ide'>
+				<textarea id='idf' spellcheck='false'></textarea>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='option exit' tabindex='0' id='idc'>Cancel</div>
+			<div class='option' tabindex='0' id='idd'>Save</div>
+		</div>
+	</div>
+	<input type='file' id='open_file' accept='text/html'>
 	<script type="text/javascript">
 		"use strict";
 		!function(){
@@ -395,23 +631,25 @@
 
 		!function(){
 			// Run on page load
-			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), history = {
+			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), backdialog = document.getElementById('dialogcover'), history = {
 				entries: JSON.parse(localStorage.getItem('documentHistoryEntries')) || [],
 				update: function() {
-					if (~this.currentEntry && framewindow.document.body.innerHTML == this.entries[this.currentEntry].html && document.getElementById('title').value == this.entries[this.currentEntry].title) return;
+					if (~this.currentEntry && framewindow.document.body.outer == this.entries[this.currentEntry].html && document.getElementById('title').value == this.entries[this.currentEntry].title) return;
 					this.currentEntry += 1;
 					this.entries[this.currentEntry] = {
-						html: framewindow.document.body.innerHTML,
+						html: framewindow.document.body.outerHTML,
 						title: document.getElementById('title').value
 					}
 					this.entries = this.entries.slice(0,this.currentEntry + 1);
 					localStorage.setItem('documentHistoryEntries', JSON.stringify(this.entries))
 					localStorage.setItem('documentHistoryCurrentEntry', this.currentEntry)
+					contextmenus[3].getItem(0).disabled = !this.currentEntry;
+					contextmenus[3].getItem(1).disabled = this.currentEntry == this.entries.length - 1;
 				}
 			}, contextmenus =
 				[new ContextMenu({
 					items: [{
-						name: '[Name]',
+						name: '[Node Info]',
 						disabled: true,
 						pad: false,
 						css: {
@@ -561,6 +799,14 @@
 					},{
 						name: 'Edit as HTML&#133;',
 						image: 'svg/edit_as_html.svg',
+						func: function(_,close) {
+							close();
+							closeHeaders();
+							backdialog.style.display = 'block';
+							document.getElementById('dialog_edit_html').style.display = 'block';
+							document.getElementById('idf').value = this.root.originElement.alias[(this.root.originElement.alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
+							document.getElementById('idf').linkedElement = this.root.originElement.alias;
+						},
 						title: 'Allows you to edit the node\'s HTML',
 						separate: true
 					},{
@@ -596,8 +842,28 @@
 						disabledtitle: 'Work in Progress'
 					},{
 						name: 'Open&#133;',
-						disabled: true,
-						disabledtitle: 'Work in Progress'
+						func: function(_,close) {
+							document.getElementById('dialogcover').style.display = 'block';
+							document.getElementById('dialog_open_file').style.display = 'block';
+							document.getElementById('id2').innerHTML = '<div id="id1" ondragover="return this.className=\'active\',false" ondragend="return this.className=\'\',false" ondragleave="return this.className=\'\',false"><div id="id4"><span id="id3">Drop a file here</span><span id="id5">or click to select one</span></div></div>';
+							document.getElementById('idb').scrollTop = 0;
+							document.getElementById('id9').className = 'option disabled';
+							document.getElementById('id1').addEventListener('drop', function(e) {
+								e.preventDefault();
+								e.stopPropagation();
+								this.className='';
+								if (!e.dataTransfer.files.length) return;
+								document.getElementById('id4').innerHTML = '<div id="id6"><div id="id7">' + (e.dataTransfer.files[0].name) + '<span style="float:right">' + (e.dataTransfer.files[0].size < 1000 ? e.dataTransfer.files[0].size + ' bytes' : Math.round(e.dataTransfer.files[0].size / 100) / 10 + 'KB') + '</span></div><span id="id8"></span></div>';
+								if (e.dataTransfer.files[0].type != 'text/html') return document.getElementById('id8').innerHTML = 'This file format is not allowed. Please only select an HTML file ending in an ".html" extension.',document.getElementById('id7').style.background = '#FFB7B7',document.getElementById('id9').className='option disabled';
+								document.getElementById('id7').style.background = '#A6FFA6';
+								document.getElementById('id8').innerHTML = 'Make sure your work is saved before pressing "Open File"';
+								document.getElementById('id9').className = 'option';
+								document.getElementById('id2').file = e.dataTransfer.files[0];
+							});
+							close();
+							closeHeaders();
+						},
+						title: 'Open an HTML file to replace the current document'
 					},{
 						name: 'Download File&#133;',
 						disabled: true,
@@ -665,16 +931,25 @@
 						toggle: true
 					}]
 				})];
+			console.log(history)
 			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
-			framewindow.document.body.innerHTML = history.entries.length ? history.entries[history.currentEntry].html : 'This is the <span style="color: #00acc1; font-family: monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
-			if (history.entries.length) document.getElementById('title').value = history.entries[history.currentEntry].title;
-			framewindow.document.body.style.background = 'white';
-			framewindow.document.body.style.textAlign = 'center';
-			framewindow.document.body.style.fontSize = '1.5em';
-			framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
-			framewindow.document.body.style.margin = '0';
+			console.log(history)
+			if (history.entries.length) {
+				framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
+				document.getElementById('title').value = history.entries[history.currentEntry].title;
+				framewindow.document.body.style.margin = framewindow.document.body.style.margin || '0';
+			} else {
+				framewindow.document.body.innerHTML = 'This is the <span style="color: #00acc1; font-family: monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
+				framewindow.document.body.style.background = 'white';
+				framewindow.document.body.style.textAlign = 'center';
+				framewindow.document.body.style.fontSize = '1.5em';
+				framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
+				framewindow.document.body.style.margin = '0';
+				framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = 'hidden';
+			}
 			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
-			framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = 'hidden';
+			contextmenus[3].getItem(0).disabled = !history.currentEntry;
+			contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
 			overlay.alias = framewindow.document.body;
 
 
@@ -712,6 +987,12 @@
 				}
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
+			});
+			overlay.addEventListener('mousemove', function(e) {
+				document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
+			});
+			overlay.addEventListener('mouseleave', function() {
+				document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here'
 			})
 
 
@@ -779,6 +1060,12 @@
 							clonednode.style.cursor = 'crosshair';
 							clonednode.style.color = 'rgba(0,0,0,0)';
 							clonednode.style.background = 'rgba(0,0,0,0)';
+
+							clonednode.setAttribute('style', clonednode.getAttribute('style').replace(/(\d+)vw/g, function($_, $1) {
+								return framewindow.innerWidth / 100 * $1 + 'px';
+							}).replace(/(\d+)vh/g, function($_, $1) {
+								return framewindow.innerHeight / 100 * $1 + 'px';
+							}))
 						}
 						parent.insertBefore(clonednode, parent.firstChild);
 						if (this.childNodes.length) {
@@ -874,9 +1161,89 @@
 				history.update();
 				if (!this.value) this.style.fontStyle = 'italic';
 				else this.style.fontStyle = '';
+			});
+			document.getElementById('title').dispatchEvent(new Event('keypress'));
+
+
+
+			function closeDialogs() {
+				document.getElementById('dialogcover').style.display = '';
+				Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
+					element.style.display = '';
+				})
+			};
+
+			// Dialog option button event listeners
+			// Event listener for file upload window
+			document.getElementById('open_file').addEventListener('change', function(e) {
+				if (!this.files.length) return;
+				document.getElementById('id4').innerHTML = '<div id="id6"><div id="id7">' + (this.files[0].name) + '<span style="float:right">' + (this.files[0].size < 1000 ? e.files[0].size + ' bytes' : Math.round(this.files[0].size / 100) / 10 + 'KB') + '</span></div><span id="id8"></span></div>';
+				if (this.files[0].type != 'text/html') return document.getElementById('id8').innerHTML = 'This file format is not allowed. Please only select an HTML file ending in an ".html" extension.',document.getElementById('id7').style.background = '#FFB7B7',document.getElementById('id9').className='option disabled';
+				document.getElementById('id7').style.background = '#A6FFA6';
+				document.getElementById('id8').innerHTML = 'Make sure your work is saved before pressing "Open File"';
+				document.getElementById('id9').className='option';
+				document.getElementById('id2').file = this.files[0];
+			});
+			// Onclick event listener for file uploader for File > Open...
+			document.getElementById('id2').addEventListener('click', function() {
+				document.getElementById('open_file').click();
+			});
+			// Open File button for File > Open...
+			document.getElementById('id9').addEventListener('click', function() {
+				if (this.className.includes('disabled')) return;
+				var reader = new FileReader(), html;
+				reader.onload = function() {
+					try {
+						html = reader.result;
+						var template = document.createElement('template'), tempiframe = document.createElement('iframe'), body;
+						template.innerHTML = html;
+						if (!template.content.querySelector('body')) {
+							try {
+								body = new DOMParser().parseFromString(html, 'text/html').body;
+							} catch (_) {
+								body = new DOMParser().parseFromString(html, 'text/xml');
+								if (body.children[0].nodeName == 'parsererror') throw Error('The file could not be read as HTML (Update or change your browser!) and was interpretted as malformed XML. Try removing <script> elements or updating/changing your browser to be interpretted correctly.');
+								body = body.getElementsByTagName('body')[0]
+							}
+						} else body = template.content.querySelector('body');
+						if (!body) throw Error('A <body> element could not be found or the file is malformed. Try updating/changing your browser.');
+						localStorage.setItem('documentHistoryEntries', JSON.stringify([{
+							html: (body).outerHTML,
+							title: (template.content.querySelector('title') || {innerText:''}).innerText
+						}]));
+						localStorage.setItem('documentHistoryCurrentEntry', 0);
+						closeDialogs();
+						location.reload();
+					} catch(_) {
+						console.error(_);
+						document.getElementById('id8').innerHTML = 'An error occurred while parsing the file. Make sure the file is valid HTML (and includes a &lt;body&gt;) or try another browser.'
+					}
+				}
+				reader.readAsText(document.getElementById('id2').file);
+			});
+			// Save HTML button for [Right Click] > Edit as HTML...
+			document.getElementById('idd').addEventListener('click', function() {
+				var textarea = document.getElementById('idf'), template = document.createElement('template');
+				if (textarea.linkedElement == framewindow.document.body) {
+					return framewindow.document.body.innerHTML = textarea.value,closeDialogs(),overlayUpdate(),history.update();
+				}
+				template.innerHTML = textarea.value;
+				var children = template.content.childNodes;
+				for (var i = children.length - 1; i >= 0; i--) {
+					textarea.linkedElement.parentNode.insertBefore(children[i], i == children.length - 1 ? textarea.linkedElement.nextSibling : children[i + 1]);
+				}
+				textarea.linkedElement.parentNode.removeChild(textarea.linkedElement);
+				overlayUpdate();
+				history.update();
+				closeDialogs();
+			})
+			// Top right exit button event listener
+			Array.prototype.forEach.call(document.getElementsByClassName('exit'), function(element) {
+				element.addEventListener('click', function() {
+					if (!this.className.includes('disabled')) closeDialogs();
+				})
 			})
 
-			document.getElementById('title').dispatchEvent(new Event('keypress'));
 
 
 			window.addEventListener('mousedown',function(e){
@@ -892,7 +1259,7 @@
 
 			function undo () {
 				history.currentEntry = Math.max(history.currentEntry - 1, 0);
-				framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
+				framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
 				var title = document.getElementById('title');
 				title.value = history.entries[history.currentEntry].title;
 				if (!title.value) title.style.fontStyle = 'italic';
@@ -905,7 +1272,7 @@
 			}
 			function redo () {
 				history.currentEntry = Math.min(history.currentEntry + 1, history.entries.length - 1);
-				framewindow.document.body.innerHTML = history.entries[history.currentEntry].html;
+				framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
 				var title = document.getElementById('title');
 				title.value = history.entries[history.currentEntry].title;
 				title.value = history.entries[history.currentEntry].title;
