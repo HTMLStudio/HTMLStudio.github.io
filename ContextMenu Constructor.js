@@ -7,7 +7,6 @@
 */
 
 window.ContextMenu = function ContextMenu (args) {
-  "use strict";
   this.getItem = function(arg){
     for (var children = this.node.children, i = children.length - 1; i >= 0; i--) {
       if (children[i].id == this.id + '-item-' + (arg||0)) return children[i]
@@ -46,7 +45,7 @@ window.ContextMenu = function ContextMenu (args) {
           get: function() {return toggled},
           set: function(v) {
             toggled = !!v;
-            if (itemplaceholder.toggle && !nopad) (li.firstChild).style.backgroundImage = 'url("svg/' + (v ? 'checkmark' : 'transparent') + '.svg")'
+            if (itemplaceholder.toggle && !nopad) (li.firstChild).style.backgroundImage = 'url("' + (v ? itemplaceholder.image || '' : itemplaceholder.imageoff || itemplaceholder.image || '') + '")'
           }
         }
       })
@@ -55,7 +54,7 @@ window.ContextMenu = function ContextMenu (args) {
       if (nopad) {
         li.style.width = 'calc(12rem + 1.7em)';
       } else {
-        if (args.items[i].toggle) image.style.backgroundImage = args.items[i].toggled ? 'url("svg/checkmark.svg")' : 'url("https://christianfigueroa.github.io/assets/transparent.png")';
+        if (args.items[i].toggle) image.style.backgroundImage = args.items[i].toggled ? 'url("' + args.items[i].image || '' + '")' : 'url("' + (args.items[i].imageoff || args.items[i].image || '') + '")';
         else if (args.items[i].image && (!args.items[i].disabled || !args.items[i].disabledimage)) image.style.backgroundImage = 'url("' + args.items[i].image + '")';
         else if (args.items[i].disabledimage && args.items[i].disabled) image.style.backgroundImage = 'url("' + args.items[i].disabledimage + '")';
         // Sets image styles
