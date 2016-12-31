@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html style='height:100vh'>
+<head>
+	<title>Picture Strips</title>
+	<style data-name='Preset Stylesheet'>
+		.strip {
+			height: 90vh;
+			width: 100%;
+		}
+
+		.strip > img {
+			height: inherit;
+			width: 100%;
+			position: absolute;
+		}
+
+		.strip > div {
+			display: table;
+			vertical-align: middle;
+			text-align: center;
+			background-color: rgba(0,0,0,.3);
+			position: absolute;
+			height: inherit;
+			width: inherit;
+		}
+
+		.strip > div > div {
+			display: table-cell;
+			vertical-align: middle;
+		}
+
+		.strip > div > div > h1 {
+			font-size: 15vh;
+			color: white;
+			font-family: Arial, sans-serif;
+			font-weight: 700;
+			margin-top: 0;
+			margin-bottom: 0.2em;
+		}
+
+		.strip > div > div > p {
+			color: white;
+			max-width: 80%;
+			font-size: 6vh;
+			margin: auto;
+			font-family: Garamond, "Times New Roman", serif;
+		}
+	</style>
+</head>
+<body style='min-height:100vh;margin:0'>
+	<div style='height:10vh;position:fixed;background-color:#00acc1;width:100%;text-align:center;font-family:Arial,sans-serif;color:#fff;font-size:8vh;z-index:1'>Header</div>
+	<div style='height:10vh'></div>
+	<div class='strip'>
+		<img src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Veil_Nebula_-_NGC6960.jpg/1280px-Veil_Nebula_-_NGC6960.jpg'>
+		<div>
+			<div>
+				<h1>Content</h1>
+				<p> A paragraph with extra information</p>
+			</div>
+		</div>
+	</div>
+	<div class='strip'>
+		<img src='https://upload.wikimedia.org/wikipedia/commons/b/b0/3D-Beach-Wallpaper-HD-Download_vcfcDdZ.jpg'>
+		<div>
+			<div>
+				<h1>More Content</h1>
+				<p>Another paragraph with more stuff</p>
+			</div>
+		</div>
+	</div>
+	<div class='strip'>
+		<img src='https://upload.wikimedia.org/wikipedia/commons/3/3a/Kartandtinki1_photo-wallpapers_02.jpg'>
+		<div>
+			<div>
+				<h1>Even More Content</h1>
+				<p>Yet another paragraph with even more stuff</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
