@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+ <g transform="translate(0,-992.36216)">
+    <rect y="-1035.3621" x="-59.999874" height="12" width="12" style="fill:#00acc1" transform="scale(-1,-1)"/>
+    <path d="m60,1035.3622c0,6 -6,12 -12,12l0,-6c3,0 6,-3 6,-6z" style="fill:#00acc1"/>
+    <rect style="fill:#00acc1" width="12" height="12" x="-45" y="-1035.3621" transform="scale(-1,-1)"/>
+    <path d="m45,1035.3622c0,6 -6,12 -12,12l0,-6c3,0 6,-3 6,-6z" style="fill:#00acc1"/>
+    <rect style="fill:#00acc1" width="12" height="12" x="0" y="1009.3622"/>
+    <path style="fill:#00acc1" d="m0,1009.3622c0,-6 6,-12 12,-12,6c-3,0 -6,3 -6,6z"/>
+    <path style="fill:#00acc1" d="m15,1009.3622c0,-6 6,-12 12,-12,6c-3,0 -6,3 -6,6z"/>
+    <rect y="1009.3622" x="15" height="12" width="12" style="fill:#00acc1" />
+    <path style="fill:#456" d="M0,1052.3622 5.1429443,1035.2192 48,992.36214l12,12 -42.856868,42.8571z"/>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="60" height="60" viewBox="0 0 60 60">
+  <defs>
+    <linearGradient id="linearGradient3412">
+      <stop style="stop-color:#445566;stop-opacity:1" offset="0"/>
+      <stop style="stop-color:#00acc1;stop-opacity:1" offset="1"/>
+    </linearGradient>
+    <linearGradient xlink:href="#linearGradient3412" id="linearGradient3418" x1="30" y1="1016.3622" x2="30" y2="1027.3622" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.1111111,0,0,1.1111111,-3.3333333,-113.5958)" />
+  </defs>
+  <g transform="translate(0,-992.36216)">
+    <rect style="fill:#00acc1" width="25.555555" height="20" x="0" y="1030.14"/>
+    <rect y="1030.14" x="34.444443" height="20" width="25.555555" style="fill:#00acc1" />
+    <rect y="994.58441" x="17.222221" height="20" width="25.555555" style="fill:#445566" />
+    <path style="fill:url(#linearGradient3418)" d="m11.111111,1030.14 0,-11.1111 16.666667,0 0,-4.4445 4.444444,0 0,4.4445 16.666667,0 0,11.1111 -4.444445,0 0,-6.6667 -28.888888,0 0,6.6667z" />
+  </g>
+</svg>
