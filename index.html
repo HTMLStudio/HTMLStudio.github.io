@@ -681,9 +681,9 @@
 					}
 					this.entries[this.currentEntry] = {
 						html: framewindow.document.body.outerHTML,
-						title: document.getElementById('title').value,
-						stylesheets: JSON.stringify(stylesheethtml)
-					}
+						title: document.getElementById('title').value
+					};
+					localStorage.setItem('stylesheets', JSON.stringify(stylesheethtml))
 					this.entries = this.entries.slice(0,this.currentEntry + 1);
 					localStorage.setItem('documentHistoryEntries', JSON.stringify(this.entries));
 					localStorage.setItem('documentHistoryCurrentEntry', this.currentEntry);
@@ -1173,7 +1173,7 @@
 						disabled: true,
 						disabledtitle: 'Create a new stylesheet or import one to edit'
 					}]
-				})];
+				})], css = [];
 			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
 			if (history.entries.length) {
 				framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
@@ -1189,6 +1189,7 @@
 				framewindow.document.body.style.margin = '0';
 				framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = 'hidden';
 			}
+			updateStylesheets();
 			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
 			contextmenus[3].getItem(0).disabled = !history.currentEntry;
 			contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
@@ -1251,9 +1252,21 @@
 			});
 
 			// Other stuff
-			document.getElementById('overwrite_continue').addEventListener('click', function() {
-				document.getElementById('overwrite_warning').style.display = '';
-			})
+			// Polyfill for Element.prototype.matches
+			if (!Element.prototype.matches) {
+				Element.prototype.matches = 
+					Element.prototype.matchesSelector || 
+					Element.prototype.mozMatchesSelector ||
+					Element.prototype.msMatchesSelector || 
+					Element.prototype.oMatchesSelector || 
+					Element.prototype.webkitMatchesSelector ||
+					function(s) {
+						var matches = (this.document || this.ownerDocument).querySelectorAll(s),
+							i = matches.length;
+						while (--i >= 0 && matches.item(i) !== this) {}
+						return i > -1;            
+					};
+			}
 
 
 
@@ -1325,6 +1338,7 @@
 				};
 				for (var i = elements.length - 1; i >= 0; i--) {
 					function clone (parent) {
+						if (this.getAttribute && this.getAttribute('data-html-studio-original-style-attribute')) this.setAttribute('style', this.getAttribute('data-html-studio-original-style-attribute'));
 						var clonednode = this.cloneNode();
 						this.alias = clonednode;
 						clonednode.alias = this;
@@ -1334,23 +1348,57 @@
 								clonednode.addEventListener('contextmenu', contextmenuhandler);
 								// On left click pseudo element
 								clonednode.addEventListener('click', clickhandler);
-								clonednode.style.cursor = 'crosshair';
 							}
+
+							// Applies stylesheet rules to cloned node as style attribute
+							css.forEach(function(stylesheet) {
+								stylesheet[1].forEach(function(query) {
+									if (this.matches(query[0])) {
+										query[1].forEach(function(rule) {
+											clonednode.style[rule[0]] = rule[1];
+										})
+									}
+								}.bind(this))
+							}.bind(this));
+
+							// Save the original node's original style attribute
+							this.setAttribute('data-html-studio-original-style-attribute', this.getAttribute('style') || '');
+
+							// Since iframe height is changed to match its content (required for synchronized scrolling),
+							// vh and vw units will be proportioned incorrectly
+							// This fixes that by changing them to px units instead that correctly reflect vh and vw units
+							var vh = document.getElementById('framecontainer').getBoundingClientRect().height / 100,
+								vw = document.getElementById('framecontainer').getBoundingClientRect().width / 100;
+							if (/v(w|h)/.test(clonednode.getAttribute('style'))) clonednode.setAttribute('style', clonednode.getAttribute('style').replace(/(\d+)vw/g, function($_, $1) {
+								return vw * $1 + 'px';
+							}).replace(/(\d+)vh/g, function($_, $1) {
+								return vh * $1 + 'px';
+							}));
+							// Sets original node's style to match the clonednode
+							// This keeps them synchronised 
+							// Since clonednode inherits its style from the original node and gets stylesheets applied,
+							// The two nodes' styles should match
+							this.setAttribute('style', clonednode.getAttribute('style'));
+
+							// Other styles to make them transparent (since they are just an overlay)
+							// And to keep the crosshair cursor throughout the entire document
+							if (!skipListeners) clonednode.style.cursor = 'crosshair';
 							clonednode.style.color = 'rgba(0,0,0,0)';
 							clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
 
-							if (/v(w|h)/.test(clonednode.getAttribute('style'))) clonednode.setAttribute('style', clonednode.getAttribute('style').replace(/(\d+)vw/g, function($_, $1) {
-								return framewindow.innerWidth / 100 * $1 + 'px';
-							}).replace(/(\d+)vh/g, function($_, $1) {
-								return framewindow.innerHeight / 100 * $1 + 'px';
-							}));
+							// Remove some harmful attributes
+							// Prevent actually clicking on links, instead just select them
 							if (clonednode.nodeName == 'A') clonednode.removeAttribute('href');
+							// Prevent <img>s from blocking the actual nodes (their background was already changed, but not their src)
 							if (clonednode.nodeName == 'IMG') {
 								clonednode.setAttribute('src','https://upload.wikimedia.org/wikipedia/commons/2/20/16x16.png')
 								clonednode.setAttribute('width', Math.round(clonednode.alias.getAttribute('width') || clonednode.alias.getBoundingClientRect().width));
 								clonednode.setAttribute('height', Math.round(clonednode.alias.getAttribute('height') || clonednode.alias.getBoundingClientRect().height));
 							}
+							// Prevent conflicting ids and incorrect inheritance from non-user style sheets
 							clonednode.removeAttribute('id');
+							// Prevent incorrect inheritance from non-user stylesheets
+							clonednode.removeAttribute('class');
 						}
 						parent.insertBefore(clonednode, parent.firstChild);
 						if (this.childNodes.length) {
@@ -1374,6 +1422,55 @@
 			}
 
 
+
+			// Some global functions used in different areas
+			// Update document CSS stylesheets
+			function updateStylesheets() {
+				localStorage.setItem('stylesheets', localStorage.getItem('stylesheets') || '[]');
+				css = [];
+				!function() {
+					var template = document.createElement('template'), allstylesheets = [];
+					for (var stylesheets = JSON.parse(localStorage.getItem('stylesheets')), i = stylesheets.length - 1; i >= 0; i--) {
+						template.innerHTML = stylesheets[i];
+						var style = template.content.querySelector('style'), ref = style.getAttribute('data-name') || 'Stylesheet ' + css.length + 1, encoding, stylesheet = document.createElement('style'), offset = 0;
+						stylesheet.setAttribute('data-name', ref);
+						css.push([ref,[]]);
+						style = style.innerText.trim();
+						while (style) {
+							if (style[0] == '@') {
+								if (style.substring(1,8) == 'charset' && offset == 0) {
+									style = style.substring(8);
+									if (/^ "[^"]+";/.test(style)) {
+										var encoding = style.substring(2).match(/[^"]+";/)[0]
+										encoding = encoding.substring(0, encoding.length - 2);;
+										style = style.replace(/[^;]+;/,'');
+										stylesheet.innerHTML = '@charset "' + encoding + '";';
+									} else style.replace(/^[^;]+;/,'');
+								} else if (style.substring(1,10) == 'font-face') {
+									stylesheet.innerHTML += style.match(/^[^}]*}/)[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g,': ').replace(/(\w)(\s+)}/g, '$1;$2}');
+									style = style.replace(/^[^}]*}/,'');
+								}
+							} else {
+								var query = style.match(/^[^\{]+(?={)/)[0], rules;
+								style = style.replace(query, '');
+								rules = style.match(/{([^}]*)}/);
+								style = style.replace(rules[0], '');
+								stylesheet.innerHTML += query.trim() + ' ' + rules[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g, ': ').replace(/(\w)(\s+)}/g, '$1;$2}');
+								css[css.length - 1][1].push([query.trim(),[]]);
+								rules[1].split(';').forEach(function(rule) {
+									css[css.length - 1][1][css[css.length - 1][1].length - 1][1].push([rule.split(':')[0].trim(), rule.split(':')[1].trim()]);
+								})
+							}
+							style = style.replace(/^\s+/,'');
+							stylesheet.innerHTML += '\n\n';
+							offset = 1;
+						};
+						framewindow.document.head.appendChild(stylesheet);
+						allstylesheets.push(stylesheet.outerHTML);
+					}
+					localStorage.setItem('stylesheets', JSON.stringify(allstylesheets));
+				}();
+			}
 			// Deselects all elements and set their background back to transparent
 			function deselect () {
 				Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
@@ -1381,8 +1478,27 @@
 					element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
 				})
 			}
+			// Closes header context menus and sets the buttons to the correct background color
+			function closeHeaders() {
+				Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element) {
+					sectionopen = false;
+					contextmenus.forEach(function(context) {
+						if (context.parentNode == document.body) document.body.removeChild(context.node);
+					});
+					element.style.background = '';
+				})
+			}
+			// Closes dialogs and hides the background overlay
+			function closeDialogs() {
+				document.getElementById('dialogcover').style.display = '';
+				Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
+					element.style.display = '';
+				})
+			};
 
 
+
+			// A bunch of event listeners for elements
 			var sectionopen = false;
 			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element,index,array){
 				element.addEventListener('mousedown', function (e){
@@ -1403,7 +1519,6 @@
 						else if (getSelection) getSelection().removeAllRanges();
 					},0)
 				});
-
 				element.addEventListener('mouseenter', function (){
 					if (!sectionopen) return;
 					Array.prototype.forEach.call(array, function(element, index) {
@@ -1419,16 +1534,7 @@
 					this.style.background = '#DDD';
 				});
 			});
-			function closeHeaders() {
-				Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element) {
-					sectionopen = false;
-					contextmenus.forEach(function(context) {
-						if (context.parentNode == document.body) document.body.removeChild(context.node);
-					});
-					element.style.background = '';
-				})
-			}
-
+			// Sets document title to match the title on the header
 			document.getElementById('title').addEventListener('keypress', function(e) {
 				if (e.keyCode == 13) return this.blur();
 				setTimeout(function(){
@@ -1441,24 +1547,13 @@
 					framewindow.document.querySelector('title').innerText = this.value;
 				}.bind(this),0);
 			});
-
+			// Updates document title in history
 			document.getElementById('title').addEventListener('blur', function(){
 				history.update();
 				if (!this.value) this.style.fontStyle = 'italic';
 				else this.style.fontStyle = '';
 			});
 			document.getElementById('title').dispatchEvent(new Event('keypress'));
-
-
-
-			function closeDialogs() {
-				document.getElementById('dialogcover').style.display = '';
-				Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
-					element.style.display = '';
-				})
-			};
-
-			// Dialog option button event listeners
 			// Event listener for file upload window
 			document.getElementById('open_file').addEventListener('change', function(e) {
 				if (!this.files.length) return;
@@ -1472,6 +1567,10 @@
 			// Onclick event listener for file uploader for File > Open...
 			document.getElementById('id2').addEventListener('click', function() {
 				document.getElementById('open_file').click();
+			});
+			// Hide warning if button is clicked (2 or more tabs open)
+			document.getElementById('overwrite_continue').addEventListener('click', function() {
+				document.getElementById('overwrite_warning').style.display = '';
 			});
 			// Open File button for File > Open...
 			document.getElementById('id9').addEventListener('click', function() {
@@ -1496,9 +1595,9 @@
 						}
 						localStorage.setItem('documentHistoryEntries', JSON.stringify([{
 							html: (body).outerHTML,
-							title: (doc.getElementsByTagName('title') ? doc.getElementsByTagName('title')[0] : {innerText:''}).innerText,
-							stylesheets: JSON.stringify(stylesheethtml)
+							title: (doc.getElementsByTagName('title') ? doc.getElementsByTagName('title')[0] : {innerText:''}).innerText
 						}]));
+						localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
 						localStorage.setItem('documentHistoryCurrentEntry', 0);
 						closeDialogs();
 						location.reload();
@@ -1545,6 +1644,7 @@
 				history.update();
 				closeDialogs();
 			});
+			// Allows for pressing enter on buttons to click them
 			Array.prototype.forEach.call(document.querySelectorAll('.option,.exit'), function(element) {
 				element.addEventListener('keypress', function(e) {
 					if (e.keyCode == 13) element.dispatchEvent(new MouseEvent('click'));
@@ -1570,9 +1670,9 @@
 				};
 				localStorage.setItem('documentHistoryEntries', JSON.stringify([{
 					html: element.children[0].contentWindow.document.body.outerHTML,
-					title: element.children[0].contentWindow.document.querySelector('title').innerText,
-					stylesheets: JSON.stringify(stylesheethtml)
+					title: element.children[0].contentWindow.document.querySelector('title').innerText
 				}]));
+				localStorage.setItem('stylesheets', JSON.stringify(stylesheethtml));
 				localStorage.setItem('documentHistoryCurrentEntry', 0);
 				location.reload();
 			})
@@ -1655,6 +1755,7 @@
 			});
 			addEventListener('resize', function() {
 				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = iframe.style.height = overlay.getBoundingClientRect().height + 'px';
+				overlayUpdate();
 			});
 			addEventListener('unload', function() {
 				if (!document.getElementById('overwrite_warning').style.display) localStorage.setItem('HTML-Studio_session', '0');
