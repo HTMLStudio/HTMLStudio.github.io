@@ -619,6 +619,7 @@
 						<td><iframe src='./presets/2.html' class='cl5'></iframe><h4 class='cl6'>Picture Strips</h4></td>
 					</tr>
 					<tr>
+						<td><iframe src='./presets/3.html' class='cl5 cl7'></iframe><h4 class='cl6'>Image w/ Content</h4></td>
 						<td id='ido'><iframe src='./presets/add.html' class='cl5' id='idn'></iframe><h4 class='cl6'>Create New Preset</h4></td>
 					</tr>
 				</table>
@@ -683,7 +684,7 @@
 						html: framewindow.document.body.outerHTML,
 						title: document.getElementById('title').value
 					};
-					localStorage.setItem('stylesheets', JSON.stringify(stylesheethtml))
+					localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml))
 					this.entries = this.entries.slice(0,this.currentEntry + 1);
 					localStorage.setItem('documentHistoryEntries', JSON.stringify(this.entries));
 					localStorage.setItem('documentHistoryCurrentEntry', this.currentEntry);
@@ -711,13 +712,15 @@
 							close();
 							backdialog.style.display = 'block';
 							document.getElementById('dialog_edit_attributes').style.display = 'block';
+							setStyle(document.querySelector('[data-selected-element=selected]').alias);
 							var html = '<table id="idi">';
-							Array.prototype.forEach.call(this.root.originElement.alias.attributes, function(attribute) {
-								html += '<tr class="cl4"><td><input type="text" value="' + attribute.name + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + attribute.value + '" placeholder="value" class="cl2 cl3"></td></td>';
+							Array.prototype.forEach.call(document.querySelector('[data-selected-element=selected]').alias.attributes, function(attribute) {
+								html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(attribute.name) + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(attribute.value) + '" placeholder="value" class="cl2 cl3"></td></td>';
 							});
 							html += '<tr class="c14"><td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td></tr><tr class="c14" id="idk"><td><input type="text" placeholder="attribute" class="cl1 cl3" id="idj"></td><td><input type="text" tabindex="-1" placeholder="value" class="cl2 cl3"></td></tr></table>';
+							unsetStyle(document.querySelector('[data-selected-element=selected]').alias);
 							document.getElementById('idg').innerHTML = html;
-							document.getElementById('idi').linkedElement = this.root.originElement.alias;
+							document.getElementById('idi').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
 							var finaltr = document.getElementById('idk').previousElementSibling;
 							document.getElementById('idj').addEventListener('focus', function() {
 								var tr = document.createElement('tr');
@@ -777,14 +780,15 @@
 					},{
 						name: 'Insert Child&#133;',
 						title: 'Inserts a child node into the selected node',
-						image: 'svg/insert_child.svg'
+						image: 'svg/insert_child.svg',
+						separate: true
 					},{
 						name: 'Select Children',
 						image: 'svg/select_children.svg',
 						disabledimage: 'svg/select_children_disabled.svg',
 						func: function(_,close) {
 							close();
-							var element = this.root.originElement;
+							var element = document.querySelector('[data-selected-element=selected]');
 							deselect();
 							for (var i = element.children.length - 1; i >= 0; i--) {
 								element.children[i].setAttribute('data-selected-element', 'selected');
@@ -796,14 +800,27 @@
 								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
 							}
 						},
-						title: 'Selects all direct children of the node',
-						disabledtitle: 'This node has no children',
-						separate: true
+						title: 'Selects all immediate children of the node',
+						disabledtitle: 'This node has no children'
+					},{
+						name: 'Select Parent',
+						image: 'svg/select_parent.svg',
+						disabledimage: 'svg/select_parent_disabled.svg',
+						func: function(_,close) {
+							close();
+							var node = document.querySelector('[data-selected-element=selected]').parentNode;
+							deselect();
+							node.setAttribute('data-selected-element','selected');
+							node = node.alias;
+							document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
+						},
+						title: 'Selects the immediate parent of the node',
+						disabledtitle: 'This node\'s parent cannot be selected'
 					},{
 						name: 'Edit Text',
 						image: 'svg/edit_text.svg',
 						func: function(_,close) {
-							var element = this.root.originElement, boxshadow = element.alias.style.boxShadow, blurred = 0;
+							var element = document.querySelector('[data-selected-element=selected]'), boxshadow = element.alias.style.boxShadow, blurred = 0;
 							element.alias.setAttribute('contenteditable','');
 							overlay.style.pointerEvents = 'none';
 							if (element.alias.focus) element.alias.focus();
@@ -941,15 +958,17 @@
 							close();
 							backdialog.style.display = 'block';
 							document.getElementById('dialog_edit_html').style.display = 'block';
-							document.getElementById('idf').value = this.root.originElement.alias[(this.root.originElement.alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
-							document.getElementById('idf').linkedElement = this.root.originElement.alias;
+							setStyle(document.querySelector('[data-selected-element=selected]').alias, true);
+							document.getElementById('idf').value = document.querySelector('[data-selected-element=selected]').alias[(document.querySelector('[data-selected-element=selected]') == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
+							unsetStyle(document.querySelector('[data-selected-element=selected]').alias, true);
+							document.getElementById('idf').linkedElement = document.querySelector('[data-selected-element=selected]');
 						},
 						title: 'Allows you to edit the node\'s HTML',
 						separate: true
 					},{
 						name: 'Delete Node',
 						func: function(_,close) {
-							this.root.originElement.alias.parentNode.removeChild(this.root.originElement.alias);
+							document.querySelector('[data-selected-element=selected]').alias.parentNode.removeChild(document.querySelector('[data-selected-element=selected]').alias);
 							overlayUpdate();
 							history.update();
 							close();
@@ -1174,6 +1193,7 @@
 						disabledtitle: 'Create a new stylesheet or import one to edit'
 					}]
 				})], css = [];
+			// Load document from localStorage or create a new one
 			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
 			if (history.entries.length) {
 				framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
@@ -1189,10 +1209,15 @@
 				framewindow.document.body.style.margin = '0';
 				framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = 'hidden';
 			}
+			// Get stylesheets
 			updateStylesheets();
+			// Make sure <head> has a proper title
 			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
+			framewindow.document.querySelector('title').innerText = document.getElementById('title').value;
+			// Disable undo and redo buttons if ncessary
 			contextmenus[3].getItem(0).disabled = !history.currentEntry;
 			contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
+			// Connect <body> and #overlay elements
 			overlay.alias = framewindow.document.body;
 			
 
@@ -1202,13 +1227,15 @@
 				e.preventDefault();
 				e.stopPropagation();
 				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
-				if (!index) overlay.dispatchEvent(new Event('click'));
-				if (e.target.className.includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
+				if (!index) document.querySelector('[data-selected-element=selected]').dispatchEvent(new Event('click'));
+				if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 				if (!index) {
-					contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">body</span>' + (framewindow.document.body.id ? '<span style="color:#009"><wbr>#' + framewindow.document.body.id + '</span>' : '') + (framewindow.document.body.className ? '<span style="color:#F44"><wbr>.' + framewindow.document.body.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
-					contextmenus[index].getItem(7).disabled = true;
-					contextmenus[index].getItem(4).disabled = !overlay.children.length;
-					contextmenus[index].getItem(5).disabled = false;
+					var node = document.querySelector('[data-selected-element=selected]') || overlay;
+					contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
+					contextmenus[index].getItem(8).disabled = node.alias == framewindow.document.body;
+					contextmenus[index].getItem(4).disabled = !node.children.length;
+					contextmenus[index].getItem(6).disabled = node instanceof SVGElement;
+					contextmenus[index].getItem(5).disabled = node.alias == framewindow.document.body;
 				} else {
 					contextmenus[index].getItem(1).disabled = (function() {
 						for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
@@ -1267,12 +1294,17 @@
 						return i > -1;            
 					};
 			}
+			// Fixes font-sizes for "File > New..." iframes
+			window.addEventListener('load', function() {
+				Array.prototype.forEach.call(document.getElementsByClassName('cl7'), function(element) {
+					element.contentWindow.document.body.style.fontSize = '4vh';
+				})	
+			})
 
 
 
 			// Function to update overlay to match iframe
-			function overlayUpdate (skipListeners) {
-				var p = performance.now();
+			function overlayUpdate (skipListeners, skipStyle) {
 				if (!document.getElementById('frame').contentWindow.document.body) {
 					var doc = document.getElementById('frame').contentWindow.document, body = doc.createElement('body');
 					doc.documentElement.appendChild(body);
@@ -1284,22 +1316,25 @@
 					body.style.background = 'white';
 					body.style.fontSize = '1.5em';
 				}
-				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay');
-				framewindow.document.body.alias = overlay;
+				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), body = framewindow.document.body;
+				body.alias = overlay;
 				overlay.innerHTML = '';
 
 				var contextmenuhandler = function(e){
 					var clonednode = this;
+					if (document.querySelectorAll('[data-selected-element=selected]').length) clonednode.preventClick = true;
 					e.preventDefault();
 					e.stopPropagation();
 					var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
 					if (!index) clonednode.dispatchEvent(new Event('click'));
 					if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 					if (!index) {
-						contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + clonednode.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009"><wbr>#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className && clonednode.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + clonednode.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : clonednode.alias.className && clonednode.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + clonednode.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
-						contextmenus[index].getItem(7).disabled = false;
-						contextmenus[index].getItem(4).disabled = !clonednode.children.length;
-						contextmenus[index].getItem(5).disabled = clonednode instanceof SVGElement;
+						var node = document.querySelector('[data-selected-element=selected]') || clonednode;
+						contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
+						contextmenus[index].getItem(8).disabled = node.alias == framewindow.document.body;
+						contextmenus[index].getItem(4).disabled = !node.children.length;
+						contextmenus[index].getItem(6).disabled = node instanceof SVGElement;
+						contextmenus[index].getItem(5).disabled = node.alias == framewindow.document.body;
 					} else {
 						contextmenus[index].getItem(1).disabled = (function() {
 							for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
@@ -1317,6 +1352,7 @@
 				var clickhandler = function(e) {
 					var clonednode = this;
 					e.stopPropagation();
+					if (clonednode.preventClick) return clonednode.preventClick = false;
 					if (e.shiftKey) {
 						clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
 						clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
@@ -1336,15 +1372,41 @@
 					else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 					if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
 				};
+
+
+				if (body.getAttribute('data-html-studio-original-style-attribute')) body.setAttribute('style', body.getAttribute('data-html-studio-original-style-attribute'));
+				overlay.setAttribute('style', body.getAttribute('style'));
+				css.forEach(function(stylesheet) {
+					stylesheet[1].forEach(function(query) {
+						if (body.matches(query[0])) {
+							query[1].forEach(function(rule) {
+								overlay.style[rule[0]] = rule[1];
+							})
+						}
+					})
+				});
+				body.setAttribute('data-html-studio-original-style-attribute', body.getAttribute('style'));
+				body.style.margin = body.style.margin || 0;
+				var vh = document.getElementById('framecontainer').getBoundingClientRect().height / 100,
+					vw = document.getElementById('framecontainer').getBoundingClientRect().width / 100;
+				if (/v(w|h)/.test(overlay.getAttribute('style'))) overlay.setAttribute('style', overlay.getAttribute('style').replace(/(\d+(?:\.\d+))vw/g, function($_, $1) {
+					return vw * $1 + 'px';
+				}).replace(/(\d+(?:\.\d+))vh/g, function($_, $1) {
+					return vh * $1 + 'px';
+				}));
+				body.setAttribute('style', overlay.getAttribute('style'));
+
+
 				for (var i = elements.length - 1; i >= 0; i--) {
 					function clone (parent) {
-						if (this.getAttribute && this.getAttribute('data-html-studio-original-style-attribute')) this.setAttribute('style', this.getAttribute('data-html-studio-original-style-attribute'));
+						if (!skipStyle && this.getAttribute && this.getAttribute('data-html-studio-original-style-attribute')) this.setAttribute('style', this.getAttribute('data-html-studio-original-style-attribute') || '');
+						if (this.setAttribute) this.setAttribute('data-html-studio-original-style-attribute', this.getAttribute('style') || '');
 						var clonednode = this.cloneNode();
 						this.alias = clonednode;
 						clonednode.alias = this;
 						if (clonednode instanceof Element || clonednode.nodeType == 1) {
-							// On right click pseudo element
 							if (!skipListeners) {
+								// On right click pseudo element
 								clonednode.addEventListener('contextmenu', contextmenuhandler);
 								// On left click pseudo element
 								clonednode.addEventListener('click', clickhandler);
@@ -1361,30 +1423,24 @@
 								}.bind(this))
 							}.bind(this));
 
-							// Save the original node's original style attribute
-							this.setAttribute('data-html-studio-original-style-attribute', this.getAttribute('style') || '');
-
 							// Since iframe height is changed to match its content (required for synchronized scrolling),
 							// vh and vw units will be proportioned incorrectly
 							// This fixes that by changing them to px units instead that correctly reflect vh and vw units
-							var vh = document.getElementById('framecontainer').getBoundingClientRect().height / 100,
-								vw = document.getElementById('framecontainer').getBoundingClientRect().width / 100;
-							if (/v(w|h)/.test(clonednode.getAttribute('style'))) clonednode.setAttribute('style', clonednode.getAttribute('style').replace(/(\d+)vw/g, function($_, $1) {
+							if (/v(w|h)/.test(clonednode.getAttribute('style'))) clonednode.setAttribute('style', clonednode.getAttribute('style').replace(/(\d+(?:\.\d+)?)vw/g, function($_, $1) {
 								return vw * $1 + 'px';
-							}).replace(/(\d+)vh/g, function($_, $1) {
+							}).replace(/(\d+(?:\.\d+)?)vh/g, function($_, $1) {
 								return vh * $1 + 'px';
 							}));
 							// Sets original node's style to match the clonednode
 							// This keeps them synchronised 
 							// Since clonednode inherits its style from the original node and gets stylesheets applied,
 							// The two nodes' styles should match
-							this.setAttribute('style', clonednode.getAttribute('style'));
-
+							this.setAttribute('style', clonednode.getAttribute('style') || '');
+							this.htmlStudioComputedStyles = this.getAttribute('style');
 							// Other styles to make them transparent (since they are just an overlay)
 							// And to keep the crosshair cursor throughout the entire document
 							if (!skipListeners) clonednode.style.cursor = 'crosshair';
-							clonednode.style.color = 'rgba(0,0,0,0)';
-							clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+							clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = clonednode.style.color = clonednode.style[clonednode instanceof SVGElement ? 'stroke' : 'borderColor'] = 'rgba(0,0,0,0)';
 
 							// Remove some harmful attributes
 							// Prevent actually clicking on links, instead just select them
@@ -1418,7 +1474,7 @@
 				overlay.style.cursor = 'crosshair';
 				overlay.style.color = 'rgba(0,0,0,0)';
 				overlay.style.background = 'rgba(0,0,0,0)';
-				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = iframe.style.height = overlay.getBoundingClientRect().height + 'px';
+				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = iframe.style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
 			}
 
 
@@ -1426,13 +1482,13 @@
 			// Some global functions used in different areas
 			// Update document CSS stylesheets
 			function updateStylesheets() {
-				localStorage.setItem('stylesheets', localStorage.getItem('stylesheets') || '[]');
+				localStorage.setItem('HTML-Studio_stylesheets', localStorage.getItem('HTML-Studio_stylesheets') || '[]');
 				css = [];
 				!function() {
 					var template = document.createElement('template'), allstylesheets = [];
-					for (var stylesheets = JSON.parse(localStorage.getItem('stylesheets')), i = stylesheets.length - 1; i >= 0; i--) {
+					for (var stylesheets = JSON.parse(localStorage.getItem('HTML-Studio_stylesheets')), i = stylesheets.length - 1; i >= 0; i--) {
 						template.innerHTML = stylesheets[i];
-						var style = template.content.querySelector('style'), ref = style.getAttribute('data-name') || 'Stylesheet ' + css.length + 1, encoding, stylesheet = document.createElement('style'), offset = 0;
+						var style = template.content.querySelector('style'), ref = style.getAttribute('data-name') || 'Stylesheet ' + css.length + 1, encoding, stylesheet = document.createElement('style'), offset = 0, fontstylesheet = document.createElement('style');
 						stylesheet.setAttribute('data-name', ref);
 						css.push([ref,[]]);
 						style = style.innerText.trim();
@@ -1447,7 +1503,9 @@
 										stylesheet.innerHTML = '@charset "' + encoding + '";';
 									} else style.replace(/^[^;]+;/,'');
 								} else if (style.substring(1,10) == 'font-face') {
-									stylesheet.innerHTML += style.match(/^[^}]*}/)[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g,': ').replace(/(\w)(\s+)}/g, '$1;$2}');
+									var html = style.match(/^[^}]*}/)[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g,': ').replace(/(\w)(\s+)}/g, '$1;$2}')
+									stylesheet.innerHTML += html;
+									fontstylesheet.innerHTML += html + '\n\n';
 									style = style.replace(/^[^}]*}/,'');
 								}
 							} else {
@@ -1458,17 +1516,22 @@
 								stylesheet.innerHTML += query.trim() + ' ' + rules[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g, ': ').replace(/(\w)(\s+)}/g, '$1;$2}');
 								css[css.length - 1][1].push([query.trim(),[]]);
 								rules[1].split(';').forEach(function(rule) {
-									css[css.length - 1][1][css[css.length - 1][1].length - 1][1].push([rule.split(':')[0].trim(), rule.split(':')[1].trim()]);
+									if (rule.includes(':')) css[css.length - 1][1][css[css.length - 1][1].length - 1][1].push([rule.split(':')[0].trim(), rule.split(':')[1].trim()]);
 								})
 							}
 							style = style.replace(/^\s+/,'');
 							stylesheet.innerHTML += '\n\n';
 							offset = 1;
 						};
+						stylesheet.innerHTML = stylesheet.innerHTML.replace(/\n\n$/,'');
+						fontstylesheet.innerHTML = fontstylesheet.innerHTML.replace(/\n\n$/,'');
 						framewindow.document.head.appendChild(stylesheet);
 						allstylesheets.push(stylesheet.outerHTML);
+						if (document.getElementById('user-font-stylesheet')) document.getElementById('user-font-stylesheet').parentNode.removeChild(document.getElementById('user-font-stylesheet'));
+						fontstylesheet.id = 'user-font-stylesheet';
+						document.head.appendChild(fontstylesheet);
 					}
-					localStorage.setItem('stylesheets', JSON.stringify(allstylesheets));
+					localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(allstylesheets));
 				}();
 			}
 			// Deselects all elements and set their background back to transparent
@@ -1495,6 +1558,38 @@
 					element.style.display = '';
 				})
 			};
+			function quoteEscape(string) {
+				return string.replace(/"/g, "&quot;");
+			};
+			function setStyle(element, doChildren) {
+				element = element || framewindow.document.body;
+				doChildren = doChildren ? true : arguments.length > 1 ? true : false;
+				function style(element) {
+					element.htmlStudioComputedStyles = element.getAttribute('style') || '';
+					element.setAttribute('style', element.getAttribute('data-html-studio-original-style-attribute') || '');
+					element.removeAttribute('data-html-studio-original-style-attribute');
+					if (doChildren && element.children) {
+						for (var i = element.children.length - 1; i >= 0; i--) {
+							style(element.children[i]);
+						}
+					}
+				};
+				style(element);
+			};
+			function unsetStyle(element, doChildren) {
+				element = element || framewindow.document.body;
+				doChildren = doChildren ? true : arguments.length > 1 ? true : false;
+				function style(element) {
+					element.setAttribute('data-html-studio-original-style-attribute', element.getAttribute('style') || '');
+					element.setAttribute('style', element.htmlStudioComputedStyles);
+					if (doChildren && element.children) {
+						for (var i = element.children.length - 1; i >= 0; i--) {
+							style(element.children[i]);
+						}
+					}
+				};
+				style(element);	
+			}
 
 
 
@@ -1620,7 +1715,7 @@
 					textarea.linkedElement.parentNode.insertBefore(children[i], i == children.length - 1 ? textarea.linkedElement.nextSibling : children[i + 1]);
 				}
 				textarea.linkedElement.parentNode.removeChild(textarea.linkedElement);
-				overlayUpdate();
+				overlayUpdate(false, true);
 				history.update();
 				closeDialogs();
 			})
@@ -1638,9 +1733,9 @@
 				for (var children = document.getElementById('idi').children[0].children, i = children.length - 1; i >= 0; i--) {
 					try {
 						element.setAttribute(children[i].children[0].children[0].value, children[i].children[1].children[0].value);
-					} catch (_) {}
+					} catch (_) {};
 				};
-				overlayUpdate();
+				overlayUpdate(false, true);
 				history.update();
 				closeDialogs();
 			});
@@ -1668,11 +1763,13 @@
 				for (var stylesheets = element.children[0].contentWindow.document.querySelectorAll('style'), i = stylesheets.length - 1; i >= 0; i--) {
 					stylesheethtml.push(stylesheets[i].outerHTML.replace(stylesheets[i].innerHTML, stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'')));
 				};
+				closeDialogs();
+				if (element.children[0].className.includes('cl7')) element.children[0].contentWindow.document.body.style.fontSize = '';
 				localStorage.setItem('documentHistoryEntries', JSON.stringify([{
 					html: element.children[0].contentWindow.document.body.outerHTML,
 					title: element.children[0].contentWindow.document.querySelector('title').innerText
 				}]));
-				localStorage.setItem('stylesheets', JSON.stringify(stylesheethtml));
+				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
 				localStorage.setItem('documentHistoryCurrentEntry', 0);
 				location.reload();
 			})
