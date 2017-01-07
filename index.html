@@ -28,7 +28,7 @@
 			height: 100vh;
 			width: 100vw;
 			display: none;
-			z-index: 100;
+			z-index: 9999998;
 			background: #F5F5F5;
 			top: 0;
 			left: 0;
@@ -61,7 +61,7 @@
 		}
 		.contextmenuitem {
 			background: #F2F2F2;
-			font-family: Arial,Calibri, Sego UI, Arial, sans-serif;
+			font-family: Arial, Calibri, Sego UI, sans-serif;
 		}
 
 		.contextmenu {
@@ -103,6 +103,7 @@
 
 		#frameoverlay {
 			overflow: hidden;
+			font-family: initial;
 		}
 
 		#overlaygrid {
@@ -117,7 +118,7 @@
 			height: calc(4.45rem - 1px);
 			background: #F0F0F0;
 			border-bottom: 1px solid #888;
-			z-index: 1;
+			z-index: 9999994;
 			position: relative;
 			box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
 		}
@@ -240,16 +241,16 @@
 			font-family: Arial, sans-serif;
 		}
 
-		#open_file {
+		#open_file_html {
 			display: none;
 		}
 
 		#dialogcover {
-			z-index: 3;
+			z-index: 9999997;
 			background: rgba(0,0,0,.7);
 			height: 100vh;
 			width: 100vw;
-			position: absolute;
+			position: fixed;
 			display: none;
 			top: 0;
 			left: 0;
@@ -534,11 +535,60 @@
 			margin: .75em 0 .35em;
 			font-family: "Open Sans", Arial, sans-serif;
 		}
+
+		#html_editor_display {
+			height: 40vh;
+			width: 60vh;
+			max-width: 50vw;
+			background: #DDD;
+			position: fixed;
+			margin-top: calc(4.45rem - 1px);
+			top: 0;
+			border: 1px solid #999;
+			border-top-left-radius: .6em;
+			border-top-right-radius: .6em;
+			cursor: pointer;
+			box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
+			z-index: 9999995;
+			display: none;
+		}
+
+		#ids {
+			font-family: Arial, sans-serif;
+			display: block;
+			width: 100%;
+			text-align: center;
+			border-top-left-radius: inherit;
+			border-top-right-radius: inherit;
+		}
+
+		#idp {
+			height: calc(40vh - 1.2em);
+			border-bottom-left-radius: inherit;
+			border-bottom-right-radius: inherit;
+			position: relative;
+		}
+
+		#idr {
+			position: absolute;
+			height: inherit;
+			width: 100%;
+			top: 0;
+			border-radius: inherit;
+			cursor: grab;
+		}
+
+		#idq {
+			height: inherit;
+			width: 100%;
+			border-radius: inherit;
+			background: rgba(0,172,193,.5);
+		}
 	</style>
 </head>
 <body>
-	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration: underline}noscript{z-index:1000;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='http://enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='http://enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
-	<div id='overwrite_warning'><div class='nojscrossstripes'></div><div class='nojs'><a href='http://enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>This page may be open in another tab. It is dangerous to have two different documents open at once because any changes made on one document may overwrite the other document and screw up some stuff. Even editing two different versions of the same document may have the same affect. If you think this is a mistake and you want to continue (sometimes happens when your browser crashes), click the button below to hide this message.</span><button id='overwrite_continue' title='Hide this message'>Continue to Site</button></div></div>
+	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration: underline}noscript{z-index:9999999;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='http://enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='http://enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
+	<div id='overwrite_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/open_windows.svg'><span>This page may be open in another tab. It is dangerous to have two different documents open at once because any changes made on one document may overwrite the other document and screw up some stuff. Even editing two different versions of the same document may have the same affect. If you think this is a mistake and you want to continue (sometimes happens when your browser crashes), click the button below to hide this message.</span><button id='overwrite_continue' title='Hide this message'>Continue to Site</button></div></div>
 	<div id='measurementReference'></div>
 	<div id='toolbarcontainer'>
 		<div id='titlebar'>
@@ -568,7 +618,7 @@
 		</div>
 	</div>
 	<div id='dialogcover'>
-		<div id='dialog_open_file' class='dialog'>
+		<div id='dialog_open_file_html' class='dialog'>
 			<span>Open File</span>
 			<div class='content' id='idb'>
 				<h3>Select a file to replace the current document. Keep in mind <strong style='text-decoration:underline'>this action cannot be undone</strong> and any unsaved changes will be deleted.</h3>
@@ -631,7 +681,14 @@
 			</div>
 		</div>
 	</div>
-	<input type='file' id='open_file'>
+	<div id='html_editor_display'>
+		<span id='ids'>HTML Tree</span>
+		<div id='idp'>
+			<svg id='idq' viewBox='0 0 180 120'></svg>
+			<div id='idr' title='Drag to move. Scroll to zoom. Click to select.'></div>
+		</div>
+	</div>
+	<input type='file' id='open_file_html'>
 	<script type='text/javascript' src='/JavaScript/Draggable-Elements/Draggable-Elements.js'></script>
 	<script type="text/javascript" src="ContextMenu.js"></script>
 	<script type="text/javascript">
@@ -959,9 +1016,9 @@
 							backdialog.style.display = 'block';
 							document.getElementById('dialog_edit_html').style.display = 'block';
 							setStyle(document.querySelector('[data-selected-element=selected]').alias, true);
-							document.getElementById('idf').value = document.querySelector('[data-selected-element=selected]').alias[(document.querySelector('[data-selected-element=selected]') == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
+							document.getElementById('idf').value = document.querySelector('[data-selected-element=selected]').alias[(document.querySelector('[data-selected-element=selected]').alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
 							unsetStyle(document.querySelector('[data-selected-element=selected]').alias, true);
-							document.getElementById('idf').linkedElement = document.querySelector('[data-selected-element=selected]');
+							document.getElementById('idf').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
 						},
 						title: 'Allows you to edit the node\'s HTML',
 						separate: true
@@ -1031,7 +1088,7 @@
 						name: 'Open&#133;',
 						func: function(_,close) {
 							document.getElementById('dialogcover').style.display = 'block';
-							document.getElementById('dialog_open_file').style.display = 'block';
+							document.getElementById('dialog_open_file_html').style.display = 'block';
 							document.getElementById('id2').innerHTML = '<div id="id1" ondragover="return this.className=\'active\',false" ondragend="return this.className=\'\',false" ondragleave="return this.className=\'\',false"><div id="id4"><span id="id3">Drop a file here</span><span id="id5">or click to select one</span></div></div>';
 							document.getElementById('idb').scrollTop = 0;
 							document.getElementById('id9').className = 'option disabled';
@@ -1142,15 +1199,23 @@
 						imageoff: 'svg/transparent.svg'
 					},{
 						name: 'HTML Tree',
-						disabled: true,
-						disabledtitle: 'Work in Progress',
+						func: function(_,close) {
+							this.toggled = !this.toggled;
+							document.getElementById('html_editor_display').style.display = this.toggled ? 'block' : '';
+							updateTree();
+							close();
+							closeHeaders();
+						},
+						title: 'Displays the HTML tree of the document',
+						toggle: true,
+						image: 'svg/checkmark.svg',
+						imageoff: 'svg/transparent.svg',
 						separate: true
 					},{
 						name: 'Grid',
 						func: function(_,close) {
 							this.toggled = !this.toggled;
-							if (this.toggled) document.getElementById('overlaygrid').style.display = 'block';
-							else document.getElementById('overlaygrid').style.display = '';
+							document.getElementById('overlaygrid').style.display = this.toggled ? 'block' : '';
 							close();
 							closeHeaders();
 						},
@@ -1192,7 +1257,7 @@
 						disabled: true,
 						disabledtitle: 'Create a new stylesheet or import one to edit'
 					}]
-				})], css = [];
+				})], css = [], DOM = {}, generations = [];
 			// Load document from localStorage or create a new one
 			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
 			if (history.entries.length) {
@@ -1270,6 +1335,9 @@
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
+				Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
+					rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
+				});
 			});
 			overlay.addEventListener('mousemove', function(e) {
 				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
@@ -1300,6 +1368,43 @@
 					element.contentWindow.document.body.style.fontSize = '4vh';
 				})	
 			})
+			// Lets dialogs be draggable
+			Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
+				new DraggableElement(element,{bounds:'body'});
+			});
+			// Prevents content and option buttons from letting a dialog be dragged
+			Array.prototype.forEach.call(document.querySelectorAll('.content,.option'), function(element) {
+				element.addEventListener('mousedown', function(e) {
+					e.stopPropagation();
+				})
+			});
+			// Makes some other things draggable
+			new DraggableElement(document.getElementById('html_editor_display'), {bounds: document.getElementById('framecontainer')});
+			new DraggableElement(document.getElementById('idr'), {start: function(event,e) {
+				e.stopPropagation();
+				this.start = {timestamp: event.timestamp, x: event.coordinates.start.x, y: event.coordinates.start.y};
+			}, move: function(event) {
+				var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
+				viewBox[0] = Math.min((Math.max.apply(Math, generations) * 60 + 10) - viewBox[2], Math.max(0, viewBox[0] - event.coordinates.move.last.distance.x));
+				viewBox[1] = Math.min((generations.length * 60 + 10) - viewBox[3], Math.max(0, viewBox[1] - event.coordinates.move.last.distance.y));
+				document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
+			}, end: function(event,e) {
+				this.style.top = 0;
+				this.style.left = 0;
+				if (event.timestamp - this.start.timestamp < 400 && Math.hypot(event.coordinates.end.x - this.start.x, event.coordinates.end.y - this.start.y) < 5) {
+					this.style.display = 'none';
+					var element = document.elementFromPoint(e.clientX, e.clientY);
+					this.style.display = '';
+					if (!element || element == document.getElementById('idq') || element.nodeName != 'rect') return;
+					clickhandler.call(element.DOM.node.alias, {
+						stopPropagation: function(){},
+						clientX: e.clientX,
+						clientY: e.clientY,
+						isTrusted: true,
+						shiftKey: e.shiftKey
+					});
+				}
+			}, cursor: 'grabbing', inertia: true});
 
 
 
@@ -1349,29 +1454,6 @@
 					contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
 					contextmenus[index].node.originElement = clonednode
 				};
-				var clickhandler = function(e) {
-					var clonednode = this;
-					e.stopPropagation();
-					if (clonednode.preventClick) return clonednode.preventClick = false;
-					if (e.shiftKey) {
-						clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
-						clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
-						var nodes = document.querySelectorAll('[data-selected-element=selected]');
-						if (nodes.length>1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
-						else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-						else document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-					} else {
-						clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
-						var selected = clonednode.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
-						deselect();
-						clonednode.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
-						if (selected) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-						else document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + clonednode.alias.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009">#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className && clonednode.alias.className.baseVal ? '<span style="color:#F44">.' + clonednode.alias.className.baseVal.replace(/\s+/g,'.') + '</span>' : clonednode.alias.className && clonednode.alias.className.baseVal == undefined ? '<span style="color:#F44">.' + clonednode.alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-					}
-					if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
-					else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
-					if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
-				};
 
 
 				if (body.getAttribute('data-html-studio-original-style-attribute')) body.setAttribute('style', body.getAttribute('data-html-studio-original-style-attribute'));
@@ -1396,15 +1478,33 @@
 				}));
 				body.setAttribute('style', overlay.getAttribute('style'));
 
+				DOM = {
+					name: 'BODY',
+					node: body,
+					generation: 0,
+					children: []
+				}
+
+				DOM.parent = DOM;
+
 
 				for (var i = elements.length - 1; i >= 0; i--) {
-					function clone (parent) {
+					function clone (parent, DOM) {
 						if (!skipStyle && this.getAttribute && this.getAttribute('data-html-studio-original-style-attribute')) this.setAttribute('style', this.getAttribute('data-html-studio-original-style-attribute') || '');
 						if (this.setAttribute) this.setAttribute('data-html-studio-original-style-attribute', this.getAttribute('style') || '');
 						var clonednode = this.cloneNode();
 						this.alias = clonednode;
 						clonednode.alias = this;
 						if (clonednode instanceof Element || clonednode.nodeType == 1) {
+							var DOMNodeObject = {
+								name: clonednode.nodeName,
+								node: clonednode.alias,
+								generation: DOM.generation + 1,
+								children: [],
+								parent: DOM
+							};
+							clonednode.DOM = DOMNodeObject;
+							DOM.children.unshift(DOMNodeObject);
 							if (!skipListeners) {
 								// On right click pseudo element
 								clonednode.addEventListener('contextmenu', contextmenuhandler);
@@ -1440,7 +1540,9 @@
 							// Other styles to make them transparent (since they are just an overlay)
 							// And to keep the crosshair cursor throughout the entire document
 							if (!skipListeners) clonednode.style.cursor = 'crosshair';
-							clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = clonednode.style.color = clonednode.style[clonednode instanceof SVGElement ? 'stroke' : 'borderColor'] = 'rgba(0,0,0,0)';
+							clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = clonednode.style.color = clonednode.style[clonednode instanceof SVGElement ? 'stroke' : 'borderColor'] = 'rgba(0,0,0,0)'
+							clonednode.style.boxShadow = '';
+							clonednode.style.fontFamily = (clonednode.style.fontFamily || '') + ', serif';
 
 							// Remove some harmful attributes
 							// Prevent actually clicking on links, instead just select them
@@ -1459,11 +1561,11 @@
 						parent.insertBefore(clonednode, parent.firstChild);
 						if (this.childNodes.length) {
 							for (var i = this.childNodes.length - 1; i >= 0; i--) {
-								clone.call(this.childNodes[i], clonednode)
+								clone.call(this.childNodes[i], clonednode, DOMNodeObject);
 							}
 						}
 					};
-					clone.call(elements[i],overlay);
+					clone.call(elements[i], overlay, DOM);
 				}
 				var styles = framewindow.document.body.style;
 				for (var style in styles) {
@@ -1474,7 +1576,12 @@
 				overlay.style.cursor = 'crosshair';
 				overlay.style.color = 'rgba(0,0,0,0)';
 				overlay.style.background = 'rgba(0,0,0,0)';
+				overlay.style.boxShadow = '';
+				overlay.style.fontFamily = (overlay.style.fontFamily || '') + ', serif';
+
 				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = iframe.style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
+
+				updateTree();
 			}
 
 
@@ -1590,6 +1697,98 @@
 				};
 				style(element);	
 			}
+			function updateTree() {
+				if (!document.getElementById('html_editor_display').style.display) return;
+				generations = [];
+				function count(DOM, generation) {
+					generations[generation] = (generations[generation] || 0) + 1;
+					if (DOM.children.length) {
+						for (var i = DOM.children.length - 1; i >= 0; i--) {
+							count(DOM.children[i], generation + 1);
+						}
+					}
+				};
+				count(DOM, 0);
+				var fullwidth = Math.max.apply(Math, generations), svg = document.getElementById('idq');
+				svg.setAttribute('width', fullwidth * 60 + 10);
+				svg.setAttribute('height', generations.length * 60 + 10);
+
+				function fill(arr) {
+					return arr.fill ? arr.fill(0) : (function() {
+						for (var i = arr.length - 1; i >= 0; i--) {
+							arr[i] = 0;
+						};
+						return arr;
+					})();
+				}
+
+				var donegenerations = [];
+				generations.forEach(function(gen, ind) {
+					donegenerations[ind] = fill(new Array(gen));
+				});
+
+				function split(num, ind) {
+					return num == 1 ? (fullwidth * 60 + 10) / 2 - 25 : (60 + ((fullwidth - num) * 60 / (num - 1))) * (ind) + 10;
+				}
+
+				function generateTree(DOM, child) {
+					var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect'), line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+					DOM.rect = rect;
+					DOM.line = line;
+					rect.DOM = DOM;
+					line.DOM = DOM;
+					rect.setAttribute('y', DOM.generation * 60 + 10);
+					rect.setAttribute('x', split(generations[DOM.generation], donegenerations[DOM.generation].lastIndexOf(0)));
+					donegenerations[DOM.generation][donegenerations[DOM.generation].lastIndexOf(0)] = 1;
+					rect.setAttribute('height', '35');
+					rect.setAttribute('width', '50');
+					rect.setAttribute('class', 'html_editor')
+					rect.style.fill = '#456';
+					svg.appendChild(rect);
+					if (DOM.parent != DOM) {
+						line.setAttribute('x1', +DOM.parent.rect.getAttribute('x') + 25);
+						line.setAttribute('y1', +DOM.parent.rect.getAttribute('y') + 35);
+						line.setAttribute('x2', +rect.getAttribute('x') + 25);
+						line.setAttribute('y2', rect.getAttribute('y'));
+						line.style.stroke = '#456';
+						line.style.strokeWidth = '1px';
+						svg.appendChild(line);
+					}
+					if (DOM.children) {
+						for (var i = DOM.children.length - 1; i >= 0; i--) {
+							generateTree(DOM.children[i], i)
+						}
+					}
+				}
+				svg.innerHTML = '';
+				generateTree(DOM, 0);
+			};
+			function clickhandler(e) {
+				var clonednode = this;
+				e.stopPropagation();
+				if (clonednode.preventClick) return clonednode.preventClick = false;
+				if (e.shiftKey) {
+					clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+					clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
+					var nodes = document.querySelectorAll('[data-selected-element=selected]');
+					if (nodes.length>1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
+					else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+					else document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+				} else {
+					clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+					var selected = clonednode.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
+					deselect();
+					clonednode.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
+					if (selected) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+					else document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + clonednode.alias.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009">#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className && clonednode.alias.className.baseVal ? '<span style="color:#F44">.' + clonednode.alias.className.baseVal.replace(/\s+/g,'.') + '</span>' : clonednode.alias.className && clonednode.alias.className.baseVal == undefined ? '<span style="color:#F44">.' + clonednode.alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+				}
+				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
+				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
+				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
+				Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
+					rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
+				});
+			};
 
 
 
@@ -1650,7 +1849,7 @@
 			});
 			document.getElementById('title').dispatchEvent(new Event('keypress'));
 			// Event listener for file upload window
-			document.getElementById('open_file').addEventListener('change', function(e) {
+			document.getElementById('open_file_html').addEventListener('change', function(e) {
 				if (!this.files.length) return;
 				document.getElementById('id4').innerHTML = '<div id="id6"><div id="id7">' + (this.files[0].name) + '<span style="float:right">' + (this.files[0].size < 1000 ? e.files[0].size + ' bytes' : Math.round(this.files[0].size / 100) / 10 + 'KB') + '</span></div><span id="id8"></span></div>';
 				if (this.files[0].type != 'text/html') return document.getElementById('id8').innerHTML = 'This file format is not allowed. Please only select an HTML file ending in an ".html" extension.',document.getElementById('id7').style.background = '#FFB7B7',document.getElementById('id9').className='option disabled';
@@ -1661,7 +1860,7 @@
 			});
 			// Onclick event listener for file uploader for File > Open...
 			document.getElementById('id2').addEventListener('click', function() {
-				document.getElementById('open_file').click();
+				document.getElementById('open_file_html').click();
 			});
 			// Hide warning if button is clicked (2 or more tabs open)
 			document.getElementById('overwrite_continue').addEventListener('click', function() {
@@ -1772,7 +1971,15 @@
 				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
 				localStorage.setItem('documentHistoryCurrentEntry', 0);
 				location.reload();
-			})
+			});
+			document.getElementById('idr').addEventListener('wheel', function(e) {
+				var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
+				viewBox[2] = Math.max(0.1, Math.min(Math.max.apply(Math, generations) * 60 + 10, +viewBox[2] + +e.deltaY * 1.5));
+				viewBox[3] = Math.max(0.1, Math.min(generations.length * 60 + 10, +viewBox[3] + +e.deltaY));
+				viewBox[0] = Math.max(0, Math.min(Math.max.apply(Math,generations) * 60 + 10 - viewBox[2], +viewBox[0] - e.deltaY * .75));
+				viewBox[1] = Math.max(0, Math.min(generations.length * 60 + 10 - viewBox[3], +viewBox[1] - e.deltaY / 2))
+				document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
+			});
 
 
 
@@ -1826,7 +2033,7 @@
 			function windowkeypress(e) {
 				if ((e.charCode == 122 || e.charCode == 90) && e.ctrlKey) undo();
 				else if ((e.charCode == 121 || e.charCode == 89) && e.ctrlKey) redo();
-				else if ((e.charCode == 97 || e.charCode == 65) && e.ctrlKey && !e.target.hasAttribute('contenteditable') && e.target.nodeName.toLowerCase() != 'input') {
+				else if ((e.charCode == 97 || e.charCode == 65) && e.ctrlKey && !e.target.hasAttribute('contenteditable') && e.target.nodeName != 'INPUT' && e.target.nodeName != 'TEXTAREA') {
 					e.preventDefault();
 					e.stopPropagation();
 					var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
@@ -1873,17 +2080,6 @@
 				});
 			}, 20);
 
-
-			// Lets dialogs be draggable
-			Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
-				new DraggableElement(element,{bounds:'body'});
-			});
-			// Prevents content and option buttons from letting a dialog be dragged
-			Array.prototype.forEach.call(document.querySelectorAll('.content,.option'), function(element) {
-				element.addEventListener('mousedown', function(e) {
-					e.stopPropagation();
-				})
-			})
 
 
 			// Runs if HTML-Studio is already active in another window
