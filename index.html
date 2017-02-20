@@ -30,7 +30,7 @@
 			overflow-y: hidden;
 		}
 
-		#overwrite_warning {
+		#overwrite_warning, #mobile_warning {
 			position: fixed;
 			height: 100vh;
 			width: 100vw;
@@ -42,18 +42,18 @@
 			overflow-y: auto;
 		}
 
-		#overwrite_continue {
+		#overwrite_continue, #mobile_continue {
 			background: #00acc1;
 			border: 0;
 			padding: .7em 1.2em;
-			font-size: 6vh;
+			font-size: 6vmin;
 			color: #fff;
 			border-radius: .8em;
 			margin: 2em 0;
 			cursor: pointer;
 		}
 
-		#overwrite_continue:active {
+		#overwrite_continue:active, #mobile_continue:active {
 			box-shadow: 0 0 .3em .3em rgba(0, 0, 0, 0.3) inset
 		}
 
@@ -642,6 +642,7 @@
 </head>
 <body>
 	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration: underline}noscript{z-index:9999999;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='http://enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='http://enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
+	<div id='mobile_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/mobile_device.svg'><span>This webpage wasn't built with mobile devices in mind since it's a lot harder to actually accomplish anything on small touch screen devices. There are probably tons of bugs and stuff will definitely look weird but you can still continue to the site by clicking the button below. Just know that this webpage will look and work a lot better on a computer.</span><button id='mobile_continue' title='Hide this message'>Continue to Site</button></div></div>
 	<div id='overwrite_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/open_windows.svg'><span>This page may be open in another tab. It is dangerous to have two different documents open at once because any changes made on one document may overwrite the other document and screw up some stuff. Even editing two different versions of the same document may have the same affect. If you think this is a mistake and you want to continue (sometimes happens when your browser crashes), click the button below to hide this message.</span><button id='overwrite_continue' title='Hide this message'>Continue to Site</button></div></div>
 	<div id='measurementReference'></div>
 	<div id='toolbarcontainer'>
@@ -812,9 +813,10 @@
 		!function(){
 			// Run on page load
 			if (+localStorage.getItem('HTML-Studio_session')) alreadyActive();
+			if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(navigator.userAgent||navigator.vendor||window.opera)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test((navigator.userAgent||navigator.vendor||window.opera).substr(0,4))) userOnMobileDevice();
 			localStorage.setItem('HTML-Studio_session', '1');
 			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), backdialog = document.getElementById('dialogcover'), history = {
-				entries: JSON.parse(localStorage.getItem('documentHistoryEntries')) || [],
+				entries: JSON.parse(localStorage.getItem('HTML-Studio_documentHistoryEntries')) || [],
 				update: function() {
 					if (~this.currentEntry && framewindow.document.body.outerHTML == this.entries[this.currentEntry].html && document.getElementById('title').value == this.entries[this.currentEntry].title) return;
 					var stylesheethtml = [];
@@ -825,14 +827,14 @@
 						html: framewindow.document.body.outerHTML,
 						title: document.getElementById('title').value
 					};
-					if (obj.html == this.entries.last.html && obj.title == this.entries.last.title) return;
+					if (obj.html == (this.entries.last || {html: ''}).html && obj.title == (this.entries.last || {title: ''}).title) return;
 
 					this.currentEntry++;
 					this.entries[this.currentEntry] = obj;
 					localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml))
 					this.entries = this.entries.slice(0,this.currentEntry + 1);
-					localStorage.setItem('documentHistoryEntries', JSON.stringify(this.entries));
-					localStorage.setItem('documentHistoryCurrentEntry', this.currentEntry);
+					localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify(this.entries));
+					localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', this.currentEntry);
 					contextmenus[3].getItem(0).disabled = !this.currentEntry;
 					contextmenus[3].getItem(1).disabled = this.currentEntry == this.entries.length - 1;
 				}
@@ -1507,7 +1509,7 @@
 					}]
 				})], css = [], DOM = {}, generations = [];
 			// Load document from localStorage or create a new one
-			history.currentEntry = +localStorage.getItem('documentHistoryCurrentEntry') || history.entries.length - 1
+			history.currentEntry = +localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') || history.entries.length - 1
 			Object.defineProperty(history.entries, 'last', {
 				get: function() {
 					return history.entries[history.entries.length - 1];
@@ -1656,7 +1658,7 @@
 
 
 			// Function to update overlay to match iframe
-			function overlayUpdate (skipListeners, skipStyle) {
+			function overlayUpdate (skipListeners) {
 				if (!document.getElementById('frame').contentWindow.document.body) {
 					var doc = document.getElementById('frame').contentWindow.document, body = doc.createElement('body');
 					doc.documentElement.appendChild(body);
@@ -1723,6 +1725,7 @@
 				}).replace(/(\d+(?:\.\d+))vh/g, function($_, $1) {
 					return vh * $1 + 'px';
 				}));
+				overlay.style.fontSize = getComputedStyle(body).fontSize;
 
 				DOM = {
 					name: 'BODY',
@@ -1775,6 +1778,7 @@
 							}).replace(/(\d+(?:\.\d+)?)vh/g, function($_, $1) {
 								return vh * $1 + 'px';
 							}));
+							clonednode.style.fontSize = getComputedStyle(this).fontSize;
 							// Saves the computed styles as a hidden attribute of the original node
 							this.htmlStudioComputedStyles = clonednode.getAttribute('style') || '';
 							// Other styles to make them transparent (since they are just an overlay)
@@ -2197,6 +2201,11 @@
 				document.getElementById('overwrite_warning').style.display = '';
 			});
 
+			// Hide warning if button is clicked (user is on mobile device)
+			document.getElementById('mobile_continue').addEventListener('click', function() {
+				document.getElementById('mobile_warning').style.display = '';
+			});
+
 			// Open File button for File > Open...
 			document.getElementById('id9').addEventListener('click', function() {
 				if (this.className.includes('disabled')) return;
@@ -2218,12 +2227,12 @@
 						for (var stylesheets = doc.getElementsByTagName('style'), i = stylesheets.length - 1; i >= 0; i--) {
 							stylesheethtml.push(stylesheets[i].outerHTML.replace(stylesheets[i].innerHTML, stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'')));
 						}
-						localStorage.setItem('documentHistoryEntries', JSON.stringify([{
+						localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify([{
 							html: (body).outerHTML,
 							title: (doc.getElementsByTagName('title') ? doc.getElementsByTagName('title')[0] : {innerText:''}).innerText
 						}]));
 						localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
-						localStorage.setItem('documentHistoryCurrentEntry', 0);
+						localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', 0);
 						closeDialogs();
 						location.reload();
 					} catch(_) {
@@ -2308,12 +2317,12 @@
 				};
 				closeDialogs();
 				element.children[0].contentWindow.document.body.style.fontSize = element.bodyDefaultFontSize;
-				localStorage.setItem('documentHistoryEntries', JSON.stringify([{
+				localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify([{
 					html: element.children[0].contentWindow.document.body.outerHTML,
 					title: element.children[0].contentWindow.document.querySelector('title').innerText
 				}]));
 				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
-				localStorage.setItem('documentHistoryCurrentEntry', 0);
+				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', 0);
 				location.reload();
 			});
 			document.getElementById('idr').addEventListener('wheel', function(e) {
@@ -2356,7 +2365,7 @@
 				if (!title.value) title.style.fontStyle = 'italic';
 				else title.style.fontStyle = '';
 				overlayUpdate();
-				localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
+				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', history.currentEntry);
 				contextmenus[3].getItem(0).disabled = !history.currentEntry;
 				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
 				deselect();
@@ -2370,7 +2379,7 @@
 				if (!title.value) title.style.fontStyle = 'italic';
 				else title.style.fontStyle = '';
 				overlayUpdate();
-				localStorage.setItem('documentHistoryCurrentEntry', history.currentEntry);
+				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', history.currentEntry);
 				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
 				contextmenus[3].getItem(0).disabled = !history.currentEntry;
 				deselect();
@@ -2429,7 +2438,7 @@
 			});
 			addEventListener('unload', function() {
 				if (!document.getElementById('overwrite_warning').style.display) localStorage.setItem('HTML-Studio_session', '0');
-			})
+			});
 
 
 			// Main interval
@@ -2451,6 +2460,11 @@
 			// Runs if HTML-Studio is already active in another window
 			function alreadyActive() {
 				document.getElementById('overwrite_warning').style.display = 'block';
+			}
+
+			// Runs if the user opens the page on a mobile device
+			function userOnMobileDevice() {
+				document.getElementById('mobile_warning').style.display = 'block';
 			}
 
 
