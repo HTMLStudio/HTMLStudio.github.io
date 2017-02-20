@@ -1551,7 +1551,7 @@
 				if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 				if (!index) {
 					var node = document.querySelector('[data-selected-element=selected]') || overlay;
-					contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
+					contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.alias.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
 					contextmenus[index].getItem(8).disabled = node.alias == framewindow.document.body;
 					contextmenus[index].getItem(4).disabled = !node.children.length;
 					contextmenus[index].getItem(6).disabled = node instanceof SVGElement;
