@@ -1547,7 +1547,7 @@
 				e.preventDefault();
 				e.stopPropagation();
 				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
-				if (!index) document.querySelector('[data-selected-element=selected]').dispatchEvent(new Event('click'));
+				if (!index) (document.querySelector('[data-selected-element=selected]') || overlay).dispatchEvent(new Event('click'));
 				if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 				if (!index) {
 					var node = document.querySelector('[data-selected-element=selected]') || overlay;
