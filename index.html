@@ -655,6 +655,7 @@
 			<div class='headersection' id='section_edit'>Edit</div>
 			<div class='headersection' id='section_view'>View</div>
 			<div class='headersection' id='section_stylesheets'>Stylesheets</div>
+			<div class='headersection' id='section_selection'>Selection</div>
 		</div>
 		<div id='logo'></div>
 	</div>
@@ -1001,10 +1002,10 @@
 						name: 'Select Children',
 						image: 'svg/select_children.svg',
 						disabledimage: 'svg/select_children_disabled.svg',
-						func: function(_,close) {
+						func: function(e,close) {
 							close();
 							var element = document.querySelector('[data-selected-element=selected]');
-							deselect();
+							if (!e.shiftKey) deselect();
 							for (var i = element.children.length - 1; i >= 0; i--) {
 								element.children[i].setAttribute('data-selected-element', 'selected');
 							};
@@ -1013,25 +1014,38 @@
 							} else {
 								var node = document.querySelector('[data-selected-element=selected]').alias;
 								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
-							}
+							};
+							updateTreeSelections();
 						},
-						title: 'Selects all immediate children of the node',
-						disabledtitle: 'This node has no children'
+						title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
+						disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children'
 					},{
 						name: 'Select Parent',
 						image: 'svg/select_parent.svg',
 						disabledimage: 'svg/select_parent_disabled.svg',
-						func: function(_,close) {
+						func: function(e,close) {
 							close();
+							if (document.querySelector('[data-selected-element=selected]') == overlay) {
+								clickhandler.call(overlay, {
+									stopPropagation: function(){},
+									clientX: 0,
+									clientY: Math.round(em(4.45)),
+									isTrusted: true
+								});
+								if (!document.querySelector('[data-selected-element=selected]')) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+								return this.disabled = true;
+							}
 							var node = document.querySelector('[data-selected-element=selected]').parentNode;
-							deselect();
+							if (!e.shiftKey) deselect();
 							node.setAttribute('data-selected-element','selected');
 							node = node.alias;
 							document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.className && node.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.className && node.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
+
+							updateTreeSelections();
 						},
-						title: 'Selects the immediate parent of the node',
+						title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
 						separate: true,
-						disabledtitle: 'This node\'s parent cannot be selected'
+						disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected'
 					},{
 						name: 'Edit Text',
 						image: 'svg/edit_text.svg',
@@ -1068,7 +1082,8 @@
 								framewindow.removeEventListener('click', temp);
 								this.removeEventListener('click', temp2);
 								overlay.style.pointerEvents = '';
-								this.removeAttribute('contenteditable');
+								if (element.oldcontenteditable == false) this.removeAttribute('contenteditable');
+								else this.setAttribute('contenteditable', element.oldcontenteditable);
 								element.alias.style.boxShadow = boxshadow;
 								blurred = 1;
 								overlayUpdate();
@@ -1078,7 +1093,8 @@
 								this.dispatchEvent(new Event('blur'));
 							});
 							element.alias.addEventListener('keypress', function(e) {
-								if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey)) {
+								// Blur on Ctrl + Enter, Shift + Enter, Alt + Enter, or Meta + Enter
+								if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey)) {
 									element.alias.dispatchEvent(new Event('blur'));
 								};
 								if (!e.charCode && e.keyCode != 8 && e.keyCode != 46) return;
@@ -1086,7 +1102,10 @@
 									pendingUpdate = 0;
 									element.alias.style.boxShadow = boxshadow;
 									overlayUpdate(!blurred);
+									if (element.oldcontenteditable == false) element.alias.removeAttribute('contenteditable');
+									else element.alias.setAttribute('contenteditable', element.oldcontenteditable);
 									if (e.isTrusted) history.update();
+									element.alias.setAttribute('contenteditable','');
 									if (!blurred) overlay.style.pointerEvents = 'none';
 									for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
 										if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
@@ -1206,13 +1225,15 @@
 							close();
 						},
 						image: 'svg/delete.svg',
+						separate: true,
 						title: 'Removes nodes from the document'
 					},{
 						name: 'Select Children',
-						func: function(_,close) {
+						func: function(e,close) {
 							close();
-							var elements = document.querySelectorAll('[data-selected-element=selected]')
-							deselect();
+							var elements = document.querySelectorAll('[data-selected-element=selected]');
+							if (!elements.length) return;
+							if (!e.shiftKey) deselect();
 							Array.prototype.forEach.call(elements, function(element) {
 								Array.prototype.forEach.call(element.children, function(child) {
 									child.setAttribute('data-selected-element', 'selected');
@@ -1220,15 +1241,46 @@
 							});
 							if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
 								document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
-							} else {
+							} else if (document.querySelector('[data-selected-element=selected]')) {
 								var node = document.querySelector('[data-selected-element=selected]').alias;
 								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.className ? '<span style="color:#F44">.' + node.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-							}
+							} else {
+								document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+							};
+							updateTreeSelections();
 						},
 						image: 'svg/select_children.svg',
 						disabledimage: 'svg/select_children_disabled.svg',
-						title: 'Selects all direct children of the selected nodes',
-						disabledtitle: 'None of the selected nodes have any children'
+						title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
+						disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children'
+					},{
+						name: 'Select Parent(s)',
+						image: 'svg/select_parent.svg',
+						disabledimage: 'svg/select_parent_disabled.svg',
+						func: function(e,close) {
+							if (document.querySelectorAll('[data-selected-element=selected]').length == 1) return contextmenus[0].getItem(5).dispatchEvent(new MouseEvent('click'));
+							else if (!document.querySelector('[data-selected-element=selected]')) return;
+							close();
+							var nodes = Array.prototype.filter.call(document.querySelectorAll('[data-selected-element=selected]'), function(node) {
+								return node != overlay;
+							}).map(function(node) {
+								return node.parentNode;
+							});
+							if (!e.shiftKey) deselect();
+							nodes.forEach(function(node) {
+								node.setAttribute('data-selected-element','selected');
+							});
+							nodes = document.querySelectorAll('[data-selected-element=selected]');
+							if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
+							else if (nodes[0]) {
+								var node = nodes[0].alias;
+								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.className && node.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.className && node.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
+							};
+
+							updateTreeSelections();
+						},
+						title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
+						disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents'
 					}]
 				}),
 				new ContextMenu({
@@ -1359,6 +1411,11 @@
 					},{
 						name: 'Download File&#133;',
 						disabled: true,
+						disabledtitle: 'Work in Progress',
+						separate: true
+					},{
+						name: 'Minify Document File',
+						disabled: true,
 						disabledtitle: 'Work in Progress'
 					}]
 				}),
@@ -1378,36 +1435,21 @@
 					},{
 						name: 'History',
 						disabled: true,
-						disabledtitle: 'Work in Progress'
+						disabledtitle: 'Work in Progress',
+						separate: true
 					},{
-						name: 'Select All',
-						func: function(_,close) {
-							close();
-							closeHeaders();
-							var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
-							for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
-								elements[i].setAttribute('data-selected-element', 'selected');
-								document.getElementById('tooltiptext').innerHTML = elements.length + ' nodes selected'
-							};
-							Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
-								rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
-							});
-						},
-						title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
-						image: 'svg/select_all.svg'
-					},{
-						name: 'Deselect All',
-						func: function(_,close) {
-							deselect();
-							close();
-							closeHeaders();
-							document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-							Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
-								rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
-							});
-						},
-						title: '(' + locale.cmdKey + ' + D) Deselects all elements in the document',
-						image: 'svg/deselect_all.svg'
+						name: 'Preferences',
+						title: 'Edit preferences',
+						subcontext: {
+							items: [
+								{
+									name: 'Node Selection Color&#183;',
+									title: 'Edit the color of a selected node',
+									disabled: true,
+									disabledtitle: 'Work in Progress'
+								}
+							]
+						}
 					}]
 				}),
 				new ContextMenu({
@@ -1450,9 +1492,7 @@
 							this.toggled = !this.toggled;
 							document.getElementById('html_editor_display').style.display = this.toggled ? 'block' : '';
 							updateTree();
-							Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
-								rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
-							});
+							updateTreeSelections();
 							close();
 							closeHeaders();
 						},
@@ -1506,6 +1546,91 @@
 						name: 'No Stylesheets in Document',
 						disabled: true,
 						disabledtitle: 'Create a new stylesheet or import one to edit'
+					}]
+				}),
+				new ContextMenu({
+					items: [{
+						name: 'Select All',
+						func: function(_,close) {
+							close();
+							closeHeaders();
+							var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
+							for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
+								elements[i].setAttribute('data-selected-element', 'selected');
+							};
+							document.getElementById('tooltiptext').innerHTML = elements.length + ' nodes selected';
+							updateTreeSelections();
+						},
+						title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
+						image: 'svg/select_all.svg'
+					},{
+						name: 'Deselect All',
+						func: function(_,close) {
+							deselect();
+							close();
+							closeHeaders();
+							document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+							updateTreeSelections();
+						},
+						title: '(' + locale.cmdKey + ' + D) Deselects all elements in the document',
+						image: 'svg/deselect_all.svg',
+						separate: true
+					},{
+						name: 'Select &lt;body&gt;',
+						func: function(e, close) {
+							close();
+							closeHeaders();
+							clickhandler.call(overlay, {
+								stopPropagation: function(){},
+								clientX: e.clientX,
+								clientY: e.clientY,
+								isTrusted: true,
+								shiftKey: e.shiftKey
+							});
+						},
+						title: '(' + locale.cmdKey + ' + B) or (' + locale.cmdKey + ' + Shift + B) Selects the root <body> element',
+						separate: true
+					},{
+						name: 'Invert Selection',
+						func: function(_,close) {
+							close();
+							closeHeaders();
+							for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
+								clickhandler.call(elements[i], {
+									stopPropagation: function(){},
+									clientX: 0,
+									clientY: 0,
+									isTrusted: true,
+									shiftKey: true
+								});
+							};
+							updateTreeSelections();
+
+							if (!document.querySelector('[data-selected-element=selected]')) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+						},
+						title: '(' + locale.cmdKey + ' + I) Selects all not-selected elements',
+						separate: true
+					},{
+						name: 'Select Children',
+						func: function(_,close) {
+							close();
+							closeHeaders();
+							contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click'));
+						},
+						title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
+						disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
+						image: 'svg/select_children.svg',
+						disabledimage: 'svg/select_children_disabled.svg'
+					},{
+						name: 'Select Parent(s)',
+						func: function(_,close) {
+							close();
+							closeHeaders();
+							contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click'));
+						},
+						title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
+						image: 'svg/select_parent.svg',
+						disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents'
 					}]
 				})], css = [], DOM = {}, generations = [];
 			// Load document from localStorage or create a new one
@@ -1590,9 +1715,7 @@
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
-				Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
-					rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
-				});
+				updateTreeSelections();
 			});
 			overlay.addEventListener('mousemove', function(e) {
 				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
@@ -1726,6 +1849,7 @@
 					return vh * $1 + 'px';
 				}));
 				overlay.style.fontSize = getComputedStyle(body).fontSize;
+				overlay.oldcontenteditable = body.hasAttribute('contenteditable') ? body.getAttribute('contenteditable') : false;
 
 				DOM = {
 					name: 'BODY',
@@ -1779,6 +1903,7 @@
 								return vh * $1 + 'px';
 							}));
 							clonednode.style.fontSize = getComputedStyle(this).fontSize;
+							clonednode.oldcontenteditable = this.hasAttribute('contenteditable') ? this.getAttribute('contenteditable') : false;
 							// Saves the computed styles as a hidden attribute of the original node
 							this.htmlStudioComputedStyles = clonednode.getAttribute('style') || '';
 							// Other styles to make them transparent (since they are just an overlay)
@@ -1801,6 +1926,8 @@
 							clonednode.removeAttribute('id');
 							// Prevent incorrect inheritance from non-user stylesheets
 							clonednode.removeAttribute('class');
+							// Prevents the user from editting the inner text
+							clonednode.removeAttribute('contenteditable');
 						}
 						parent.insertBefore(clonednode, parent.firstChild);
 						if (this.childNodes.length) {
@@ -1942,6 +2069,11 @@
 				};
 				style(element);	
 			}*/
+			function updateTreeSelections() {
+				Array.prototype.forEach.call(document.querySelectorAll('#idq rect.html_editor'), function(rect) {
+					rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
+				});
+			}
 			function updateTree() {
 				if (!document.getElementById('html_editor_display').style.display) return;
 				generations = [];
@@ -2042,14 +2174,14 @@
 
 			// A bunch of event listeners for elements
 			// Scrolls iframe depending on #framecontainer's scrollTop
-				document.getElementById('framecontainer').addEventListener('scroll', Modernizr.csspositionsticky ? function() {
-					// Browser with support for position:sticky that might use asynchronous scrolling
-					framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
-				} : function() {
-					// Browsers with no support for position:sticky that probably doesn't use asynchronous scrolling
-					framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
-					iframe.style.top = scrollTop + 'px';
-				});
+			document.getElementById('framecontainer').addEventListener('scroll', Modernizr.csspositionsticky ? function() {
+				// Browser with support for position:sticky that might use asynchronous scrolling
+				framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
+			} : function() {
+				// Browsers with no support for position:sticky that probably doesn't use asynchronous scrolling
+				framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
+				iframe.style.top = scrollTop + 'px';
+			});
 
 			// Controls opening and closing of header sections
 			var sectionopen = false;
@@ -2094,6 +2226,16 @@
 							});
 							return new ContextMenu(arg);
 						})();
+						else if (index == 4) {
+							var elements = document.querySelectorAll('[data-selected-element=selected]');
+							contextmenus[6].getItem(4).disabled = (function() {
+								for (var i = elements.length - 1; i >= 0; i--) {
+									if (elements[i].children.length) return false;
+								}
+								return true;
+							})();
+							contextmenus[6].getItem(5).disabled = elements.length == 0 || (elements.length == 1 && overlay.getAttribute('data-selected-element') == 'selected');
+						}
 						document.body.appendChild(contextmenus[index + 2].node);
 						contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
 						contextmenus[index + 2].node.style.top = this.getBoundingClientRect().bottom - em() + 'px';
@@ -2346,6 +2488,7 @@
 					element.contentWindow.document.documentElement.style.cursor = 'pointer';
 					element.contentWindow.document.body.style.fontSize = '4vh';
 				});
+				document.getElementById('framecontainer').dispatchEvent(new Event('scroll'));
 			});
 			addEventListener('mousedown',function(e){
 				if (!document.getElementsByClassName('contextmenu')[0] || (e.target.className && e.target.className.baseVal == undefined && e.target.className.includes('contextmenu'))) return;
@@ -2356,6 +2499,9 @@
 					});
 					sectionopen = false;
 				}
+			});
+			framewindow.addEventListener('load', function() {
+				document.getElementById('framecontainer').dispatchEvent(new Event('scroll'));
 			});
 			function undo () {
 				history.currentEntry = Math.max(history.currentEntry - 1, 0);
@@ -2421,10 +2567,39 @@
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[2].getItem(0).dispatchEvent(new MouseEvent('click'));
+				// F11
 				} else if (e.keyCode == 122) {
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[4].getItem(1).dispatchEvent(new MouseEvent('click'));
+				// Ctrl + B
+				} else if (e.keyCode == 66 && locale.cmdKeyPressed(e)) {
+					e.preventDefault();
+					e.stopPropagation();
+					clickhandler.call(overlay, {
+						stopPropagation: function(){},
+						clientX: 0,
+						clientY: Math.round(em(4.45)),
+						isTrusted: true,
+						shiftKey: e.shiftKey
+					});
+
+					if (!document.querySelector('[data-selected-element=selected]')) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+				// Ctrl + I
+				} else if (e.keyCode == 73 && locale.cmdKeyPressed(e)) {
+					e.preventDefault();
+					e.stopPropagation();
+					contextmenus[6].getItem(3).dispatchEvent(new MouseEvent('click'));
+				// Ctrl + Up Arrow
+				} else if (e.keyCode == 38 && locale.cmdKeyPressed(e)) {
+					e.preventDefault();
+					e.stopPropagation();
+					contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click'));
+				// Ctrl + Down Arrow
+				} else if (e.keyCode == 40 && locale.cmdKeyPressed(e)) {
+					e.preventDefault();
+					e.stopPropagation();
+					contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click'));
 				}
 			}
 			addEventListener('keydown', windowkeydown);
