@@ -9,7 +9,7 @@
 		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 		ga('create', 'UA-91403443-1', 'auto');
-	 	ga('send', 'pageview');</script>
+		ga('send', 'pageview');</script>
 	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic' rel='stylesheet' type='text/css'>
 	<style type="text/css">
 		@font-face {
@@ -256,6 +256,18 @@
 
 		#open_file_html {
 			display: none;
+		}
+
+		#clipboard {
+			white-space: pre;
+		}
+
+		.hidden {
+			position: fixed;
+			opacity: 0;
+			pointer-events: none;
+			top: 100vh;
+			left: 100vw;
 		}
 
 		#dialogcover {
@@ -760,6 +772,28 @@
 				<div class='option exit' tabindex='0'>Cancel</div>
 			</div>
 		</div>
+		<div id='dialog_no_paste' class='dialog'>
+			<span>Pasting Problems</span>
+			<div class='content'>
+				<h3>Unfortunately, pasting elements isn't fully supported by your browser yet. You can fix this by updating or changing your browser, or following the steps below to achieve the same result.
+				<br>
+				<br>
+				<h3>
+					<ol style='width:auto;display:block;text-align:left'>
+						<li>Copy an element, or any HTML markup, to insert into an element.</li>
+						<li>Right click the element you want to paste the HTML element into.</li>
+						<li>Select <span style='background:#F2F2F2;display:inline-block;border:1px solid #aaa;margin:-1px;padding:0 .2em'><img src='svg/edit_as_html.svg' style='height:1.2em;vertical-align:top;'>&nbsp;&nbsp;Edit as HTML&#133;</span> from the context menu.</li>
+						<li>Find the spot you want to insert the element at.</li>
+						<li>Paste your HTML element the way you would normally paste text. (Right Click > Paste or <span class='localeCmdKey'></span> + V)</li>		
+					</ol>
+				</h3>
+				</h3>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='optioncontainer'>
+				<div class='option exit' tabindex='0'>Exit</div>
+			</div>
+		</div>
 	</div>
 	<div id='html_editor_display'>
 		<span id='ids'>HTML Tree</span>
@@ -769,6 +803,7 @@
 		</div>
 	</div>
 	<input type='file' id='open_file_html'>
+	<textarea id='clipboard' class='hidden'></textarea>
 	<script type='text/javascript' src='/JavaScript/Draggable-Elements/Draggable-Elements.js'></script>
 	<script type="text/javascript" src="ContextMenu.js"></script>
 	<script type="text/javascript">
@@ -816,69 +851,96 @@
 			if (+localStorage.getItem('HTML-Studio_session')) alreadyActive();
 			if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(navigator.userAgent||navigator.vendor||window.opera)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test((navigator.userAgent||navigator.vendor||window.opera).substr(0,4))) userOnMobileDevice();
 			localStorage.setItem('HTML-Studio_session', '1');
-			var iframe = document.getElementById('frame'), framewindow = iframe.contentWindow, elements = iframe.contentWindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), backdialog = document.getElementById('dialogcover'), history = {
-				entries: JSON.parse(localStorage.getItem('HTML-Studio_documentHistoryEntries')) || [],
-				update: function() {
-					if (~this.currentEntry && framewindow.document.body.outerHTML == this.entries[this.currentEntry].html && document.getElementById('title').value == this.entries[this.currentEntry].title) return;
-					var stylesheethtml = [];
-					for (var stylesheets = framewindow.document.querySelectorAll('style'), i = stylesheets.length - 1; i >= 0; i--) {
-						stylesheethtml.push(stylesheets[i].outerHTML.replace(stylesheets[i].innerHTML, stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'')));
-					}
-					var obj = {
-						html: framewindow.document.body.outerHTML,
-						title: document.getElementById('title').value
-					};
-					if (obj.html == (this.entries.last || {html: ''}).html && obj.title == (this.entries.last || {title: ''}).title) return;
+			var iframe = document.getElementById('frame'),
+				framewindow = iframe.contentWindow,
+				elements = iframe.contentWindow.document.body.childNodes,
+				overlay = document.getElementById('frameoverlay'),
+				backdialog = document.getElementById('dialogcover'),
+				history = {
+					entries: JSON.parse(localStorage.getItem('HTML-Studio_documentHistoryEntries')) || [],
+					update: function() {
+						if (~this.currentEntry && framewindow.document.body.outerHTML == this.entries[this.currentEntry].html && document.getElementById('title').value == this.entries[this.currentEntry].title) return;
+						var stylesheethtml = [];
+						for (var stylesheets = framewindow.document.querySelectorAll('style'), i = stylesheets.length - 1; i >= 0; i--) {
+							stylesheethtml.push(stylesheets[i].outerHTML.replace(stylesheets[i].innerHTML, stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'')));
+						}
+						var obj = {
+							html: framewindow.document.body.outerHTML,
+							title: document.getElementById('title').value
+						};
+						if (obj.html == (this.entries.last || {html: ''}).html && obj.title == (this.entries.last || {title: ''}).title) return;
 
-					this.currentEntry++;
-					this.entries[this.currentEntry] = obj;
-					localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml))
-					this.entries = this.entries.slice(0,this.currentEntry + 1);
-					localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify(this.entries));
-					localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', this.currentEntry);
-					contextmenus[3].getItem(0).disabled = !this.currentEntry;
-					contextmenus[3].getItem(1).disabled = this.currentEntry == this.entries.length - 1;
-				}
-			}, locale = {
-				isMac: /mac/i.test(navigator.platform),
-				cmdKey: /mac/i.test(navigator.platform) ? "\u2318" : "Ctrl",
-				cmdKeyPressed: function(keyboardEvent) {
-					return this.isMac ? keyboardEvent.metaKey : keyboardEvent.ctrlKey;
-				}
-			}, contextmenus =
-				[new ContextMenu({
-					items: [{
-						name: '[Node Info]',
-						disabled: true,
-						pad: false,
-						css: {
-							fontFamily: 'monospace',
-							fontSize: '1.2em'
-						},
-						separate: true
-					},{
-						name: 'Edit Styles&#133;',
-						func: function(_,close) {
-							close();
-							backdialog.style.display = 'block';
-							document.getElementById('dialog_edit_styles').style.display = 'block';
-							var html = '<table id="idu">';
-							(document.querySelector('[data-selected-element=selected]').alias.getAttribute('style') || '').split(';').forEach(function(style) {
-								if (style) html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(style.split(':')[0].trim()) + '" placeholder="style name" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(style.substring(style.indexOf(':') + 1).trim()) + '" placeholder="style value" class="cl2 cl3"></td></td>';
-							});
-							html += '<tr class="cl4"><td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td></tr><tr class="cl4" id="idw"><td><input type="text" placeholder="style name" class="cl1 cl3" id="idx"></td><td><input type="text" tabindex="-1" placeholder="style value" class="cl2 cl3"></td></tr></table>';
-							document.getElementById('idv').innerHTML = html;
-							document.getElementById('idu').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
-							var finaltr = document.getElementById('idw').previousElementSibling;
-							document.getElementById('idx').addEventListener('focus', function() {
-								var tr = document.createElement('tr');
-								tr.className = 'cl4';
-								tr.innerHTML = '<td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td>';
-								this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
-								finaltr = tr;
-								tr.children[0].children[0].focus();
-								[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
-									element.addEventListener('blur', function() {
+						this.currentEntry++;
+						this.entries[this.currentEntry] = obj;
+						localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml))
+						this.entries = this.entries.slice(0,this.currentEntry + 1);
+						localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify(this.entries));
+						localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', this.currentEntry);
+						contextmenus[3].getItem(0).disabled = !this.currentEntry;
+						contextmenus[3].getItem(1).disabled = this.currentEntry == this.entries.length - 1;
+					}
+				}, locale = {
+					isMac: /mac/i.test(navigator.platform),
+					cmdKey: /mac/i.test(navigator.platform) ? "\u2318" : "Ctrl",
+					cmdKeyPressed: function(keyboardEvent) {
+						return this.isMac ? keyboardEvent.metaKey : keyboardEvent.ctrlKey;
+					}
+				}, contextmenus = [
+					new ContextMenu({
+						items: [{
+							name: '[Node Info]',
+							disabled: true,
+							pad: false,
+							css: {
+								fontFamily: 'monospace',
+								fontSize: '1.2em'
+							},
+							separate: true
+						},{
+							name: 'Edit Styles&#133;',
+							func: function(_,close) {
+								close();
+								backdialog.style.display = 'block';
+								document.getElementById('dialog_edit_styles').style.display = 'block';
+								var html = '<table id="idu">';
+								(document.querySelector('[data-selected-element=selected]').alias.getAttribute('style') || '').split(';').forEach(function(style) {
+									if (style) html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(style.split(':')[0].trim()) + '" placeholder="style name" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(style.substring(style.indexOf(':') + 1).trim()) + '" placeholder="style value" class="cl2 cl3"></td></td>';
+								});
+								html += '<tr class="cl4"><td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td></tr><tr class="cl4" id="idw"><td><input type="text" placeholder="style name" class="cl1 cl3" id="idx"></td><td><input type="text" tabindex="-1" placeholder="style value" class="cl2 cl3"></td></tr></table>';
+								document.getElementById('idv').innerHTML = html;
+								document.getElementById('idu').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
+								var finaltr = document.getElementById('idw').previousElementSibling;
+								document.getElementById('idx').addEventListener('focus', function() {
+									var tr = document.createElement('tr');
+									tr.className = 'cl4';
+									tr.innerHTML = '<td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td>';
+									this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
+									finaltr = tr;
+									tr.children[0].children[0].focus();
+									[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
+										element.addEventListener('blur', function() {
+											setTimeout(function() {
+												var tr = element.parentNode.parentNode;
+												tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
+												element.active = false;
+												if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
+													tr.parentNode.removeChild(tr);
+												};
+											},0);
+										});
+										element.addEventListener('focus', function() {
+											element.active = true;
+										});
+										element.addEventListener('keypress', function(e) {
+											if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling) || (e.charCode == 59 && element.parentNode.previousElementSibling)) {
+												e.preventDefault();
+												(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
+											}
+										});
+									});
+								});
+								Array.prototype.forEach.call(document.querySelectorAll('#idv input:not(#idx)'), function(element) {
+									element.addEventListener('blur', function(e) {
 										setTimeout(function() {
 											var tr = element.parentNode.parentNode;
 											tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
@@ -888,7 +950,7 @@
 											};
 										},0);
 									});
-									element.addEventListener('focus', function() {
+									element.addEventListener('focus', function(e) {
 										element.active = true;
 									});
 									element.addEventListener('keypress', function(e) {
@@ -898,55 +960,55 @@
 										}
 									});
 								});
-							});
-							Array.prototype.forEach.call(document.querySelectorAll('#idv input:not(#idx)'), function(element) {
-								element.addEventListener('blur', function(e) {
-									setTimeout(function() {
-										var tr = element.parentNode.parentNode;
-										tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
-										element.active = false;
-										if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
-											tr.parentNode.removeChild(tr);
-										};
-									},0);
+								document.querySelector('#idv tr:first-child input').focus();
+							},
+							image: 'svg/edit_styles.svg',
+							title: 'Allows you to edit the element\'s CSS'
+						},{
+							name: 'Edit Attributes&#133;',
+							func: function(_,close) {
+								close();
+								backdialog.style.display = 'block';
+								document.getElementById('dialog_edit_attributes').style.display = 'block';
+								var html = '<table id="idi">';
+								Array.prototype.forEach.call(document.querySelector('[data-selected-element=selected]').alias.attributes, function(attribute) {
+									html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(attribute.name) + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(attribute.value) + '" placeholder="value" class="cl2 cl3"></td></td>';
 								});
-								element.addEventListener('focus', function(e) {
-									element.active = true;
+								html += '<tr class="cl4"><td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td></tr><tr class="cl4" id="idk"><td><input type="text" placeholder="attribute" class="cl1 cl3" id="idj"></td><td><input type="text" tabindex="-1" placeholder="value" class="cl2 cl3"></td></tr></table>';
+								document.getElementById('idg').innerHTML = html;
+								document.getElementById('idi').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
+								var finaltr = document.getElementById('idk').previousElementSibling;
+								document.getElementById('idj').addEventListener('focus', function() {
+									var tr = document.createElement('tr');
+									tr.className = 'cl4';
+									tr.innerHTML = '<td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td>';
+									this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
+									finaltr = tr;
+									tr.children[0].children[0].focus();
+									[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
+										element.addEventListener('blur', function() {
+											setTimeout(function() {
+												var tr = element.parentNode.parentNode;
+												tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
+												element.active = false;
+												if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
+													tr.parentNode.removeChild(tr);
+												};
+											},0);
+										});
+										element.addEventListener('focus', function() {
+											element.active = true;
+										});
+										element.addEventListener('keypress', function(e) {
+											if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling)) {
+												e.preventDefault();
+												(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
+											};
+										});
+									});
 								});
-								element.addEventListener('keypress', function(e) {
-									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling) || (e.charCode == 59 && element.parentNode.previousElementSibling)) {
-										e.preventDefault();
-										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
-									}
-								});
-							});
-							document.querySelector('#idv tr:first-child input').focus();
-						},
-						image: 'svg/edit_styles.svg',
-						title: 'Allows you to edit the element\'s CSS'
-					},{
-						name: 'Edit Attributes&#133;',
-						func: function(_,close) {
-							close();
-							backdialog.style.display = 'block';
-							document.getElementById('dialog_edit_attributes').style.display = 'block';
-							var html = '<table id="idi">';
-							Array.prototype.forEach.call(document.querySelector('[data-selected-element=selected]').alias.attributes, function(attribute) {
-								html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(attribute.name) + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(attribute.value) + '" placeholder="value" class="cl2 cl3"></td></td>';
-							});
-							html += '<tr class="cl4"><td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td></tr><tr class="cl4" id="idk"><td><input type="text" placeholder="attribute" class="cl1 cl3" id="idj"></td><td><input type="text" tabindex="-1" placeholder="value" class="cl2 cl3"></td></tr></table>';
-							document.getElementById('idg').innerHTML = html;
-							document.getElementById('idi').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
-							var finaltr = document.getElementById('idk').previousElementSibling;
-							document.getElementById('idj').addEventListener('focus', function() {
-								var tr = document.createElement('tr');
-								tr.className = 'cl4';
-								tr.innerHTML = '<td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td>';
-								this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
-								finaltr = tr;
-								tr.children[0].children[0].focus();
-								[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
-									element.addEventListener('blur', function() {
+								Array.prototype.forEach.call(document.querySelectorAll('#idg input:not(#idj)'), function(element) {
+									element.addEventListener('blur', function(e) {
 										setTimeout(function() {
 											var tr = element.parentNode.parentNode;
 											tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
@@ -956,7 +1018,7 @@
 											};
 										},0);
 									});
-									element.addEventListener('focus', function() {
+									element.addEventListener('focus', function(e) {
 										element.active = true;
 									});
 									element.addEventListener('keypress', function(e) {
@@ -966,195 +1028,140 @@
 										};
 									});
 								});
-							});
-							Array.prototype.forEach.call(document.querySelectorAll('#idg input:not(#idj)'), function(element) {
-								element.addEventListener('blur', function(e) {
-									setTimeout(function() {
-										var tr = element.parentNode.parentNode;
-										tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
-										element.active = false;
-										if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
-											tr.parentNode.removeChild(tr);
-										};
-									},0);
-								});
-								element.addEventListener('focus', function(e) {
-									element.active = true;
-								});
-								element.addEventListener('keypress', function(e) {
-									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling)) {
-										e.preventDefault();
-										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
-									};
-								});
-							});
-							document.querySelector('#idg tr:first-child input').focus();
-						},
-						title: 'Allows you to edit the element\'s attributes',
-						image: 'svg/edit_attributes.svg',
-						separate: true
-					},{
-						name: 'Insert Child&#133;',
-						title: 'Inserts a child node into the selected node',
-						image: 'svg/insert_child.svg',
-						separate: true
-					},{
-						name: 'Select Children',
-						image: 'svg/select_children.svg',
-						disabledimage: 'svg/select_children_disabled.svg',
-						func: function(e,close) {
-							close();
-							var element = document.querySelector('[data-selected-element=selected]');
-							if (!e.shiftKey) deselect();
-							for (var i = element.children.length - 1; i >= 0; i--) {
-								element.children[i].setAttribute('data-selected-element', 'selected');
-							};
-							if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
-								document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
-							} else {
-								var node = document.querySelector('[data-selected-element=selected]').alias;
-								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
-							};
-							updateTreeSelections();
-						},
-						title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
-						disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children'
-					},{
-						name: 'Select Parent',
-						image: 'svg/select_parent.svg',
-						disabledimage: 'svg/select_parent_disabled.svg',
-						func: function(e,close) {
-							close();
-							if (document.querySelector('[data-selected-element=selected]') == overlay) {
-								clickhandler.call(overlay, {
-									stopPropagation: function(){},
-									clientX: 0,
-									clientY: Math.round(em(4.45)),
-									isTrusted: true
-								});
-								if (!document.querySelector('[data-selected-element=selected]')) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-								return this.disabled = true;
-							}
-							var node = document.querySelector('[data-selected-element=selected]').parentNode;
-							if (!e.shiftKey) deselect();
-							node.setAttribute('data-selected-element','selected');
-							node = node.alias;
-							document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.className && node.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.className && node.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
-
-							updateTreeSelections();
-						},
-						title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
-						separate: true,
-						disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected'
-					},{
-						name: 'Edit Text',
-						image: 'svg/edit_text.svg',
-						func: function(_,close) {
-							var element = document.querySelector('[data-selected-element=selected]'), boxshadow = element.alias.style.boxShadow, blurred = 0;
-							element.alias.setAttribute('contenteditable','');
-							overlay.style.pointerEvents = 'none';
-							if (element.alias.focus) element.alias.focus();
-							deselect();
-							element.alias.style.boxShadow = '0 0 5px 3px #00acc1';
-							var pendingUpdate, pendingHistory;
-							element.alias.addEventListener('blur', function(e) {
-								if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName.toLowerCase() == 'br') element.alias.removeChild(element.alias.lastChild);
-								function temp(e){
-									element.alias.dispatchEvent(new Event('blur'));
-									framewindow.removeEventListener('click', temp);
-									this.removeEventListener('click', temp2);
-								}
-								function temp2(e) {
-									e.stopPropagation();
-									framewindow.removeEventListener('click', temp);
-									this.removeEventListener('click', temp2);
-								}
-								if (this.noblur) {
-									// This only occurs if an HTML escape sequence replacer was clicked on
-									// The contenteditable element remains contenteditable, but the user has the option to click inside the element (continue editing text, keep contenteditable), or outside the element (stop editing, take away contenteditable)
-									e.preventDefault();
-									this.noblur = false;
-									this.focus();
-									framewindow.addEventListener('click', temp);
-									this.addEventListener('click', temp2);
-									return;
-								}
-								framewindow.removeEventListener('click', temp);
-								this.removeEventListener('click', temp2);
-								overlay.style.pointerEvents = '';
-								if (element.oldcontenteditable == false) this.removeAttribute('contenteditable');
-								else this.setAttribute('contenteditable', element.oldcontenteditable);
-								element.alias.style.boxShadow = boxshadow;
-								blurred = 1;
-								overlayUpdate();
-								history.update();
-							});
-							element.alias.addEventListener('dblclick', function() {
-								this.dispatchEvent(new Event('blur'));
-							});
-							element.alias.addEventListener('keypress', function(e) {
-								// Blur on Ctrl + Enter, Shift + Enter, Alt + Enter, or Meta + Enter
-								if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey)) {
-									element.alias.dispatchEvent(new Event('blur'));
+								document.querySelector('#idg tr:first-child input').focus();
+							},
+							title: 'Allows you to edit the element\'s attributes',
+							image: 'svg/edit_attributes.svg',
+							separate: true
+						},{
+							name: 'Insert Child&#133;',
+							title: 'Inserts a child node into the selected node',
+							image: 'svg/insert_child.svg',
+							separate: true
+						},{
+							name: 'Select Children',
+							image: 'svg/select_children.svg',
+							disabledimage: 'svg/select_children_disabled.svg',
+							func: function(e,close) {
+								close();
+								var element = document.querySelector('[data-selected-element=selected]');
+								if (!e.shiftKey) deselect();
+								for (var i = element.children.length - 1; i >= 0; i--) {
+									element.children[i].setAttribute('data-selected-element', 'selected');
 								};
-								if (!e.charCode && e.keyCode != 8 && e.keyCode != 46) return;
-								if (!pendingUpdate) pendingUpdate = setTimeout(function() {
-									pendingUpdate = 0;
-									element.alias.style.boxShadow = boxshadow;
-									overlayUpdate(!blurred);
-									if (element.oldcontenteditable == false) element.alias.removeAttribute('contenteditable');
-									else element.alias.setAttribute('contenteditable', element.oldcontenteditable);
-									if (e.isTrusted) history.update();
-									element.alias.setAttribute('contenteditable','');
-									if (!blurred) overlay.style.pointerEvents = 'none';
-									for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
-										if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
-											children[i - 1].textContent += children[i].textContent;
-											children[i].parentNode.removeChild(children[i]);
-										}
-									}
-									if (!blurred) {
-										element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border-radius:.2em;background:#00acc1;color:white;pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
-										var preelement = element;
-										Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
-											var a = document.createElement('a'), sequence = element.getAttribute('data-sequence');
-											a.innerHTML = sequence;
-											if (a.innerText == sequence) {
-												element.parentNode.removeChild(element);
-												return;
-											}
-											if (!element.parentNode.alias) {
-												!function alias (element) {
-													if (!element.parentNode.parentNode.alias) alias(element.parentNode);
-													var children = element.parentNode.parentNode.childNodes, index = Array.prototype.indexOf.call(children, element.parentNode);
-													for (var i = index - 2; i >= 0; i--) {
-														if (children[i].className == 'html-escape-sequence-replacer') {
-															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-															if (children[i + 1] && children[i + 1].nodeType == 3) index--;
-														} else if (children[i].nodeType == 3) {
-															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-														}
-													}
-													element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
-												}(element)
-											};
-											element.title = 'Click to replace with "' + a.innerText + '"';
-											element.addEventListener('mousedown', function(e) {
-												preelement.alias.noblur = true;
-												var count = 0, index = Array.prototype.indexOf.call(element.parentNode.childNodes, element), origIndex = index;
-												for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
-													if (children[i].className == 'html-escape-sequence-replacer') {
-														if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-														if (children[i + 1] && children[i + 1].nodeType == 3) index--;
-													} else if (children[i].nodeType == 3) {
-														if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-													}
-												}
-												for (var children = element.parentNode.childNodes, i = origIndex - 1; i >= 0; i--) {
-													if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
-													if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
-												}
+								if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
+									document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
+								} else {
+									var node = document.querySelector('[data-selected-element=selected]').alias;
+									updateTooltip();
+								};
+								updateTreeSelections();
+							},
+							title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
+							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children'
+						},{
+							name: 'Select Parent',
+							image: 'svg/select_parent.svg',
+							disabledimage: 'svg/select_parent_disabled.svg',
+							func: function(e,close) {
+								close();
+								if (document.querySelector('[data-selected-element=selected]') == overlay) {
+									clickhandler.call(overlay, {
+										stopPropagation: function(){},
+										clientX: 0,
+										clientY: Math.round(em(4.45)),
+										isTrusted: true
+									});
+									updateTooltip();
+									return this.disabled = true;
+								}
+								var node = document.querySelector('[data-selected-element=selected]').parentNode;
+								if (!e.shiftKey) deselect();
+								node.setAttribute('data-selected-element','selected');
 
+								updateTooltip();
+								updateTreeSelections();
+							},
+							title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
+							separate: true,
+							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected'
+						},{
+							name: 'Edit Text',
+							image: 'svg/edit_text.svg',
+							func: function(_,close) {
+								var element = document.querySelector('[data-selected-element=selected]'), boxshadow = element.alias.style.boxShadow, blurred = 0;
+								element.alias.setAttribute('contenteditable','');
+								overlay.style.pointerEvents = 'none';
+								if (element.alias.focus) element.alias.focus();
+								deselect();
+								element.alias.style.boxShadow = '0 0 5px 3px #00acc1';
+								var pendingUpdate, pendingHistory;
+								element.alias.addEventListener('blur', function(e) {
+									if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName.toLowerCase() == 'br') element.alias.removeChild(element.alias.lastChild);
+									function temp(e){
+										element.alias.dispatchEvent(new Event('blur'));
+										framewindow.removeEventListener('click', temp);
+										this.removeEventListener('click', temp2);
+									}
+									function temp2(e) {
+										e.stopPropagation();
+										framewindow.removeEventListener('click', temp);
+										this.removeEventListener('click', temp2);
+									}
+									if (this.noblur) {
+										// This only occurs if an HTML escape sequence replacer was clicked on
+										// The contenteditable element remains contenteditable, but the user has the option to click inside the element (continue editing text, keep contenteditable), or outside the element (stop editing, take away contenteditable)
+										e.preventDefault();
+										this.noblur = false;
+										this.focus();
+										framewindow.addEventListener('click', temp);
+										this.addEventListener('click', temp2);
+										return;
+									}
+									framewindow.removeEventListener('click', temp);
+									this.removeEventListener('click', temp2);
+									overlay.style.pointerEvents = '';
+									if (element.oldcontenteditable == false) this.removeAttribute('contenteditable');
+									else this.setAttribute('contenteditable', element.oldcontenteditable);
+									element.alias.style.boxShadow = boxshadow;
+									blurred = 1;
+									overlayUpdate();
+									history.update();
+								});
+								element.alias.addEventListener('dblclick', function() {
+									this.dispatchEvent(new Event('blur'));
+								});
+								element.alias.addEventListener('keypress', function(e) {
+									// Blur on Ctrl + Enter, Shift + Enter, Alt + Enter, or Meta + Enter
+									if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey)) {
+										element.alias.dispatchEvent(new Event('blur'));
+									};
+									if (!e.charCode && e.keyCode != 8 && e.keyCode != 46) return;
+									if (!pendingUpdate) pendingUpdate = setTimeout(function() {
+										pendingUpdate = 0;
+										element.alias.style.boxShadow = boxshadow;
+										overlayUpdate(!blurred);
+										if (element.oldcontenteditable == false) element.alias.removeAttribute('contenteditable');
+										else element.alias.setAttribute('contenteditable', element.oldcontenteditable);
+										if (e.isTrusted) history.update();
+										element.alias.setAttribute('contenteditable','');
+										if (!blurred) overlay.style.pointerEvents = 'none';
+										for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
+											if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
+												children[i - 1].textContent += children[i].textContent;
+												children[i].parentNode.removeChild(children[i]);
+											}
+										}
+										if (!blurred) {
+											element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border-radius:.2em;background:#00acc1;color:white;pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
+											var preelement = element;
+											Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
+												var a = document.createElement('a'), sequence = element.getAttribute('data-sequence');
+												a.innerHTML = sequence;
+												if (a.innerText == sequence) {
+													element.parentNode.removeChild(element);
+													return;
+												}
 												if (!element.parentNode.alias) {
 													!function alias (element) {
 														if (!element.parentNode.parentNode.alias) alias(element.parentNode);
@@ -1169,470 +1176,517 @@
 														}
 														element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
 													}(element)
-												}
-												element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))' + sequence + '(.*$)'), function(_,$1,$2){
-													return $1 + a.innerText + $2;
-												});
-												element.parentNode.alias.dispatchEvent(new Event('keypress'));
-												element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
-											})
-										})
-									}
-									element.alias.style.boxShadow = blurred ? boxshadow : '0 0 5px 3px #00acc1';
-								}, 10);
-							});
-							element.alias.dispatchEvent(new Event('keypress'));
-							close();
-						},
-						title: 'Allows you to edit the element\'s textual content',
-						disabledtitle: 'SVG elements should not contain textual content'
-					},{
-						name: 'Edit as HTML&#133;',
-						image: 'svg/edit_as_html.svg',
-						func: function(_,close) {
-							close();
-							backdialog.style.display = 'block';
-							document.getElementById('dialog_edit_html').style.display = 'block';
-							document.getElementById('idf').value = document.querySelector('[data-selected-element=selected]').alias[(document.querySelector('[data-selected-element=selected]').alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
-							document.getElementById('idf').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
-						},
-						title: 'Allows you to edit the node\'s HTML',
-						separate: true
-					},{
-						name: 'Delete Node',
-						func: function(_,close) {
-							document.querySelector('[data-selected-element=selected]').alias.parentNode.removeChild(document.querySelector('[data-selected-element=selected]').alias);
-							overlayUpdate();
-							history.update();
-							close();
-						},
-						title: 'Removes node from the document',
-						disabledtitle: 'This node cannot be removed from the document',
-						image: 'svg/delete.svg',
-						disabledimage: 'svg/delete_disabled.svg'
-					}]
-				}),
-				new ContextMenu({
-					items: [{
-						name: 'Delete Nodes',
-						func: function(_,close) {
-							var elements = document.querySelectorAll('[data-selected-element=selected]');
-							for (var i = elements.length - 1; i >= 0; i--) {
-								if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
-							}
-							overlayUpdate();
-							history.update();
-							close();
-						},
-						image: 'svg/delete.svg',
-						separate: true,
-						title: 'Removes nodes from the document'
-					},{
-						name: 'Select Children',
-						func: function(e,close) {
-							close();
-							var elements = document.querySelectorAll('[data-selected-element=selected]');
-							if (!elements.length) return;
-							if (!e.shiftKey) deselect();
-							Array.prototype.forEach.call(elements, function(element) {
-								Array.prototype.forEach.call(element.children, function(child) {
-									child.setAttribute('data-selected-element', 'selected');
-								})
-							});
-							if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
-								document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
-							} else if (document.querySelector('[data-selected-element=selected]')) {
-								var node = document.querySelector('[data-selected-element=selected]').alias;
-								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.className ? '<span style="color:#F44">.' + node.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-							} else {
-								document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-							};
-							updateTreeSelections();
-						},
-						image: 'svg/select_children.svg',
-						disabledimage: 'svg/select_children_disabled.svg',
-						title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
-						disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children'
-					},{
-						name: 'Select Parent(s)',
-						image: 'svg/select_parent.svg',
-						disabledimage: 'svg/select_parent_disabled.svg',
-						func: function(e,close) {
-							if (document.querySelectorAll('[data-selected-element=selected]').length == 1) return contextmenus[0].getItem(5).dispatchEvent(new MouseEvent('click'));
-							else if (!document.querySelector('[data-selected-element=selected]')) return;
-							close();
-							var nodes = Array.prototype.filter.call(document.querySelectorAll('[data-selected-element=selected]'), function(node) {
-								return node != overlay;
-							}).map(function(node) {
-								return node.parentNode;
-							});
-							if (!e.shiftKey) deselect();
-							nodes.forEach(function(node) {
-								node.setAttribute('data-selected-element','selected');
-							});
-							nodes = document.querySelectorAll('[data-selected-element=selected]');
-							if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
-							else if (nodes[0]) {
-								var node = nodes[0].alias;
-								document.getElementById('tooltiptext').innerHTML = document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (node.className && node.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.className && node.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.className.replace(/\s+/g,'<wbr>.') + '</span>' : '') + '</span>';
-							};
+												};
+												element.title = 'Click to replace with "' + a.innerText + '"';
+												element.addEventListener('mousedown', function(e) {
+													preelement.alias.noblur = true;
+													var count = 0, index = Array.prototype.indexOf.call(element.parentNode.childNodes, element), origIndex = index;
+													for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
+														if (children[i].className == 'html-escape-sequence-replacer') {
+															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+															if (children[i + 1] && children[i + 1].nodeType == 3) index--;
+														} else if (children[i].nodeType == 3) {
+															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+														}
+													}
+													for (var children = element.parentNode.childNodes, i = origIndex - 1; i >= 0; i--) {
+														if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
+														if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
+													}
 
-							updateTreeSelections();
-						},
-						title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
-						disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents'
-					}]
-				}),
-				new ContextMenu({
-					items: [{
-						name: 'New&#133;',
-						func: function newFile(_,close) {
-							document.getElementById('dialogcover').style.display = 'block';
-							document.getElementById('dialog_new_file').style.display = 'block';
-							document.querySelector('#idm tbody').innerHTML = '';
-							var useSrc = Symbol();
-							var presets = [
-								[useSrc, './presets/1.html', 'Blank'],
-								[useSrc, './presets/2.html', 'Picture Strips'],
-								[useSrc, './presets/3.html', 'Image w/ Content']
-							];
-							presets.push.apply(presets, JSON.parse(localStorage.getItem('HTML-Studio_presets') || '[]'));
-							presets.forEach(function(preset, index) {
-								var tr = index % 2 ? document.querySelector('#idm tr:last-child') : document.createElement('tr'), td = document.createElement('td'), h4 = document.createElement('h4'), frame = document.createElement('iframe');
-								frame.className = 'cl5';
-								h4.className = 'cl6';
-								document.querySelector('#idm tbody').appendChild(tr);
-								tr.appendChild(td);
-								td.appendChild(frame);
-								td.appendChild(h4);
-								h4.innerText = preset[preset[0] == useSrc ? 2 : 1];
-								if (preset[0] == useSrc) {
-									frame.src = preset[1];
-									td.className = 'cl8';
-								} else {
-									var div = document.createElement('div');
-									div.className = 'cl9';
-									div.setAttribute('tabindex', '0');
-									div.addEventListener('click', function() {
-										var array = JSON.parse(localStorage.getItem('HTML-Studio_presets'));
-										array.splice(index - 3,1);
-										localStorage.setItem('HTML-Studio_presets', JSON.stringify(array));
-										var scroll = document.getElementById('idm').parentNode.scrollTop;
-										newFile(_,close);
-										document.getElementById('idm').parentNode.scrollTop = scroll;
+													if (!element.parentNode.alias) {
+														!function alias (element) {
+															if (!element.parentNode.parentNode.alias) alias(element.parentNode);
+															var children = element.parentNode.parentNode.childNodes, index = Array.prototype.indexOf.call(children, element.parentNode);
+															for (var i = index - 2; i >= 0; i--) {
+																if (children[i].className == 'html-escape-sequence-replacer') {
+																	if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+																	if (children[i + 1] && children[i + 1].nodeType == 3) index--;
+																} else if (children[i].nodeType == 3) {
+																	if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
+																}
+															}
+															element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
+														}(element)
+													}
+													element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))' + sequence + '(.*$)'), function(_,$1,$2){
+														return $1 + a.innerText + $2;
+													});
+													element.parentNode.alias.dispatchEvent(new Event('keypress'));
+													element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
+												})
+											})
+										}
+										element.alias.style.boxShadow = blurred ? boxshadow : '0 0 5px 3px #00acc1';
+									}, 10);
+								});
+								element.alias.dispatchEvent(new Event('keypress'));
+								close();
+							},
+							title: 'Allows you to edit the element\'s textual content',
+							disabledtitle: 'SVG elements should not contain textual content'
+						},{
+							name: 'Edit as HTML&#133;',
+							image: 'svg/edit_as_html.svg',
+							func: function(_,close) {
+								close();
+								backdialog.style.display = 'block';
+								document.getElementById('dialog_edit_html').style.display = 'block';
+								document.getElementById('idf').value = document.querySelector('[data-selected-element=selected]').alias[(document.querySelector('[data-selected-element=selected]').alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
+								document.getElementById('idf').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
+							},
+							title: 'Allows you to edit the node\'s HTML',
+							separate: true
+						},{
+							name: 'Delete Node',
+							func: function(_,close) {
+								document.querySelector('[data-selected-element=selected]').alias.parentNode.removeChild(document.querySelector('[data-selected-element=selected]').alias);
+								overlayUpdate();
+								history.update();
+								close();
+							},
+							title: 'Removes node from the document',
+							disabledtitle: 'This node cannot be removed from the document',
+							image: 'svg/delete.svg',
+							disabledimage: 'svg/delete_disabled.svg',
+							separate: true
+						},{
+							name: 'Copy Element',
+							func: function(e,close) {
+								close();
+								prepareCopy(e.shiftKey);
+								document.execCommand('copy');
+							},
+							title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected element',
+							disabledtitle: 'Your browser does not allow remote editing of the clipboard',
+							disabled: !document.queryCommandSupported('copy')
+						}, {
+							name: 'Cut Element',
+							func: function(e,close) {
+								close();
+								prepareCopy(e.shiftKey);
+								contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
+								document.execCommand('copy');
+							},
+							title: '(' + locale.cmdKey + ' + X) or (' + locale.cmdKey + ' + Shift + X) Copies the selected element',
+							disabledtitle: 'Your browser does not allow remote editing of the clipboard',
+							disabled: !document.queryCommandSupported('cut')
+						}]
+					}),
+					new ContextMenu({
+						items: [{
+							name: 'Delete Nodes',
+							func: function(_,close) {
+								var elements = document.querySelectorAll('[data-selected-element=selected]');
+								for (var i = elements.length - 1; i >= 0; i--) {
+									if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
+								}
+								overlayUpdate();
+								history.update();
+								close();
+							},
+							image: 'svg/delete.svg',
+							separate: true,
+							title: 'Removes nodes from the document'
+						},{
+							name: 'Select Children',
+							func: function(e,close) {
+								close();
+								var elements = document.querySelectorAll('[data-selected-element=selected]');
+								if (!elements.length) return;
+								if (!e.shiftKey) deselect();
+								Array.prototype.forEach.call(elements, function(element) {
+									Array.prototype.forEach.call(element.children, function(child) {
+										child.setAttribute('data-selected-element', 'selected');
+									})
+								});
+								updateTooltip();
+								updateTreeSelections();
+							},
+							image: 'svg/select_children.svg',
+							disabledimage: 'svg/select_children_disabled.svg',
+							title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
+							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children'
+						},{
+							name: 'Select Parent(s)',
+							image: 'svg/select_parent.svg',
+							disabledimage: 'svg/select_parent_disabled.svg',
+							func: function(e,close) {
+								if (document.querySelectorAll('[data-selected-element=selected]').length == 1) return contextmenus[0].getItem(5).dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+								else if (!document.querySelector('[data-selected-element=selected]')) return;
+								close();
+								var nodes = Array.prototype.filter.call(document.querySelectorAll('[data-selected-element=selected]'), function(node) {
+									return node != overlay;
+								}).map(function(node) {
+									return node.parentNode;
+								});
+								if (!e.shiftKey) deselect();
+								nodes.forEach(function(node) {
+									node.setAttribute('data-selected-element','selected');
+								});
+								updateTooltip();
+
+								updateTreeSelections();
+							},
+							title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
+							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents'
+						}]
+					}),
+					new ContextMenu({
+						items: [{
+							name: 'New&#133;',
+							func: function newFile(_,close) {
+								document.getElementById('dialogcover').style.display = 'block';
+								document.getElementById('dialog_new_file').style.display = 'block';
+								document.querySelector('#idm tbody').innerHTML = '';
+								var useSrc = Symbol();
+								var presets = [
+									[useSrc, './presets/1.html', 'Blank'],
+									[useSrc, './presets/2.html', 'Picture Strips'],
+									[useSrc, './presets/3.html', 'Image w/ Content']
+								];
+								presets.push.apply(presets, JSON.parse(localStorage.getItem('HTML-Studio_presets') || '[]'));
+								presets.forEach(function(preset, index) {
+									var tr = index % 2 ? document.querySelector('#idm tr:last-child') : document.createElement('tr'), td = document.createElement('td'), h4 = document.createElement('h4'), frame = document.createElement('iframe');
+									frame.className = 'cl5';
+									h4.className = 'cl6';
+									document.querySelector('#idm tbody').appendChild(tr);
+									tr.appendChild(td);
+									td.appendChild(frame);
+									td.appendChild(h4);
+									h4.innerText = preset[preset[0] == useSrc ? 2 : 1];
+									if (preset[0] == useSrc) {
+										frame.src = preset[1];
+										td.className = 'cl8';
+									} else {
+										var div = document.createElement('div');
+										div.className = 'cl9';
+										div.setAttribute('tabindex', '0');
+										div.addEventListener('click', function() {
+											var array = JSON.parse(localStorage.getItem('HTML-Studio_presets'));
+											array.splice(index - 3,1);
+											localStorage.setItem('HTML-Studio_presets', JSON.stringify(array));
+											var scroll = document.getElementById('idm').parentNode.scrollTop;
+											newFile(_,close);
+											document.getElementById('idm').parentNode.scrollTop = scroll;
+										});
+										td.appendChild(div);
+										frame.onload = function() {
+											frame.contentWindow.document.documentElement.innerHTML = preset[0];
+										}
+									};
+									frame.addEventListener('load', function() {
+										var iwindow = this.contentWindow;
+										iwindow.addEventListener('click',function(){
+											td.dispatchEvent(new MouseEvent('click'));
+										});
+										iwindow.document.documentElement.style.cursor = 'pointer';
+										td.bodyDefaultFontSize = iwindow.document.body.style.fontSize;
+										iwindow.document.body.style.fontSize = '4vh';
+										frame.style.background = '#FFF';
 									});
-									td.appendChild(div);
-									frame.onload = function() {
-										frame.contentWindow.document.documentElement.innerHTML = preset[0];
-									}
-								};
+								});
+								if (document.querySelectorAll('#idm tr:last-child td').length < 2) {
+									var td = document.createElement('td');
+									td.innerHTML = '<iframe src="./presets/add.html" class="cl5" id="idn"></iframe><h4 class="cl6">Create New Preset&#133;</h4>';
+									td.id = 'ido';
+									document.querySelector('#idm tr:last-child').appendChild(td);
+								} else {
+									var tr = document.createElement('tr');
+									tr.innerHTML = '<td id="ido"><iframe src="./presets/add.html" class="cl5" id="idn"></iframe><h4 class="cl6">Create New Preset&#133;</h4></td>'
+									document.querySelector('#idm tbody').appendChild(tr);
+								}
+								close();
+								closeHeaders();
+								// Selection of File > New... preset
+								Array.prototype.forEach.call(document.querySelectorAll('#idm td:not(#ido)'), function(element) {
+									element.addEventListener('click', function(e) {
+										document.getElementById('idl').className = 'option';
+										Array.prototype.forEach.call(document.querySelectorAll('#idm td'), function(element) {
+											element.style.background = '';
+										})
+										element.style.background = 'rgba(0,172,193,.7)';
+									});
+								});
+								// Click event for File > New... > Create New Preset...
+								document.getElementById('ido').addEventListener('click', function() {
+									closeDialogs();
+									backdialog.style.display = 'block';
+									document.getElementById('dialog_new_preset').style.display = 'block';
+									var frame = document.getElementById('idy');
+									frame.contentWindow.document.documentElement.innerHTML = framewindow.document.documentElement.innerHTML;
+									var fontSize = getComputedStyle(frame.contentWindow.document.body).fontSize;
+									frame.bodyDefaultFontSize = frame.contentWindow.document.body.style.fontSize;
+									frame.contentWindow.document.body.style.fontSize = parseFloat(fontSize) * .31 + fontSize.replace(parseFloat(fontSize).toString(),'');
+								});
+								var frame = document.querySelector('#ido iframe');
 								frame.addEventListener('load', function() {
 									var iwindow = this.contentWindow;
 									iwindow.addEventListener('click',function(){
-										td.dispatchEvent(new MouseEvent('click'));
+										frame.parentNode.dispatchEvent(new MouseEvent('click'));
 									});
 									iwindow.document.documentElement.style.cursor = 'pointer';
-									td.bodyDefaultFontSize = iwindow.document.body.style.fontSize;
 									iwindow.document.body.style.fontSize = '4vh';
 									frame.style.background = '#FFF';
 								});
-							});
-							if (document.querySelectorAll('#idm tr:last-child td').length < 2) {
-								var td = document.createElement('td');
-								td.innerHTML = '<iframe src="./presets/add.html" class="cl5" id="idn"></iframe><h4 class="cl6">Create New Preset&#133;</h4>';
-								td.id = 'ido';
-								document.querySelector('#idm tr:last-child').appendChild(td);
-							} else {
-								var tr = document.createElement('tr');
-								tr.innerHTML = '<td id="ido"><iframe src="./presets/add.html" class="cl5" id="idn"></iframe><h4 class="cl6">Create New Preset&#133;</h4></td>'
-								document.querySelector('#idm tbody').appendChild(tr);
+							},
+							title: '(' + locale.cmdKey + ' + N) Create a new document to replace the current one',
+							image: 'svg/new.svg'
+						},{
+							name: 'Open&#133;',
+							func: function(_,close) {
+								document.getElementById('dialogcover').style.display = 'block';
+								document.getElementById('dialog_open_file_html').style.display = 'block';
+								document.getElementById('id2').innerHTML = '<div id="id1" ondragover="return this.className=\'active\',false" ondragend="return this.className=\'\',false" ondragleave="return this.className=\'\',false"><div id="id4"><span id="id3">Drop a file here</span><span id="id5">or click to select one</span></div></div>';
+								document.getElementById('idb').scrollTop = 0;
+								document.getElementById('id9').className = 'option disabled';
+								document.getElementById('id1').addEventListener('drop', function(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									this.className='';
+									if (!e.dataTransfer.files.length) return;
+									document.getElementById('id4').innerHTML = '<div id="id6"><div id="id7">' + (e.dataTransfer.files[0].name) + '<span style="float:right">' + (e.dataTransfer.files[0].size < 1000 ? e.dataTransfer.files[0].size + ' bytes' : Math.round(e.dataTransfer.files[0].size / 100) / 10 + 'KB') + '</span></div><span id="id8"></span></div>';
+									if (e.dataTransfer.files[0].type != 'text/html') return document.getElementById('id8').innerHTML = 'This file format is not allowed. Please only select an HTML file ending in an ".html" extension.',document.getElementById('id7').style.background = '#FFB7B7',document.getElementById('id9').className='option disabled';
+									document.getElementById('id7').style.background = '#A6FFA6';
+									document.getElementById('id8').innerHTML = 'Make sure your work is saved before pressing "Open File"';
+									document.getElementById('id9').className = 'option';
+									document.getElementById('id2').file = e.dataTransfer.files[0];
+								});
+								close();
+								closeHeaders();
+							},
+							title: '(' + locale.cmdKey + ' + O) Open an HTML file to replace the current document',
+							image: 'svg/open.svg'
+						},{
+							name: 'Download File&#133;',
+							disabled: true,
+							disabledtitle: 'Work in Progress',
+							separate: true
+						},{
+							name: 'Minify Document File',
+							disabled: true,
+							disabledtitle: 'Work in Progress'
+						}]
+					}),
+					new ContextMenu({
+						items: [{
+							name: 'Undo',
+							func: undo,
+							title: '(' + locale.cmdKey + ' + Z) Reverts most recent change',
+							disabledtitle: '(' + locale.cmdKey + '+Z) There are no changes to be undone',
+							image: 'svg/undo.svg'
+						},{
+							name: 'Redo',
+							func: redo,
+							title: '(' + locale.cmdKey + ' + Y) Restores most recent change',
+							disabledtitle: '(' + locale.cmdKey + '+Y) There are no changes to be redone',
+							image: 'svg/redo.svg'
+						},{
+							name: 'History',
+							disabled: true,
+							disabledtitle: 'Work in Progress',
+							separate: true
+						},{
+							name: 'Preferences',
+							title: 'Edit preferences',
+							subcontext: {
+								items: [
+									{
+										name: 'Node Selection Color&#183;',
+										title: 'Edit the color of a selected node',
+										disabled: true,
+										disabledtitle: 'Work in Progress'
+									}
+								]
 							}
-							close();
-							closeHeaders();
-							// Selection of File > New... preset
-							Array.prototype.forEach.call(document.querySelectorAll('#idm td:not(#ido)'), function(element) {
-								element.addEventListener('click', function(e) {
-									document.getElementById('idl').className = 'option';
-									Array.prototype.forEach.call(document.querySelectorAll('#idm td'), function(element) {
-										element.style.background = '';
-									})
-									element.style.background = 'rgba(0,172,193,.7)';
-								});
-							});
-							// Click event for File > New... > Create New Preset...
-							document.getElementById('ido').addEventListener('click', function() {
-								closeDialogs();
-								backdialog.style.display = 'block';
-								document.getElementById('dialog_new_preset').style.display = 'block';
-								var frame = document.getElementById('idy');
-								frame.contentWindow.document.documentElement.innerHTML = framewindow.document.documentElement.innerHTML;
-								var fontSize = getComputedStyle(frame.contentWindow.document.body).fontSize;
-								frame.bodyDefaultFontSize = frame.contentWindow.document.body.style.fontSize;
-								frame.contentWindow.document.body.style.fontSize = parseFloat(fontSize) * .31 + fontSize.replace(parseFloat(fontSize).toString(),'');
-							});
-							var frame = document.querySelector('#ido iframe');
-							frame.addEventListener('load', function() {
-								var iwindow = this.contentWindow;
-								iwindow.addEventListener('click',function(){
-									frame.parentNode.dispatchEvent(new MouseEvent('click'));
-								});
-								iwindow.document.documentElement.style.cursor = 'pointer';
-								iwindow.document.body.style.fontSize = '4vh';
-								frame.style.background = '#FFF';
-							});
-						},
-						title: '(' + locale.cmdKey + ' + N) Create a new document to replace the current one',
-						image: 'svg/new.svg'
-					},{
-						name: 'Open&#133;',
-						func: function(_,close) {
-							document.getElementById('dialogcover').style.display = 'block';
-							document.getElementById('dialog_open_file_html').style.display = 'block';
-							document.getElementById('id2').innerHTML = '<div id="id1" ondragover="return this.className=\'active\',false" ondragend="return this.className=\'\',false" ondragleave="return this.className=\'\',false"><div id="id4"><span id="id3">Drop a file here</span><span id="id5">or click to select one</span></div></div>';
-							document.getElementById('idb').scrollTop = 0;
-							document.getElementById('id9').className = 'option disabled';
-							document.getElementById('id1').addEventListener('drop', function(e) {
-								e.preventDefault();
-								e.stopPropagation();
-								this.className='';
-								if (!e.dataTransfer.files.length) return;
-								document.getElementById('id4').innerHTML = '<div id="id6"><div id="id7">' + (e.dataTransfer.files[0].name) + '<span style="float:right">' + (e.dataTransfer.files[0].size < 1000 ? e.dataTransfer.files[0].size + ' bytes' : Math.round(e.dataTransfer.files[0].size / 100) / 10 + 'KB') + '</span></div><span id="id8"></span></div>';
-								if (e.dataTransfer.files[0].type != 'text/html') return document.getElementById('id8').innerHTML = 'This file format is not allowed. Please only select an HTML file ending in an ".html" extension.',document.getElementById('id7').style.background = '#FFB7B7',document.getElementById('id9').className='option disabled';
-								document.getElementById('id7').style.background = '#A6FFA6';
-								document.getElementById('id8').innerHTML = 'Make sure your work is saved before pressing "Open File"';
-								document.getElementById('id9').className = 'option';
-								document.getElementById('id2').file = e.dataTransfer.files[0];
-							});
-							close();
-							closeHeaders();
-						},
-						title: '(' + locale.cmdKey + ' + O) Open an HTML file to replace the current document',
-						image: 'svg/open.svg'
-					},{
-						name: 'Download File&#133;',
-						disabled: true,
-						disabledtitle: 'Work in Progress',
-						separate: true
-					},{
-						name: 'Minify Document File',
-						disabled: true,
-						disabledtitle: 'Work in Progress'
-					}]
-				}),
-				new ContextMenu({
-					items: [{
-						name: 'Undo',
-						func: undo,
-						title: '(' + locale.cmdKey + ' + Z) Reverts most recent change',
-						disabledtitle: '(' + locale.cmdKey + '+Z) There are no changes to be undone',
-						image: 'svg/undo.svg'
-					},{
-						name: 'Redo',
-						func: redo,
-						title: '(' + locale.cmdKey + ' + Y) Restores most recent change',
-						disabledtitle: '(' + locale.cmdKey + '+Y) There are no changes to be redone',
-						image: 'svg/redo.svg'
-					},{
-						name: 'History',
-						disabled: true,
-						disabledtitle: 'Work in Progress',
-						separate: true
-					},{
-						name: 'Preferences',
-						title: 'Edit preferences',
-						subcontext: {
-							items: [
-								{
-									name: 'Node Selection Color&#183;',
-									title: 'Edit the color of a selected node',
-									disabled: true,
-									disabledtitle: 'Work in Progress'
+						}]
+					}),
+					new ContextMenu({
+						items: [{
+							name: 'Toolbar',
+							disabled: true,
+							disabledtitle: 'Work in Progress',
+							toggle: true,
+							toggled: true,
+							image: 'svg/checkmark.svg',
+							imageoff: 'svg/transparent.svg'
+						},{
+							name: 'Fullscreen',
+							func: function(_,close) {
+								this.toggled = !this.toggled;
+								close();
+								closeHeaders();
+								if (this.toggled) {
+									var body = document.body;
+									if (body.requestFullscreen) body.requestFullscreen();
+									else if (body.mozRequestFullScreen) body.mozRequestFullScreen();
+									else if (body.webkitRequestFullscreen) body.webkitRequestFullscreen();
+									else if (body.msRequestFullscreen) body.msRequestFullscreen();
+								} else {
+									if (document.exitFullscreen) document.exitFullscreen();
+									else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+									else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+									else if (document.msExitFullscreen) document.msExitFullscreen();
 								}
-							]
-						}
-					}]
-				}),
-				new ContextMenu({
-					items: [{
-						name: 'Toolbar',
-						disabled: true,
-						disabledtitle: 'Work in Progress',
-						toggle: true,
-						toggled: true,
-						image: 'svg/checkmark.svg',
-						imageoff: 'svg/transparent.svg'
-					},{
-						name: 'Fullscreen',
-						func: function(_,close) {
-							this.toggled = !this.toggled;
-							close();
-							closeHeaders();
-							if (this.toggled) {
-								var body = document.body;
-								if (body.requestFullscreen) body.requestFullscreen();
-								else if (body.mozRequestFullScreen) body.mozRequestFullScreen();
-								else if (body.webkitRequestFullscreen) body.webkitRequestFullscreen();
-								else if (body.msRequestFullscreen) body.msRequestFullscreen();
-							} else {
-								if (document.exitFullscreen) document.exitFullscreen();
-								else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-								else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-								else if (document.msExitFullscreen) document.msExitFullscreen();
-							}
-						},
-						disabled: !(HTMLElement.prototype.requestFullscreen || HTMLElement.prototype.mozRequestFullScreen || HTMLElement.prototype.webkitRequestFullscreen || HTMLElement.prototype.msRequestFullscreen),
-						title: '(F11) Goes into fullscreen mode',
-						disabledtitle: 'Your browser does not support fullscreen mode',
-						toggle: true,
-						image: 'svg/checkmark.svg',
-						imageoff: 'svg/transparent.svg'
-					},{
-						name: 'HTML Tree',
-						func: function(_,close) {
-							this.toggled = !this.toggled;
-							document.getElementById('html_editor_display').style.display = this.toggled ? 'block' : '';
-							updateTree();
-							updateTreeSelections();
-							close();
-							closeHeaders();
-						},
-						title: 'Displays the HTML tree of the document',
-						toggle: true,
-						image: 'svg/checkmark.svg',
-						imageoff: 'svg/transparent.svg',
-						separate: true
-					},{
-						name: 'Grid',
-						func: function(_,close) {
-							this.toggled = !this.toggled;
-							document.getElementById('overlaygrid').style.display = this.toggled ? 'block' : '';
-							close();
-							closeHeaders();
-						},
-						title: 'Toggles the overlay grid for the document',
-						toggle: true,
-						image: 'svg/checkmark.svg',
-						imageoff: 'svg/transparent.svg'
-					},{
-						name: 'Tooltip',
-						func: function(_,close) {
-							this.toggled = !this.toggled;
-							close();
-							closeHeaders();
-							document.getElementById('tooltip').style.display = this.toggled ? '' : 'none';
-						},
-						title: 'Toggles the tooltip at the bottom of the screen',
-						toggle: true,
-						toggled: true,
-						image: 'svg/checkmark.svg',
-						imageoff: 'svg/transparent.svg'
-					}]
-				}),
-				new ContextMenu({
-					items: [{
-						name: 'Create New&#133;',
-						disabled: true,
-						disabledtitle: 'Work in Progress'
-					},{
-						name: 'Import from File&#133;',
-						disabled: true,
-						disabledtitle: 'Work in Progress'
-					},{
-						name: 'Import from URL&#133;',
-						disabled: true,
-						disabledtitle: 'Work in Progress',
-						separate: true
-					},{
-						name: 'No Stylesheets in Document',
-						disabled: true,
-						disabledtitle: 'Create a new stylesheet or import one to edit'
-					}]
-				}),
-				new ContextMenu({
-					items: [{
-						name: 'Select All',
-						func: function(_,close) {
-							close();
-							closeHeaders();
-							var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
-							for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
-								elements[i].setAttribute('data-selected-element', 'selected');
-							};
-							document.getElementById('tooltiptext').innerHTML = elements.length + ' nodes selected';
-							updateTreeSelections();
-						},
-						title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
-						image: 'svg/select_all.svg'
-					},{
-						name: 'Deselect All',
-						func: function(_,close) {
-							deselect();
-							close();
-							closeHeaders();
-							document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-							updateTreeSelections();
-						},
-						title: '(' + locale.cmdKey + ' + D) Deselects all elements in the document',
-						image: 'svg/deselect_all.svg',
-						separate: true
-					},{
-						name: 'Select &lt;body&gt;',
-						func: function(e, close) {
-							close();
-							closeHeaders();
-							clickhandler.call(overlay, {
-								stopPropagation: function(){},
-								clientX: e.clientX,
-								clientY: e.clientY,
-								isTrusted: true,
-								shiftKey: e.shiftKey
-							});
-						},
-						title: '(' + locale.cmdKey + ' + B) or (' + locale.cmdKey + ' + Shift + B) Selects the root <body> element',
-						separate: true
-					},{
-						name: 'Invert Selection',
-						func: function(_,close) {
-							close();
-							closeHeaders();
-							for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
-								clickhandler.call(elements[i], {
+							},
+							disabled: !(HTMLElement.prototype.requestFullscreen || HTMLElement.prototype.mozRequestFullScreen || HTMLElement.prototype.webkitRequestFullscreen || HTMLElement.prototype.msRequestFullscreen),
+							title: '(F11) Goes into fullscreen mode',
+							disabledtitle: 'Your browser does not support fullscreen mode',
+							toggle: true,
+							image: 'svg/checkmark.svg',
+							imageoff: 'svg/transparent.svg'
+						},{
+							name: 'HTML Tree',
+							func: function(_,close) {
+								this.toggled = !this.toggled;
+								document.getElementById('html_editor_display').style.display = this.toggled ? 'block' : '';
+								updateTree();
+								updateTreeSelections();
+								close();
+								closeHeaders();
+							},
+							title: 'Displays the HTML tree of the document',
+							toggle: true,
+							image: 'svg/checkmark.svg',
+							imageoff: 'svg/transparent.svg',
+							separate: true
+						},{
+							name: 'Grid',
+							func: function(_,close) {
+								this.toggled = !this.toggled;
+								document.getElementById('overlaygrid').style.display = this.toggled ? 'block' : '';
+								close();
+								closeHeaders();
+							},
+							title: 'Toggles the overlay grid for the document',
+							toggle: true,
+							image: 'svg/checkmark.svg',
+							imageoff: 'svg/transparent.svg'
+						},{
+							name: 'Tooltip',
+							func: function(_,close) {
+								this.toggled = !this.toggled;
+								close();
+								closeHeaders();
+								document.getElementById('tooltip').style.display = this.toggled ? '' : 'none';
+							},
+							title: 'Toggles the tooltip at the bottom of the screen',
+							toggle: true,
+							toggled: true,
+							image: 'svg/checkmark.svg',
+							imageoff: 'svg/transparent.svg'
+						}]
+					}),
+					new ContextMenu({
+						items: [{
+							name: 'Create New&#133;',
+							disabled: true,
+							disabledtitle: 'Work in Progress'
+						},{
+							name: 'Import from File&#133;',
+							disabled: true,
+							disabledtitle: 'Work in Progress'
+						},{
+							name: 'Import from URL&#133;',
+							disabled: true,
+							disabledtitle: 'Work in Progress',
+							separate: true
+						},{
+							name: 'No Stylesheets in Document',
+							disabled: true,
+							disabledtitle: 'Create a new stylesheet or import one to edit'
+						}]
+					}),
+					new ContextMenu({
+						items: [{
+							name: 'Select All',
+							func: function(_,close) {
+								close();
+								closeHeaders();
+								var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
+								for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
+									elements[i].setAttribute('data-selected-element', 'selected');
+								};
+								updateTooltip();
+								updateTreeSelections();
+							},
+							title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
+							image: 'svg/select_all.svg'
+						},{
+							name: 'Deselect All',
+							func: function(_,close) {
+								deselect();
+								close();
+								closeHeaders();
+								updateTooltip();
+								updateTreeSelections();
+							},
+							title: '(' + locale.cmdKey + ' + D) Deselects all elements in the document',
+							image: 'svg/deselect_all.svg',
+							separate: true
+						},{
+							name: 'Select &lt;body&gt;',
+							func: function(e, close) {
+								close();
+								closeHeaders();
+								clickhandler.call(overlay, {
 									stopPropagation: function(){},
-									clientX: 0,
-									clientY: 0,
+									clientX: e.clientX,
+									clientY: e.clientY,
 									isTrusted: true,
-									shiftKey: true
+									shiftKey: e.shiftKey
 								});
-							};
-							updateTreeSelections();
-
-							if (!document.querySelector('[data-selected-element=selected]')) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-						},
-						title: '(' + locale.cmdKey + ' + I) Selects all not-selected elements',
-						separate: true
-					},{
-						name: 'Select Children',
-						func: function(_,close) {
-							close();
-							closeHeaders();
-							contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click'));
-						},
-						title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
-						disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
-						image: 'svg/select_children.svg',
-						disabledimage: 'svg/select_children_disabled.svg'
-					},{
-						name: 'Select Parent(s)',
-						func: function(_,close) {
-							close();
-							closeHeaders();
-							contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click'));
-						},
-						title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
-						image: 'svg/select_parent.svg',
-						disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents'
-					}]
-				})], css = [], DOM = {}, generations = [];
+							},
+							title: '(' + locale.cmdKey + ' + B) or (' + locale.cmdKey + ' + Shift + B) Selects the root <body> element',
+							separate: true
+						},{
+							name: 'Invert Selection',
+							func: function(_,close) {
+								close();
+								closeHeaders();
+								for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
+									clickhandler.call(elements[i], {
+										stopPropagation: function(){},
+										clientX: 0,
+										clientY: 0,
+										isTrusted: true,
+										shiftKey: true
+									});
+								};
+								updateTreeSelections();
+								updateTooltip();
+							},
+							title: '(' + locale.cmdKey + ' + I) Selects all not-selected elements',
+							separate: true
+						},{
+							name: 'Select Children',
+							func: function(_,close) {
+								close();
+								closeHeaders();
+								contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click'));
+							},
+							title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
+							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
+							image: 'svg/select_children.svg',
+							disabledimage: 'svg/select_children_disabled.svg'
+						},{
+							name: 'Select Parent(s)',
+							func: function(_,close) {
+								close();
+								closeHeaders();
+								contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click'));
+							},
+							title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
+							image: 'svg/select_parent.svg',
+							disabledimage: 'svg/select_parent_disabled.svg',
+							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents'
+						}]
+					})
+				],
+				css = [],
+				DOM = {},
+				generations = [],
+				clipboard = document.getElementById('clipboard');
 			// Load document from localStorage or create a new one
 			history.currentEntry = +localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') || history.entries.length - 1
 			Object.defineProperty(history.entries, 'last', {
@@ -1701,27 +1755,26 @@
 					overlay.style.background = 'rgba(0,0,0,0)';
 					overlay.setAttribute('data-selected-element', overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
 					var nodes = document.querySelectorAll('[data-selected-element=selected]');
-					if (nodes.length>1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
-					else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-					else document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+					updateTooltip();
 				} else {
 					overlay.style.background = 'rgba(0,0,0,0)';
 					var selected = overlay.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
 					deselect();
 					overlay.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
-					if (selected && length == 1) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-					else document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + overlay.alias.nodeName.toLowerCase() + '</span>' + (overlay.alias.id ? '<span style="color:#009">#' + overlay.alias.id + '</span>' : '') + (overlay.alias.className ? '<span style="color:#F44">.' + overlay.alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+					updateTooltip();
 				}
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
-				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
+				updateTooltip();
 				updateTreeSelections();
 			});
 			overlay.addEventListener('mousemove', function(e) {
-				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
+				updateTooltip();
+				this.mousePositions = {x: (e.offsetX || e.clientX), y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop)};
 			});
 			overlay.addEventListener('mouseleave', function() {
-				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here'
+				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+				this.mousePositions = null;
 			});
 
 			// Other stuff
@@ -1777,6 +1830,11 @@
 					});
 				}
 			}, cursor: 'grabbing', inertia: true});
+
+
+			Array.prototype.forEach.call(document.getElementsByClassName('localeCmdKey'), function(elem) {
+				elem.innerText = locale.cmdKey;
+			});
 
 
 
@@ -2069,11 +2127,24 @@
 				};
 				style(element);	
 			}*/
+			// Updates the text shown in the tooltip
+			function updateTooltip() {
+				var nodes = document.querySelectorAll('[data-selected-element=selected]');
+				if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
+				else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+				else if (overlay.mousePositions) {
+					document.getElementById('tooltiptext').innerHTML = '(' + overlay.mousePositions.x + ', ' + overlay.mousePositions.y + ')';
+				} else {
+					document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+				}
+			};
+			// Updates which nodes are selected in the HTML tree
 			function updateTreeSelections() {
 				Array.prototype.forEach.call(document.querySelectorAll('#idq rect.html_editor'), function(rect) {
 					rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
 				});
-			}
+			};
+			// Updates the HTML tree to have the same nodes as the document
 			function updateTree() {
 				if (!document.getElementById('html_editor_display').style.display) return;
 				generations = [];
@@ -2151,20 +2222,17 @@
 					clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
 					clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
 					var nodes = document.querySelectorAll('[data-selected-element=selected]');
-					if (nodes.length>1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
-					else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-					else document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+					updateTooltip();
 				} else {
 					clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
 					var selected = clonednode.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
 					deselect();
 					clonednode.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
-					if (selected && length == 1) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
-					else document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + clonednode.alias.nodeName.toLowerCase() + '</span>' + (clonednode.alias.id ? '<span style="color:#009">#' + clonednode.alias.id + '</span>' : '') + (clonednode.alias.className && clonednode.alias.className.baseVal ? '<span style="color:#F44">.' + clonednode.alias.className.baseVal.replace(/\s+/g,'.') + '</span>' : clonednode.alias.className && clonednode.alias.className.baseVal == undefined ? '<span style="color:#F44">.' + clonednode.alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+					updateTooltip();
 				}
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
-				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = '(' + (e.offsetX || e.clientX) + ', ' + (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop) + ')';
+				updateTooltip();
 				Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
 					rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
 				});
@@ -2181,6 +2249,17 @@
 				// Browsers with no support for position:sticky that probably doesn't use asynchronous scrolling
 				framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
 				iframe.style.top = scrollTop + 'px';
+			});
+
+			// Can't be run on window because the event propogates and ends up toggling Inspect Element for developer tools
+			clipboard.addEventListener('keydown', function(e) {
+				// Ctrl + Shift + C
+				if (e.keyCode == 67 && locale.cmdKeyPressed(e) && e.shiftKey) {
+					e.stopPropagation();
+					e.preventDefault();
+					prepareCopy(true);
+					if (e.isTrusted && document.queryCommandSupported('copy')) document.execCommand('copy');
+				}
 			});
 
 			// Controls opening and closing of header sections
@@ -2224,6 +2303,14 @@
 									}
 								});
 							});
+
+							if (arg.items.length == 3) {
+								arg.items.push({
+									name: '<span style="color:#000;font-style:italic">No stylesheets found</span>',
+									disabled: true,
+									title: 'Create or import a document above'
+								});
+							}
 							return new ContextMenu(arg);
 						})();
 						else if (index == 4) {
@@ -2291,6 +2378,14 @@
 								}
 							});
 						});
+
+						if (arg.items.length == 3) {
+							arg.items.push({
+								name: '<span style="color:#000;font-style:italic">No stylesheets found</span>',
+								disabled: true,
+								title: 'Create or import a document above'
+							});
+						}
 						return new ContextMenu(arg);
 					})();
 					document.body.appendChild(contextmenus[index + 2].node);
@@ -2530,21 +2625,87 @@
 				contextmenus[3].getItem(0).disabled = !history.currentEntry;
 				deselect();
 			}
+			// Adds the selected nodes outerHTML to #clipboard
+			function prepareCopy(copyAll) {
+				// Copy the outer html of the selected nodes and add it to #clipboard
+				// Children of the selected nodes will not be copied unless they are also selected (or copyAll == true)
+				// Text nodes and comments and other stuff ARE copied however since they can't be selected in the editor
+				clipboard.value = (function() {
+					// Convert selected nodes into array
+					var html = '', nodes = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+					// Function to add children to a parent node only if they are selected
+					function addChildren(clone, node) {
+						// Iterate over the childnodes of a parent element
+						Array.prototype.slice.call(node.childNodes).forEach(function(child) {
+							// If the node is an HTML element
+							if (child.nodeType == 1) {
+								// If the element is selected || copyAll == true
+								if (child.alias.getAttribute('data-selected-element') == 'selected' || copyAll) {
+									// Clone the child node (but not its children)
+									var clonedchild = child.cloneNode();
+									// Append the child node to the parent
+									clone.appendChild(clonedchild);
+									// If the node is in the original `nodes` array, remove it since it's being added already
+									if (~nodes.indexOf(child.alias)) nodes.splice(nodes.indexOf(child.alias), 1);
+									// Iterate over the children of the child node
+									addChildren(clonedchild, child);
+								}
+							} else {
+								// The node is not an HTML element and should be added either way
+								clone.appendChild(child.cloneNode(true));
+							}
+						});
+					}
+					// Iterate over the original `nodes` array
+					nodes.forEach(function(selectedNode, index) {
+						// Get the required arguments for addChildren()
+						var clonednode = selectedNode.alias.cloneNode();
+						// Begin the whole process of adding children to a parent node
+						addChildren(clonednode, selectedNode.alias);
+						// Append the outerHTML (including all the appended children) to `html`
+						html += clonednode.outerHTML;
+					});
+					// Returns `html` to be set as #clipboards innerText
+					return html;
+				})();
+
+				// The stuff to make the user's selection be set to the contents of #clipboard
+				/*if (window.getSelection && document.createRange) {
+					var selection = getSelection(), range = document.createRange();
+					range.selectNodeContents(document.getElementById('clipboard'));
+					selection.removeAllRanges();
+					selection.addRange(range);
+				} else if (document.selection && document.body.createTextRange) {
+					// IE
+					var range = document.body.createTextRange();
+					range.moveToElementText(document.getElementById('clipboard'));
+					textRange.select();
+				}*/
+				clipboard.select();
+			}
 
 			// Controls keyboard shortcuts
-			function windowkeydown(e) {
+			function windowkeydown(e) { 
+				// Pseudo e.target
+				// Since #clipboard is usually selected (to allow for Ctrl + C) and #clipboard is a <textarea>,
+				// the e.target has to be changed to document.body
+				// Otherwise, none of the command would work
+				// It would think the user wants to edit #clipboard when they actually want to edit the document
+				// Also if the element doesn't have getAttribute function, it would throw an error, so change that to document.body as well
+				// Only keeps #clipboard as target if user is cutting (Ctrl + X) an element
+				var target = (e.target == clipboard && e.keyCode != 88) || !e.target.getAttribute ? document.body : e.target;
 				// Ctrl + Z
-				if (e.keyCode == 90 && locale.cmdKeyPressed(e)) undo();
+				if (e.keyCode == 90 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') != 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') undo();
 				// Ctrl + Y
-				else if (e.keyCode == 89 && locale.cmdKeyPressed(e)) redo();
+				else if (e.keyCode == 89 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') != 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') redo();
 				// Ctrl + A
-				else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && !e.target.hasAttribute('contenteditable') && e.target.nodeName != 'INPUT' && e.target.nodeName != 'TEXTAREA') {
+				else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') != 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
 					e.preventDefault();
 					e.stopPropagation();
 					for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
 						elements[i].setAttribute('data-selected-element', 'selected');
-						document.getElementById('tooltiptext').innerHTML = elements.length + ' nodes selected'
 					};
+					updateTooltip();
 					Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
 						rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
 					});
@@ -2553,7 +2714,7 @@
 					e.preventDefault();
 					e.stopPropagation();
 					deselect();
-					document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+					updateTooltip();
 					Array.prototype.forEach.call(document.querySelectorAll('rect.html_editor'), function(rect) {
 						rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
 					});
@@ -2584,7 +2745,7 @@
 						shiftKey: e.shiftKey
 					});
 
-					if (!document.querySelector('[data-selected-element=selected]')) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+					updateTooltip();
 				// Ctrl + I
 				} else if (e.keyCode == 73 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
@@ -2594,19 +2755,56 @@
 				} else if (e.keyCode == 38 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click'));
+					contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 				// Ctrl + Down Arrow
 				} else if (e.keyCode == 40 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click'));
+					contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+				// Ctrl + X
+				} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard) {
+					e.stopPropagation();
+					e.preventDefault();
+					if (e.shiftKey) {
+						prepareCopy(true);
+						if (e.isTrusted && document.queryCommandSupported('copy')) document.execCommand('copy');
+					}
+					contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
 				}
+
+				// Allows Ctrl + C to be handled natively by the browser
+				if (locale.cmdKeyPressed(e)) prepareCopy();
 			}
 			addEventListener('keydown', windowkeydown);
 			framewindow.addEventListener('keydown', windowkeydown);
 			addEventListener('onfullscreenchange' in window ? 'fullscreenchange' : 'onmozfullscreenchange' in window ? 'mozfullscreenchange' : 'onwebkitfullscreenchange' in window ? 'webkitfullscreenchange' : '', function(e) {
 					contextmenus[4].getItem(1).toggled = (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement);
 			});
+
+			addEventListener('paste', function(e) {
+				try {
+					var markup = e.clipboardData.getData('text/plain'), fragment = document.createElement('template');
+					fragment.innerHTML = markup;
+					var selectedElements = document.querySelectorAll('[data-selected-element=selected]');
+					Array.prototype.forEach.call(selectedElements, function(element) {
+						element.alias.appendChild(fragment.cloneNode(true).content);
+					});
+					overlayUpdate();
+					history.update();
+					Array.prototype.forEach.call(selectedElements, function(element) {
+						clickhandler.call(element.alias.alias, {
+							stopPropagation: function(){},
+							clientX: 0,
+							clientY: Math.round(em(4.45)),
+							isTrusted: true,
+							shiftKey: true
+						});
+					});
+				} catch (e) {
+					backdialog.style.display = 'block';
+					document.getElementById('dialog_no_paste').style.display = 'block';
+				}
+			})
 			addEventListener('resize', function() {
 				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
 				overlayUpdate();
@@ -2629,7 +2827,6 @@
 					element.style.color = tcolor;
 				});
 			}, 20);
-
 
 
 			// Runs if HTML-Studio is already active in another window
