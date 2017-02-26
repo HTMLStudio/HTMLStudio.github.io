@@ -10,7 +10,6 @@
 		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 		ga('create', 'UA-91403443-1', 'auto');
 		ga('send', 'pageview');</script>
-	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic' rel='stylesheet' type='text/css'>
 	<style type="text/css">
 		@font-face {
 			font-family: 'BPreplay';
@@ -650,6 +649,12 @@
 		#idm td:hover .cl9 {
 			display: block;
 		}
+
+		html-entity-replacer {
+			display: inline;
+			pointer-events: initial;
+			cursor: pointer;
+		}
 	</style>
 </head>
 <body>
@@ -804,6 +809,22 @@
 	</div>
 	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
+	<noscript id='deferred-styles'><link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic' rel='stylesheet' type='text/css'></noscript>
+	<script type="text/javascript">
+		// Taken straight from https://developers.google.com/speed/docs/insights/OptimizeCSSDelivery#example
+		// Optimizes loading Open Sans from googleapis
+		var loadDeferredStyles = function() {
+			var addStylesNode = document.getElementById("deferred-styles");
+			var replacement = document.createElement("div");
+			replacement.innerHTML = addStylesNode.textContent;
+			document.body.appendChild(replacement)
+			addStylesNode.parentElement.removeChild(addStylesNode);
+		};
+		var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+			webkitRequestAnimationFrame || msRequestAnimationFrame;
+		if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
+		else window.addEventListener('load', loadDeferredStyles);
+	</script>
 	<script type='text/javascript' src='/JavaScript/Draggable-Elements/Draggable-Elements.js'></script>
 	<script type="text/javascript" src="ContextMenu.js"></script>
 	<script type="text/javascript">
@@ -853,7 +874,6 @@
 			localStorage.setItem('HTML-Studio_session', '1');
 			var iframe = document.getElementById('frame'),
 				framewindow = iframe.contentWindow,
-				elements = iframe.contentWindow.document.body.childNodes,
 				overlay = document.getElementById('frameoverlay'),
 				backdialog = document.getElementById('dialogcover'),
 				history = {
@@ -1089,139 +1109,211 @@
 							name: 'Edit Text',
 							image: 'svg/edit_text.svg',
 							func: function(_,close) {
-								var element = document.querySelector('[data-selected-element=selected]'), boxshadow = element.alias.style.boxShadow, blurred = 0;
+								close();
+								var element = document.querySelector('[data-selected-element=selected]'), boxshadow = element.alias.style.boxShadow, pendingUpdate = false, contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false;
+								// Makes element contenteditable
 								element.alias.setAttribute('contenteditable','');
+								// Prevent the user from interacting with the overlay
 								overlay.style.pointerEvents = 'none';
+								// Focus the editable element
 								if (element.alias.focus) element.alias.focus();
 								deselect();
-								element.alias.style.boxShadow = '0 0 5px 3px #00acc1';
-								var pendingUpdate, pendingHistory;
-								element.alias.addEventListener('blur', function(e) {
-									if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName.toLowerCase() == 'br') element.alias.removeChild(element.alias.lastChild);
-									function temp(e){
-										element.alias.dispatchEvent(new Event('blur'));
-										framewindow.removeEventListener('click', temp);
-										this.removeEventListener('click', temp2);
-									}
-									function temp2(e) {
-										e.stopPropagation();
-										framewindow.removeEventListener('click', temp);
-										this.removeEventListener('click', temp2);
-									}
-									if (this.noblur) {
-										// This only occurs if an HTML escape sequence replacer was clicked on
-										// The contenteditable element remains contenteditable, but the user has the option to click inside the element (continue editing text, keep contenteditable), or outside the element (stop editing, take away contenteditable)
-										e.preventDefault();
-										this.noblur = false;
-										this.focus();
-										framewindow.addEventListener('click', temp);
-										this.addEventListener('click', temp2);
-										return;
-									}
-									framewindow.removeEventListener('click', temp);
-									this.removeEventListener('click', temp2);
+								// Allows for CSS selectors to target the element
+								// Used for changing the box-shadow of the element
+								element.setAttribute('data-html-studio-text-being-edited','true');
+								// Since the overlay element could be replaced (from a call to overlayUpdate())
+								// any elements that are cloned from element.alias will inherit the attribute mentioned above
+								element.alias.htmlStudioTextBeingEdited = true;
+								// Used for keeping track of how many child elements are in the editable element
+								var elemcount = element.alias.children.length,
+								// Used for HTML entity replacers
+								regex = {
+									pre: /(?=&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);))/g,
+									post: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);)/g,
+								},
+								// Used for testing if the entity actually translates into something
+								testElement = document.createElement('span'),
+								// Used for styling later
+								opacity = -Math.abs(currentFrame - 25) + 25;
+
+								// Runs when the element is blurred
+								function blur() {
+									// Browsers sometimes add an extra <br> to the end of the element for no reason
+									// This deletes that redundant <br>
+									if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName == 'BR') element.alias.removeChild(element.alias.lastChild);
+
+									// Restores the element's original contenteditable attribute
+									if (contenteditable == false) element.alias.removeAttribute('contenteditable');
+									else element.alias.setAttribute('contenteditable', contenteditable);
+									// Allows the user to continue interacting with the overlay
 									overlay.style.pointerEvents = '';
-									if (element.oldcontenteditable == false) this.removeAttribute('contenteditable');
-									else this.setAttribute('contenteditable', element.oldcontenteditable);
+									// Restores the element's box-shadow
 									element.alias.style.boxShadow = boxshadow;
-									blurred = 1;
+									// Reverts attribute
+									element.alias.htmlStudioTextBeingEdited = false;
+									// Update the entire overlay to sync it with the updated element
 									overlayUpdate();
-									history.update();
-								});
-								element.alias.addEventListener('dblclick', function() {
-									this.dispatchEvent(new Event('blur'));
-								});
-								element.alias.addEventListener('keypress', function(e) {
-									// Blur on Ctrl + Enter, Shift + Enter, Alt + Enter, or Meta + Enter
-									if ((e.keyCode == 13 || e.which == 13) && (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey)) {
-										element.alias.dispatchEvent(new Event('blur'));
-									};
-									if (!e.charCode && e.keyCode != 8 && e.keyCode != 46) return;
-									if (!pendingUpdate) pendingUpdate = setTimeout(function() {
-										pendingUpdate = 0;
-										element.alias.style.boxShadow = boxshadow;
-										overlayUpdate(!blurred);
-										if (element.oldcontenteditable == false) element.alias.removeAttribute('contenteditable');
-										else element.alias.setAttribute('contenteditable', element.oldcontenteditable);
-										if (e.isTrusted) history.update();
-										element.alias.setAttribute('contenteditable','');
-										if (!blurred) overlay.style.pointerEvents = 'none';
-										for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
-											if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
-												children[i - 1].textContent += children[i].textContent;
-												children[i].parentNode.removeChild(children[i]);
-											}
-										}
-										if (!blurred) {
-											element.alias.alias.innerHTML = element.alias.alias.innerHTML.replace(/&(?:amp|#38);((?:[A-z]+|#\d+|#x[A-Fa-f\d]+);)/g, '<span style="border-radius:.2em;background:#00acc1;color:white;pointer-events:initial;cursor:pointer" class="html-escape-sequence-replacer" data-sequence="$&">$&</span>');
-											var preelement = element;
-											Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
-												var a = document.createElement('a'), sequence = element.getAttribute('data-sequence');
-												a.innerHTML = sequence;
-												if (a.innerText == sequence) {
-													element.parentNode.removeChild(element);
-													return;
-												}
-												if (!element.parentNode.alias) {
-													!function alias (element) {
-														if (!element.parentNode.parentNode.alias) alias(element.parentNode);
-														var children = element.parentNode.parentNode.childNodes, index = Array.prototype.indexOf.call(children, element.parentNode);
-														for (var i = index - 2; i >= 0; i--) {
-															if (children[i].className == 'html-escape-sequence-replacer') {
-																if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-																if (children[i + 1] && children[i + 1].nodeType == 3) index--;
-															} else if (children[i].nodeType == 3) {
-																if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-															}
-														}
-														element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
-													}(element)
-												};
-												element.title = 'Click to replace with "' + a.innerText + '"';
-												element.addEventListener('mousedown', function(e) {
-													preelement.alias.noblur = true;
-													var count = 0, index = Array.prototype.indexOf.call(element.parentNode.childNodes, element), origIndex = index;
-													for (var children = element.parentNode.childNodes, i = index - 1; i >= 0; i--) {
-														if (children[i].className == 'html-escape-sequence-replacer') {
-															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-															if (children[i + 1] && children[i + 1].nodeType == 3) index--;
-														} else if (children[i].nodeType == 3) {
-															if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-														}
-													}
-													for (var children = element.parentNode.childNodes, i = origIndex - 1; i >= 0; i--) {
-														if (children[i].className != 'html-escape-sequence-replacer' && children[i].nodeType != 3) break;
-														if (children[i].className == 'html-escape-sequence-replacer' && children[i].innerText == element.innerText) count++;
+									// Add the whole thing to history
+									history.update('Edit Text');
+								}
+
+								// Runs when an HTML entity replacer is clicked on (when the user wants to replace it)
+								function onClickEntityReplacer(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									this.alias.textContent = this.alias.textContent.substring(0, this.charIndex) + this.character + this.alias.textContent.substring(this.charIndex + this.entityLength);
+									keypress.call(element.alias, {});
+								}
+
+								// Function used to prevent blurring when the user clicks a replacer
+								function prevent(e) {
+									e.stopPropagation();
+									e.preventDefault();
+								}
+
+								// Finds any HTML entities, edits them, and gives all nodes an alias to refer to (even text nodes)
+								function createReplacers(clone, node) {
+									// Sets the alias to the proper element
+									clone.alias = node;
+									// Iterate over all the element's childNodes
+									Array.prototype.slice.call(clone.childNodes).forEach(function(child, index) {
+										// If the node is a text node and has an ampersand
+										if (child.nodeType == 3 && child.textContent.includes("&")) {
+											// Keeps track of how many character precede replacer
+											var charIndex = 0;
+
+											// Splits strings right before an entity
+											// e.g. "filler&nbsp;filler" -- > ["filler", "&nbsp;filler"]
+											var before = child.textContent.split(regex.pre), array = [];
+											// Get the entity for each string
+											before.forEach(function(str, ind) {
+												// The first string never contains an entity
+												if (!ind && !str) return;
+												// Match the entity
+												var entity = str.match(regex.post);
+												// This happens if the text node contains no entities
+												if (!entity) return array.push({entity: false, val: str});
+												// Get the actual match instead of an array
+												entity = entity[0];
+												// Add to an array that keeps all the string in order
+												array.push({entity: true, val: entity}, {entity: false, val: str.replace(entity, '')});
+											});
+
+											// Used to replace the child
+											var fragment = document.createDocumentFragment();
+
+											// Iterate over the array
+											array.forEach(function(str, ind) {
+												// If the array element is an entity
+												if (str.entity) {
+													// If the html entity does not actually translate into anything,
+													// create a text node and continue
+													testElement.innerHTML = str.val;
+													if ((character = testElement.innerText) == str.val) {
+														array[ind] = document.createTextNode(str.val);
+														array[ind].alias = node.childNodes[index];
+														return;
 													}
 
-													if (!element.parentNode.alias) {
-														!function alias (element) {
-															if (!element.parentNode.parentNode.alias) alias(element.parentNode);
-															var children = element.parentNode.parentNode.childNodes, index = Array.prototype.indexOf.call(children, element.parentNode);
-															for (var i = index - 2; i >= 0; i--) {
-																if (children[i].className == 'html-escape-sequence-replacer') {
-																	if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-																	if (children[i + 1] && children[i + 1].nodeType == 3) index--;
-																} else if (children[i].nodeType == 3) {
-																	if (children[i + 1] && children[i + 1].className == 'html-escape-sequence-replacer') index--;
-																}
-															}
-															element.parentNode.alias = element.parentNode.parentNode.alias.childNodes[index];
-														}(element)
-													}
-													element.parentNode.alias.childNodes[index].textContent = element.parentNode.alias.childNodes[index].textContent.replace(new RegExp('((?:.*?(?=' + sequence + ')' + sequence + '){' + count + '}.*?(?=' + sequence + '))' + sequence + '(.*$)'), function(_,$1,$2){
-														return $1 + a.innerText + $2;
-													});
-													element.parentNode.alias.dispatchEvent(new Event('keypress'));
-													element.parentNode.replaceChild(document.createTextNode(a.innerText), element);
-												})
-											})
+
+													// Create a <html-entity-replacer> custom tag
+													var replacer = document.createElement('html-entity-replacer'), character;
+													// Store it in the array
+													array[ind] = replacer
+													// Set the innerText
+													replacer.innerText = str.val;
+													// Sets attributes that are used when the replacer is click on
+													replacer.alias = node.childNodes[index];
+													replacer.charIndex = charIndex;
+													replacer.character = testElement.innerText;
+													replacer.entityLength = str.val.length;
+
+													// Configures the replacer
+													// Adds a title so the user can see which character it will be replaced with
+													replacer.title = 'Click to replace with "' + character + '"';
+													// Adds styles now so that it doesn't have to wait until the next interval loop
+													// Without this, the text appears transparent for an instant before being updated
+													replacer.style.color = 'rgba(0,172,193,' + (.03 * opacity + .25) + ')';
+													replacer.style.textShadow = '0 0 1px rgba(0,172,193,' + (.02 * opacity + .5) + ')';
+
+													// Adds click listener for when the user wants to replace the replacer
+													replacer.addEventListener('touchstart', onClickEntityReplacer);
+													replacer.addEventListener('click', onClickEntityReplacer);
+													// Adds more event listeners to preventDefault and stopPropogation
+													// This prevents the editable element from blurring
+													replacer.addEventListener('mousedown', prevent);
+													replacer.addEventListener('mouseup', prevent);
+													replacer.addEventListener('dblclick', prevent);
+													replacer.addEventListener('touchend', prevent);
+													replacer.addEventListener('touchcancel', prevent);
+												// The array element is just plain text
+												} else {
+													// Create a regular text node
+													array[ind] = document.createTextNode(str.val);
+													// Set its alias
+													array[ind].alias = node.childNodes[index];
+												}
+												charIndex += str.val.length;
+												fragment.appendChild(array[ind]);
+											});
+
+											child.parentNode.replaceChild(fragment, child);
+										} else {
+											createReplacers(child, node.childNodes[index])
+										};
+									});
+								}
+
+								// Runs on keyup and right after the browser has updated the element's innerHTML for keypress
+								function keypress(e) {
+									// Blur on Enter + any function key
+									if (e.keyCode == 13 && (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return blur();
+
+									opacity = -Math.abs(currentFrame - 25) + 25;
+
+									// Joins adjacent text nodes to prevent errors in future functions
+									for (var children = element.alias.childNodes,i = children.length - 1; i >= 0; i--) {
+										if (i && children[i].nodeType == 3 && children[i - 1].nodeType == 3) {
+											children[i - 1].textContent += children[i].textContent;
+											children[i].parentNode.removeChild(children[i]);
 										}
-										element.alias.style.boxShadow = blurred ? boxshadow : '0 0 5px 3px #00acc1';
-									}, 10);
+									}
+
+									// If the element has an ampersand, then it might be an HTML entity
+									if (element.alias.innerText.includes("&")) {
+
+										// fragment and clone are used as opposed to the actual DOM since DocumentFragments run faster
+										var fragment = document.createDocumentFragment(), clone = element.cloneNode(true);
+										fragment.appendChild(clone);
+										// Find all instances of an actual entity
+										clone.innerHTML = element.alias.innerHTML;
+										createReplacers(clone, element.alias);
+										
+
+										clone.alias = element.alias;
+										clone.DOM = element.DOM;
+										element.parentNode.replaceChild(clone, element);
+										element = clone;
+									} else {
+										// Runs if no HTML entities were found
+										element.innerHTML = element.alias.innerHTML;
+									}
+								}
+
+								// Add some events for blurring the element
+								element.alias.addEventListener('blur', blur);
+								element.alias.addEventListener('dblclick', blur);
+								// Adds the events for keypress and keyup
+								element.alias.addEventListener('keypress', function(e) {
+									setTimeout(function() {
+										keypress.call(this, e);
+									},0);
 								});
-								element.alias.dispatchEvent(new Event('keypress'));
-								close();
+								element.alias.addEventListener('keyup', keypress);
+
+								// Fires a key event to look for any HTML entities as soon as the user focuses the element
+								// instead of waiting for the user to press a key
+								keypress.call(element.alias, {});
 							},
 							title: 'Allows you to edit the element\'s textual content',
 							disabledtitle: 'SVG elements should not contain textual content'
@@ -1257,7 +1349,7 @@
 								prepareCopy(e.shiftKey);
 								document.execCommand('copy');
 							},
-							title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected element',
+							title: '(' + locale.cmdKey + ' + C) Copies the selected element\n(' + locale.cmdKey + ' + Shift + C) Copies the selected element and all its descendants',
 							disabledtitle: 'Your browser does not allow remote editing of the clipboard',
 							disabled: !document.queryCommandSupported('copy')
 						}, {
@@ -1284,6 +1376,7 @@
 								overlayUpdate();
 								history.update();
 								close();
+								updateTooltip();
 							},
 							image: 'svg/delete.svg',
 							separate: true,
@@ -1718,6 +1811,7 @@
 			contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
 			// Connect <body> and #overlay elements
 			overlay.alias = framewindow.document.body;
+			prepareCopy();
 			
 
 
@@ -1790,7 +1884,7 @@
 						var matches = (this.document || this.ownerDocument).querySelectorAll(s),
 							i = matches.length;
 						while (--i >= 0 && matches.item(i) !== this) {}
-						return i > -1;            
+						return i > -1;
 					};
 			}
 			// Lets dialogs be draggable
@@ -1857,6 +1951,8 @@
 				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), body = framewindow.document.body;
 				body.alias = overlay;
 				overlay.innerHTML = '';
+				if (body.htmlStudioTextBeingEdited) overlay.setAttribute('data-html-studio-text-being-edited', 'true');
+				else overlay.removeAttribute('data-html-studio-text-being-edited');
 
 				var contextmenuhandler = function(e){
 					var clonednode = this;
@@ -1907,7 +2003,6 @@
 					return vh * $1 + 'px';
 				}));
 				overlay.style.fontSize = getComputedStyle(body).fontSize;
-				overlay.oldcontenteditable = body.hasAttribute('contenteditable') ? body.getAttribute('contenteditable') : false;
 
 				DOM = {
 					name: 'BODY',
@@ -1961,7 +2056,6 @@
 								return vh * $1 + 'px';
 							}));
 							clonednode.style.fontSize = getComputedStyle(this).fontSize;
-							clonednode.oldcontenteditable = this.hasAttribute('contenteditable') ? this.getAttribute('contenteditable') : false;
 							// Saves the computed styles as a hidden attribute of the original node
 							this.htmlStudioComputedStyles = clonednode.getAttribute('style') || '';
 							// Other styles to make them transparent (since they are just an overlay)
@@ -1970,6 +2064,7 @@
 							clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = clonednode.style.color = clonednode.style[clonednode instanceof SVGElement ? 'stroke' : 'borderColor'] = 'rgba(0,0,0,0)'
 							clonednode.style.boxShadow = '';
 							clonednode.style.fontFamily = (clonednode.style.fontFamily || '') + ', serif';
+							if (this.htmlStudioTextBeingEdited) clonednode.setAttribute('data-html-studio-text-being-edited', 'true');
 
 							// Remove some harmful attributes
 							// Prevent actually clicking on links, instead just select them
@@ -2681,7 +2776,8 @@
 					range.moveToElementText(document.getElementById('clipboard'));
 					textRange.select();
 				}*/
-				clipboard.select();
+				var target = document.activeElement == iframe ? framewindow.document.activeElement : document.activeElement;
+				if (!target.hasAttribute || target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA')) clipboard.select();
 			}
 
 			// Controls keyboard shortcuts
@@ -2692,14 +2788,14 @@
 				// Otherwise, none of the command would work
 				// It would think the user wants to edit #clipboard when they actually want to edit the document
 				// Also if the element doesn't have getAttribute function, it would throw an error, so change that to document.body as well
-				// Only keeps #clipboard as target if user is cutting (Ctrl + X) an element
+				// Only keeps #clipboard as target if user is interacting with elements
 				var target = (e.target == clipboard && e.keyCode != 88) || !e.target.getAttribute ? document.body : e.target;
 				// Ctrl + Z
-				if (e.keyCode == 90 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') != 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') undo();
+				if (e.keyCode == 90 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') undo();
 				// Ctrl + Y
-				else if (e.keyCode == 89 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') != 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') redo();
+				else if (e.keyCode == 89 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') redo();
 				// Ctrl + A
-				else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') != 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
+				else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
 					e.preventDefault();
 					e.stopPropagation();
 					for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
@@ -2770,6 +2866,11 @@
 						if (e.isTrusted && document.queryCommandSupported('copy')) document.execCommand('copy');
 					}
 					contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
+				// Del
+				} else if (e.keyCode == 46 && (target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) {
+					contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
+					overlayUpdate();
+					history.update();
 				}
 
 				// Allows Ctrl + C to be handled natively by the browser
@@ -2781,9 +2882,22 @@
 					contextmenus[4].getItem(1).toggled = (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement);
 			});
 
+			// Explicitly adds data to the clipboard in three formats
+			addEventListener('copy', function(e) {
+				if (e.target != clipboard) return
+				if (clipboard.value) {
+					e.clipboardData.setData('text/html', clipboard.value);
+					e.clipboardData.setData('text/plain', clipboard.value);
+					e.clipboardData.setData('text', clipboard.value);
+				}
+			});
+
 			addEventListener('paste', function(e) {
 				try {
-					var markup = e.clipboardData.getData('text/plain'), fragment = document.createElement('template');
+					var type = Array.prototype.slice.call(e.clipboardData.types)
+					var type = ~type.indexOf('text/html') ? 'text/html' : ~type.indexOf('text/plain') ? 'text/plain' : ~type.indexOf('text') ? 'text' :false;
+					if (!type) return;
+					var markup = e.clipboardData.getData(type), fragment = document.createElement('template');
 					fragment.innerHTML = markup;
 					var selectedElements = document.querySelectorAll('[data-selected-element=selected]');
 					Array.prototype.forEach.call(selectedElements, function(element) {
@@ -2822,9 +2936,12 @@
 				Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
 					element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,172,193,'+(.008*opacity+.15)+')';
 				});
-				Array.prototype.forEach.call(document.getElementsByClassName('html-escape-sequence-replacer'), function(element) {
-					//element.style.backgroundColor = bgcolor;
-					element.style.color = tcolor;
+				Array.prototype.forEach.call(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
+					element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(0,172,193,' + (1 - currentFrame / 50) + ')';
+				});
+				Array.prototype.forEach.call(document.getElementsByTagName('html-entity-replacer'), function(element) {
+					element.style.color = 'rgba(0,172,193,'+(.02*opacity+.5)+')';
+					element.style.textShadow = '0 0 1px rgba(0,172,193,' + (.03 * opacity + .25) + ')'
 				});
 			}, 20);
 
