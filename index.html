@@ -1022,7 +1022,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.0.0</h3></td>
+						<td><h3>Version 1.0.0.1</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1154,8 +1154,8 @@
 						localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', this.currentEntry);
 						contextmenus[3].getItem(0).disabled = !this.currentEntry;
 						contextmenus[3].getItem(1).disabled = this.currentEntry == this.entries.length - 1;
-						contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + history.entries[history.currentEntry].action);
-						contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+						contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + (history.entries[history.currentEntry] || {action:''}).action);
+						contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + (history.entries[history.currentEntry + 1] || {action:''}).action);
 					}
 				}, locale = {
 					isMac: /mac/i.test(navigator.platform),
@@ -2133,8 +2133,8 @@
 			// Disable undo and redo buttons if ncessary
 			contextmenus[3].getItem(0).disabled = !history.currentEntry;
 			contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
-			contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + history.entries[history.currentEntry].action);
-			contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+			contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + (history.entries[history.currentEntry] || {action:''}).action);
+			contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + (history.entries[history.currentEntry + 1] || {action:''}).action);
 			// Connect <body> and #overlay elements
 			overlay.alias = framewindow.document.body;
 			prepareCopy();
@@ -2702,7 +2702,7 @@
 			} : function() {
 				// Browsers with no support for position:sticky that probably doesn't use asynchronous scrolling
 				framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
-				iframe.style.top = scrollTop + 'px';
+				iframe.style.top = this.scrollTop + 'px';
 			});
 
 			// Can't be run on window because the event propogates and ends up toggling Inspect Element for developer tools
@@ -3063,8 +3063,8 @@
 				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', history.currentEntry);
 				contextmenus[3].getItem(0).disabled = !history.currentEntry;
 				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
-				contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + history.entries[history.currentEntry].action);
-				contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+				contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + (history.entries[history.currentEntry] || {action:''}).action);
+				contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + (history.entries[history.currentEntry + 1] || {action:''}).action);
 				deselect();
 			}
 			function redo () {
@@ -3079,8 +3079,8 @@
 				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', history.currentEntry);
 				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
 				contextmenus[3].getItem(0).disabled = !history.currentEntry;
-				contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + history.entries[history.currentEntry].action);
-				contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+				contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 ? '' : ' • ' + (history.entries[history.currentEntry] || {action:''}).action);
+				contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length ? '' : ' • ' + (history.entries[history.currentEntry + 1] || {action:''}).action);
 				deselect();
 			}
 			// Adds the selected nodes outerHTML to #clipboard
