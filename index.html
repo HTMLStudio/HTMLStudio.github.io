@@ -133,6 +133,8 @@
 			z-index: 9999994;
 			position: relative;
 			box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
+			overflow-x: auto;
+			overflow-y: hidden;
 		}
 
 		#headersectionbar {
@@ -203,6 +205,16 @@
 			display: inline-block;
 			width: 7%;
 			background: #00acc1;
+			position: absolute;
+			transition: width .6s ease-out;
+			overflow-x: hidden;
+			overflow-y: hidden;
+			white-space: nowrap;
+		}
+
+		#logo:hover {
+			width: 100%;
+			min-width: 672px;
 		}
 
 		#tooltip {
@@ -684,6 +696,141 @@
 			margin: -1px;
 			border-radius: .2em;
 		}
+
+		#logo table {
+			table-layout: fixed;
+			height: calc(4.45rem - 1px);
+			width: 7vw;
+			text-align: center;
+			transition: width .6s ease-out;
+			position: absolute;
+		}
+
+		#logo:hover table {
+			width: 250px;
+		}
+
+		#logo ::-webkit-scrollbar {
+			height: 0;
+			width: 0;
+			background: transparent;
+		}
+
+		#logoimg {
+			max-height: calc((4.45rem - 1px) * .8);
+			max-width: calc(7vw * .8);
+			transition: max-width .6s ease-out;
+		}
+
+		#logo:hover #logoimg {
+			max-width: calc(250px * .8);
+		}
+
+		#logoDivider {
+			margin-left: 7vw;
+			width: 2px;
+			height: calc(4.45rem - 11px);
+			top: 5px;
+			position: relative;
+			background: #10bcd1;
+			transition: margin-left .6s ease-out;
+			display: inline-block;
+		}
+
+		#logo:hover #logoDivider {
+			margin-left: 250px;
+		}
+
+		#logoContextHolder {
+			display: inline-flex;
+			flex-direction: column;
+			height: calc((4.45rem - 1px) * .9);
+			vertical-align: top;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			margin: calc((4.45rem - 1px) * .05) 0 0 5px;
+		}
+
+		.pesudoContextMenuItem {
+			width: 200px;
+			height: calc((4.45rem - 1px) * .4);
+			display: inline-block;
+			font-size: calc((4.45rem - 1px) * .25);
+			font-family: "Open Sans", Arial, sans-serif;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			border-top: 1px solid #20cce1;
+			border-bottom: 1px solid #20cce1;
+			margin: -1px 0;
+		}
+
+		.pesudoContextMenuItem span {
+			vertical-align: middle;
+		}
+
+		#logoContextHolder a {
+			margin-left: 10px;
+			color: #FFF;
+		}
+
+		a:hover .pesudoContextMenuItem {
+			background: #10bcd1;
+			border-color: #10bcd1;
+		}
+
+		#logoContextHolder img {
+			height: 1em;
+			vertical-align: middle;
+			margin: 0 .35em 0 .2em;
+		}
+
+		#idE {
+			text-align: justify;
+			font-size: .95em;
+		}
+
+		a:not([href]) {
+			cursor: pointer;
+		}
+
+		#dialog_about .content a, #dialog_license .content a {
+			color: #00acc1;
+			text-decoration: none;
+		}
+
+		#dialog_about .content a:hover, #dialog_license .content a {
+			text-decoration: underline;
+		}
+
+		#idG img {
+			width: 80%;
+		}
+
+		#idF {
+			table-layout: fixed;
+			width: 100%;
+		}
+
+		#idF tr:not(:first-child) td {
+			text-align: left;
+			font-size: 95%;
+		}
+
+		#idF td:not(#idG) {
+			padding: .2em 0 .2em 2em;
+		}
+
+		#idF h1 {
+			font-family: "Open Sans", Arial, sans-serif;
+		}
+
+		#idG {
+			width: 40%;
+		}
+
+		.cla {
+			font-size: 80%;
+		}
 	</style>
 </head>
 <body>
@@ -703,7 +850,18 @@
 			<div class='headersection' id='section_stylesheets'>Stylesheets</div>
 			<div class='headersection' id='section_selection'>Selection</div>
 		</div>
-		<div id='logo'></div>
+		<div id='logo'>
+			<table>
+				<td><img id='logoimg' src="svg/logo_path.svg"></td>
+			</table>
+			<div id='logoDivider'></div>
+			<div id='logoContextHolder'>
+				<a id='meta_about' tabindex='0'><div class='pesudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
+				<a href='help' target='_blank'><div class='pesudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
+				<a href='https://github.com/ChristianFigueroa/HTML-Studio' target='_blank'><div class='pesudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
+				<a href='documentation' target='_blank'><div class='pesudoContextMenuItem'><img src='svg/documentation.svg'><span>Documentation</span></div></a>
+			</div>
+		</div>
 	</div>
 	<div id='framecontainer'>
 		<div id='frameback'></div>
@@ -826,7 +984,7 @@
 			</div>
 			<div class='exit' tabindex='0'></div>
 			<div class='optioncontainer'>
-				<div class='option exit' tabindex='0'>Exit</div>
+				<div class='option exit' tabindex='0'>Close</div>
 			</div>
 		</div>
 		<div id='dialog_pseudo_paste' class='dialog'>
@@ -852,7 +1010,48 @@
 			</div>
 			<div class='exit' tabindex='0'></div>
 			<div class='optioncontainer'>
-				<div class='option exit'>Exit</div>
+				<div class='option exit' tabindex='0'>Close</div>
+			</div>
+		</div>
+		<div id='dialog_about' class='dialog'>
+			<span>About HTML Studio</span>
+			<div class='content'>
+				<table id='idF'>
+					<tr>
+						<td rowspan='5' id='idG'><img src='svg/logo_color.svg'></td>
+						<td><h1>HTML Studio</h1></td>
+					</tr>
+					<tr>
+						<td><h3>Version 1.0.0</h3></td>
+					</tr>
+					<tr>
+						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
+					</tr>
+					<tr>
+						<td><h3><a href='dependencies' target='_blank'>Dependencies</a></h3></td>
+					</tr>
+					<tr>
+						<td><h3><a id='meta_license' tabindex='0'>License</a></h3></td>
+					</tr>
+				</table>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='optioncontainer'>
+				<div class='option exit' tabindex='0'>Close</div>
+			</div>
+		</div>
+		<div id='dialog_license' class='dialog'>
+			<span>License</span>
+			<div class='content'>
+				<h3 id='idE'>Copyright 2017 Christian Figueroa <<a href='/' target='_blank'>https://christianfigueroa.github.io</a>><br><br>HTML Studio is licensed under the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version. View the webpages linked below for the full license.</h3>
+				<br>
+				<a href='license' target='_blank'>HTML</a>
+				<br>
+				<a href='license-plain.txt' target='_blank'>Plain Text</a>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='optioncontainer'>
+				<div class='option exit' tabindex='0'>Close</div>
 			</div>
 		</div>
 	</div>
@@ -2304,7 +2503,7 @@
 				Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element) {
 					sectionopen = false;
 					contextmenus.forEach(function(context) {
-						if (context.parentNode == document.body) document.body.removeChild(context.node);
+						if (context.node.parentNode == document.body) document.body.removeChild(context.node);
 					});
 					element.style.background = '';
 				})
@@ -2463,6 +2662,30 @@
 
 
 			// A bunch of event listeners for elements
+			// Shows dialogs when the user clicks certain empty <a> tags
+			!function() {
+				function select() {
+					closeDialogs();
+					backdialog.style.display = 'block';
+					document.getElementById('dialog_' + this.id.substring(5)).style.display = 'block';
+				}
+				function keypress(e) {
+					if (e.keyCode == 13) select.call(this);
+				}
+
+				var about = document.getElementById('meta_about'), license = document.getElementById('meta_license');
+				about.addEventListener('click', select);
+				about.addEventListener('keypress', keypress);
+				license.addEventListener('click', select);
+				license.addEventListener('keypress', keypress);
+			}();
+
+			// On mouseover for #logo
+			// Clears header context menus when user enters #logo
+			document.getElementById('logo').addEventListener('mouseover', function() {
+				closeHeaders();
+			});
+
 			//Prevents #no_paste dialog from being shown if checkbox is clicked
 			document.getElementById('idB').addEventListener('change', function() {
 				localStorage.setItem('HTML-Studio_blockNoPaste', this.checked ? '1' : '0');
