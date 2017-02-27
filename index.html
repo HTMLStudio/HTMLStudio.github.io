@@ -1022,7 +1022,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.0.0.1</h3></td>
+						<td><h3>Version 1.0.0.2</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1628,8 +1628,7 @@
 							func: function(e,close) {
 								close();
 								prepareCopy(e.shiftKey);
-								if (document.queryCommandSupported('copy')) {
-									document.execCommand('copy');
+								if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
 									contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
 								} else {
 									backdialog.style.display = 'block';
@@ -1641,8 +1640,8 @@
 							name: 'Paste in Element',
 							func: function(e,close) {
 								close();
-								if (document.queryCommandSupported('paste')) document.execCommand('paste');
-								else {
+								if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
+								} else {
 									dialogcover.style.display = 'block';
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
@@ -1714,8 +1713,8 @@
 							func: function(e,close) {
 								close();
 								prepareCopy(e.shiftKey);
-								if (document.queryCommandSupported('copy')) document.execCommand('copy');
-								else {
+								if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
+								} else {
 									backdialog.style.display = 'block';
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
@@ -1726,8 +1725,7 @@
 							func: function(e,close) {
 								close();
 								prepareCopy(e.shiftKey);
-								if (document.queryCommandSupported('copy')) {
-									document.execCommand('copy');
+								if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
 									contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
 								} else {
 									backdialog.style.display = 'block';
@@ -1739,8 +1737,8 @@
 							name: 'Paste in Elements',
 							func: function(e,close) {
 								close();
-								if (document.queryCommandSupported('paste')) document.execCommand('paste');
-								else {
+								if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
+								} else {
 									dialogcover.style.display = 'block';
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
