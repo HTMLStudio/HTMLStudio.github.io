@@ -1024,7 +1024,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.0.0.3</h3></td>
+						<td><h3>Version 1.0.0.4</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -2552,8 +2552,11 @@
 			function updateTooltip() {
 				var nodes = document.querySelectorAll('[data-selected-element=selected]');
 				if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
-				else if (nodes[0]) document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + nodes[0].alias.nodeName.toLowerCase() + '</span>' + (nodes[0].alias.id ? '<span style="color:#009">#' + nodes[0].alias.id + '</span>' : '') + (nodes[0].alias.className ? '<span style="color:#F44">.' + nodes[0].alias.className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
-				else if (overlay.mousePositions) {
+				else if (nodes[0]) {
+					var node = nodes[0].alias,
+						className = node.className ? 'baseVal' in new Object(node.className) ? (node.className.baseVal || false) : node.className : false;
+					document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (className ? '<span style="color:#F44">.' + className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+				} else if (overlay.mousePositions) {
 					document.getElementById('tooltiptext').innerHTML = '(' + overlay.mousePositions.x + ', ' + overlay.mousePositions.y + ')';
 				} else {
 					document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
