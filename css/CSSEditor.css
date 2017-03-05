@@ -1,0 +1,168 @@
+.cssEditContainer, .cssEditContainer * {
+	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+}
+
+.cssEditContainer {
+	text-align: left;
+}
+
+.cssRule {
+	position: relative;
+	margin: 0 -1.75em 1.2em;
+	padding: 0 1.75em;
+}
+
+.cssRule:hover {
+	background: #F8F8F8;
+}
+
+.cssRule:hover > .clb, .cssRule:focus > .clb, .cssRule:active > .clb,
+.cssStyle:hover .clb, .cssStyle:focus .clb, .cssStyle:active .clb,
+.cssRule:hover > .clc, .cssRule:focus .clc, .cssRule:hover .clc{
+	opacity: 1;
+	pointer-events: initial;
+}
+
+.cssRule input {
+	background: transparent;
+}
+
+.cssRule > input {
+	font-size: 1rem;
+	border: 0;
+	border-bottom: 2px solid rgba(0,172,193,.3);
+	color: #00acc1;
+}
+
+.cssRule > input:focus, .cssRule > input:hover {
+	border-bottom: 2px solid #00acc1;
+}
+
+.cssStyle {
+	padding-left: 2.75rem;
+	margin-left: -1.75rem;
+	font-size: 0;
+	position: relative;
+	margin-right: -1.75rem;
+	cursor: pointer;
+}
+
+.cssStyle:hover, .cssStyle:focus, .cssStyle:active {
+	background: #F0F0F0;
+}
+
+.cssStyleName {
+	color: #84bc14;
+	font-size: initial;
+	border: 0;
+	border-bottom: 2px solid rgba(132, 188, 20, .3);
+}
+
+.cssStyleName:focus, .cssStyleName:hover {
+	border-bottom: 2px solid #84bc14;
+}
+
+.cssStyleColon:after {
+	color: grey;
+	content: ": ";
+	font-size: initial;
+}
+
+.cssStyleValue {
+	color: #234;
+	font-size: initial;
+	border: 0;
+	border-bottom: 2px solid rgba(34,51,68,.3);
+}
+
+.cssStyleValue:focus, .cssStyleValue:hover {
+	border-bottom: 2px solid #234;
+}
+
+.cssStyleSemicolon:after {
+	color: grey;
+	content: ";";
+	font-size: initial;
+}
+
+.clb, .clc {
+	background: #FFF url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	border: 1px solid #AAA;
+	margin: -1px;
+	border-radius: .3rem;
+	height: 1rem;
+	width: 1rem;
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+	left: .5rem;
+	top: .2rem;
+	cursor: pointer;
+}
+
+.clb:hover, .clb:focus, .clb:active,
+.clc:hover, .clc:focus, .clc:active {
+	background-color: #EEE;
+	opacity: 1;
+	pointer-events: initial;
+}
+
+.cssStyle .clb {
+	left: 1.5rem;
+}
+
+.cssStyle:first-child:last-child .clb,
+.cssRule:first-child:last-child > .clb {
+	opacity: 0;
+	pointer-events: none;
+	display: none;
+}
+
+.clc {
+	bottom: .2rem;
+	top: initial;
+	background: #FFF url("../svg/add.svg") 50% 50%/70% 70% no-repeat;
+}
+
+.cssRule.invalid {
+	background: #FFF0F0;
+}
+
+.cssStyle.invalid {
+	background: #FFE1E1;
+}
+
+input.invalid, input.invalid:hover, input.invalid:focus, input.invalid:active {
+	border-bottom: 2px solid red;
+}
+
+#idJ, #idO {
+	background: #FFE1E1;
+	margin: 0 -1.75em 1.2em;
+	font-size: 1.05em;
+	padding: 0 1.75em;
+}
+
+#idK, #idM {
+	width: 100%;
+	font-size: 1.2rem;
+	border: 0;
+	text-align: center;
+	font-family: Arial, sans-serif;
+	padding: .05rem 0;
+	margin-bottom: 1.2rem;
+	border: 1px solid transparent;
+	border-bottom: 2px solid #00acc1;
+}
+
+#idK:hover, #idK:focus, #idM:hover, #idM:focus {
+	box-shadow: 0 0 5px 2px rgba(0,172,193,.4);
+	border: 1px solid #00acc1;
+	border-bottom-width: 2px; 
+}
+
+.cld {
+	height: 1em;
+	vertical-align: sub;
+	cursor: pointer;
+}

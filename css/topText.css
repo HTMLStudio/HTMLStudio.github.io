@@ -1,0 +1,30 @@
+.topText {
+	display: none;
+	left: 7vw;
+}
+
+.topText input {
+	border: 1px solid #AAA;
+	font-size: initial;
+	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+	border-radius: .2em;
+	padding: .2em .4em;
+}
+
+.cle {
+	background: #FFF url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	height: 1.2rem;
+	width: 1.2rem;
+	display: inline-block;
+	cursor: pointer;
+	border: 1px solid #AAA;
+	border-radius: .3rem;
+	vertical-align: bottom;
+	position: relative;
+	top: -.3rem;
+	margin-left: .6rem;
+}
+
+.cle:hover {
+	background-color: #EEE;
+}
