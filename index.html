@@ -1115,6 +1115,18 @@
 		<input type='text' id='idP' placeholder='CSS Selector'>
 		<div class='cle'></div>
 	</div>
+	<div id='classEditor' class='topText'>
+		<input type='text' placeholder='Edit Class Name' id='idQ'>
+		<div class='cle'></div>
+	</div>
+	<div id='idEditor' class='topText'>
+		<input type='text' placeholder='Edit ID' id='idR'>
+		<div class='cle'></div>
+	</div>
+	<div id='idNoEdit' class='topText'>
+		<span>You can only edit the ID of one element at a time.</span>
+		<div class='cle'></div>
+	</div>
 	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
 	<noscript id='deferred-styles'>
@@ -1214,10 +1226,10 @@
 						this.entries = this.entries.slice(0,this.currentEntry + 1);
 						localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify(this.entries.slice().splice(Math.max(this.currentEntry - 10, 0), 16)));
 						localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', Math.min(this.currentEntry, 10));
-						contextmenus[3].getItem(0).disabled = !this.currentEntry;
-						contextmenus[3].getItem(1).disabled = this.currentEntry == this.entries.length - 1;
-						contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
-						contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+						contextmenus[3].getItem('undo').disabled = !this.currentEntry;
+						contextmenus[3].getItem('redo').disabled = this.currentEntry == this.entries.length - 1;
+						contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
+						contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
 						setTimeout(overlayUpdate, 1000);
 					}
 				}, locale = {
@@ -1233,10 +1245,11 @@
 							disabled: true,
 							pad: false,
 							css: {
-								fontFamily: 'monospace',
-								fontSize: '1.2em'
+								fontFamily: 'Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace',
+								fontSize: '1rem'
 							},
-							separate: true
+							separate: true,
+							id: 'info'
 						},{
 							name: 'Edit Styles&#133;',
 							func: function(_,close) {
@@ -1338,7 +1351,8 @@
 								document.querySelector('#idv tr:first-child input').focus();
 							},
 							image: 'svg/edit_styles.svg',
-							title: 'Allows you to edit the element\'s CSS'
+							title: 'Allows you to edit the element\'s CSS',
+							id: 'editStyle'
 						},{
 							name: 'Edit Attributes&#133;',
 							func: function(_,close) {
@@ -1407,12 +1421,69 @@
 							},
 							title: 'Allows you to edit the element\'s attributes',
 							image: 'svg/edit_attributes.svg',
-							separate: true
+							separate: true,
+							id: 'editAttributes'
+						},{
+							name: 'Edit Class Name&#133;',
+							func: function(_,close) {
+								close();
+								var editor = document.getElementById('classEditor'), idQ = document.getElementById('idQ'), elements = document.querySelectorAll('[data-selected-element=selected]');
+								if (!elements.length) return;
+								closeTopTexts();
+								editor.className = 'topText active';
+								if (elements.length > 1) {
+									var classes = elements[0].alias.className.baseVal ? elements[0].alias.className.baseVal : typeof elements[0].alias.className == 'string' ? elements[0].alias.className : '';
+									for (var i = elements.length - 1; classes && i >= 0; i--) {
+										if ((elements[i].alias.className.baseVal ? elements[i].alias.className.baseVal : typeof elements[i].alias.className == 'string' ? elements[i].alias.className : '') != classes) classes = false;
+									}
+
+									idQ.elements = Array.prototype.slice.call(elements);
+									if (classes) {
+										idQ.method = 'replace';
+										idQ.value = classes;
+									} else {
+										idQ.method = 'append';
+										idQ.value = '';
+										idQ.origClass = idQ.elements.map(function(element) {
+											console.log(element.alias.className.baseVal ? element.alias.className.baseVal.trim() : typeof element.alias.className == 'string' ? element.alias.className.trim() : '')
+											return element.alias.className.baseVal ? element.alias.className.baseVal.trim() : typeof element.alias.className == 'string' ? element.alias.className.trim() : '';
+										});
+									}
+								} else {
+									var element = elements[0]
+									idQ.value = element.alias.className ? element.alias.className.baseVal ? element.alias.className.baseVal : element.alias.className : '';
+									idQ.method = 'replace';
+									idQ.elements = [element];
+								}
+								idQ.focus();
+							},
+							title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the element\'s classes',
+							id: 'editClass'
+						},{
+							name: 'Edit ID&#133;',
+							func: function(_,close) {
+								close();
+								var editor = document.getElementById('idEditor'), idR = document.getElementById('idR'), elements = document.querySelectorAll('[data-selected-element=selected]');
+								if (!elements.length) return;
+								closeTopTexts();
+								if (elements.length > 1) {
+									document.getElementById('idNoEdit').className = 'topText active';
+								} else {
+									editor.className = 'topText active';
+									idR.element = elements[0].alias;
+									idR.value = elements[0].alias.id;
+									idR.focus();
+								}
+							},
+							title: '(' + locale.cmdKey + ' + Shift + 3) Allows you to quickly edit the element\'s ID',
+							separate: true,
+							id: 'editId'
 						},{
 							name: 'Insert Child&#133;',
 							title: 'Inserts a child node into the selected node',
 							image: 'svg/insert_child.svg',
-							separate: true
+							separate: true,
+							id: 'insertChild'
 						},{
 							name: 'Select Children',
 							image: 'svg/select_children.svg',
@@ -1434,7 +1505,8 @@
 								selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 							},
 							title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
-							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children'
+							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
+							id: 'selectChildren'
 						},{
 							name: 'Select Parent',
 							image: 'svg/select_parent.svg',
@@ -1461,7 +1533,8 @@
 							},
 							title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
 							separate: true,
-							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected'
+							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected',
+							id: 'selectParent'
 						},{
 							name: 'Edit Text',
 							image: 'svg/edit_text.svg',
@@ -1504,7 +1577,7 @@
 									if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName == 'BR') element.alias.removeChild(element.alias.lastChild);
 
 									// Restores the element's original contenteditable attribute
-									if (contenteditable == false) element.alias.removeAttribute('contenteditable');
+									if (contenteditable === false) element.alias.removeAttribute('contenteditable');
 									else element.alias.setAttribute('contenteditable', contenteditable);
 									// Allows the user to continue interacting with the overlay
 									overlay.style.pointerEvents = '';
@@ -1536,7 +1609,7 @@
 								function createReplacers(clone, node) {
 									// Sets the alias to the proper element
 									clone.alias = node;
-									if (clone.nodeType == 1) {
+									if (clone.nodeType == 1 && node.nodeType == 1) {
 										css.forEach(function(stylesheet) {
 											stylesheet[1].forEach(function(query) {
 												if (node.matches(query[0])) {
@@ -1548,9 +1621,9 @@
 										});
 										clone.style.color = 'transparent';
 										clone.style.background = 'transparent';
-										if (clone.nodeName == 'A') clonednode.removeAttribute('href');
+										if (clone.nodeName == 'A') clone.removeAttribute('href');
 										if (clone.nodeName == 'IMG') {
-											clone.setAttribute('src','https://upload.wikimedia.org/wikipedia/commons/2/20/16x16.png')
+											clone.setAttribute('src','svg/transparent.svg')
 											clone.setAttribute('width', Math.round(clone.alias.getAttribute('width') || clone.alias.getBoundingClientRect().width));
 											clone.setAttribute('height', Math.round(clone.alias.getAttribute('height') || clone.alias.getBoundingClientRect().height));
 										}
@@ -1690,7 +1763,8 @@
 								keypress.call(element.alias, {});
 							},
 							title: 'Allows you to edit the element\'s textual content',
-							disabledtitle: 'SVG elements should not contain textual content'
+							disabledtitle: 'SVG elements should not contain textual content',
+							id: 'editText'
 						},{
 							name: 'Edit as HTML&#133;',
 							image: 'svg/edit_as_html.svg',
@@ -1704,7 +1778,8 @@
 								document.getElementById('idf').linkedElement = element.alias;
 							},
 							title: 'Allows you to edit the node\'s HTML',
-							separate: true
+							separate: true,
+							id: 'editHTML'
 						},{
 							name: 'Delete Node',
 							func: function(_,close) {
@@ -1717,7 +1792,8 @@
 							disabledtitle: 'This node cannot be removed from the document',
 							image: 'svg/delete.svg',
 							disabledimage: 'svg/delete_disabled.svg',
-							separate: true
+							separate: true,
+							id: 'delete'
 						},{
 							name: 'Copy Element',
 							func: function(e,close) {
@@ -1730,21 +1806,23 @@
 								}
 							},
 							title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
-							image: 'svg/copy.svg'
-						}, {
+							image: 'svg/copy.svg',
+							id: 'copy'
+						},{
 							name: 'Cut Element',
 							func: function(e,close) {
 								close();
 								prepareCopy(e.shiftKey);
 								if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-									contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
+									contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
 								} else {
 									backdialog.style.display = 'block';
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
 							title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element and all its descendants',
-							image: 'svg/cut.svg'
+							image: 'svg/cut.svg',
+							id: 'cut'
 						},{
 							name: 'Paste in Element',
 							func: function(e,close) {
@@ -1756,7 +1834,8 @@
 								}
 							},
 							title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected node',
-							image: 'svg/paste.svg'
+							image: 'svg/paste.svg',
+							id: 'paste'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -1774,7 +1853,16 @@
 							},
 							image: 'svg/delete.svg',
 							separate: true,
-							title: 'Removes nodes from the document'
+							title: 'Removes nodes from the document',
+							id: 'delete'
+						},{
+							name: 'Edit Class Names&#133;',
+							func: function(_,close) {
+								close();
+								contextmenus[0].getItem('editClass').dispatchEvent(new Event('click'));
+							},
+							title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the elements\' classes',
+							separate: true
 						},{
 							name: 'Select Children',
 							func: function(e,close) {
@@ -1794,13 +1882,14 @@
 							image: 'svg/select_children.svg',
 							disabledimage: 'svg/select_children_disabled.svg',
 							title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
-							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children'
+							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
+							id: 'selectChildren'
 						},{
 							name: 'Select Parent(s)',
 							image: 'svg/select_parent.svg',
 							disabledimage: 'svg/select_parent_disabled.svg',
 							func: function(e,close) {
-								if (document.querySelectorAll('[data-selected-element=selected]').length == 1) return contextmenus[0].getItem(5).dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+								if (document.querySelectorAll('[data-selected-element=selected]').length == 1) return contextmenus[0].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 								else if (!document.querySelector('[data-selected-element=selected]')) return;
 								close();
 								var nodes = Array.prototype.filter.call(document.querySelectorAll('[data-selected-element=selected]'), function(node) {
@@ -1819,7 +1908,8 @@
 							},
 							title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
 							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents',
-							separate: true
+							separate: true,
+							id: 'selectParent'
 						},{
 							name: 'Copy Elements',
 							func: function(e,close) {
@@ -1832,21 +1922,23 @@
 								}
 							},
 							title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
-							image: 'svg/copy.svg'
+							image: 'svg/copy.svg',
+							id: 'copy'
 						},{
 							name: 'Cut Elements',
 							func: function(e,close) {
 								close();
 								prepareCopy(e.shiftKey);
 								if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-									contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
+									contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
 								} else {
 									backdialog.style.display = 'block';
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
 							title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements and all their descendants',
-							image: 'svg/cut.svg'
+							image: 'svg/cut.svg',
+							id: 'cut'
 						},{
 							name: 'Paste in Elements',
 							func: function(e,close) {
@@ -1858,7 +1950,8 @@
 								}
 							},
 							title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected nodes',
-							image: 'svg/paste.svg'
+							image: 'svg/paste.svg',
+							id: 'paste'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -1960,7 +2053,8 @@
 								});
 							},
 							title: '(' + locale.cmdKey + ' + N) Create a new document to replace the current one',
-							image: 'svg/new.svg'
+							image: 'svg/new.svg',
+							id: 'new'
 						},{
 							name: 'Open&#133;',
 							func: function(_,close) {
@@ -1985,16 +2079,19 @@
 								closeHeaders();
 							},
 							title: '(' + locale.cmdKey + ' + O) Open an HTML file to replace the current document',
-							image: 'svg/open.svg'
+							image: 'svg/open.svg',
+							id: 'open'
 						},{
 							name: 'Download File&#133;',
 							disabled: true,
 							disabledtitle: 'Work in Progress',
-							separate: true
+							separate: true,
+							id: 'download'
 						},{
 							name: 'Minify Document File',
 							disabled: true,
-							disabledtitle: 'Work in Progress'
+							disabledtitle: 'Work in Progress',
+							id: 'minify'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -2003,18 +2100,21 @@
 							func: undo,
 							title: '(' + locale.cmdKey + ' + Z) Reverts most recent change',
 							disabledtitle: '(' + locale.cmdKey + '+Z) There are no changes to be undone',
-							image: 'svg/undo.svg'
+							image: 'svg/undo.svg',
+							id: 'undo'
 						},{
 							name: 'Redo',
 							func: redo,
 							title: '(' + locale.cmdKey + ' + Y) Restores most recent change',
 							disabledtitle: '(' + locale.cmdKey + '+Y) There are no changes to be redone',
-							image: 'svg/redo.svg'
+							image: 'svg/redo.svg',
+							id: 'redo'
 						},{
 							name: 'History',
 							disabled: true,
 							disabledtitle: 'Work in Progress',
-							separate: true
+							separate: true,
+							id: 'history'
 						},{
 							name: 'Preferences',
 							title: 'Edit preferences',
@@ -2024,10 +2124,12 @@
 										name: 'Node Selection Color&#183;',
 										title: 'Edit the color of a selected node',
 										disabled: true,
-										disabledtitle: 'Work in Progress'
+										disabledtitle: 'Work in Progress',
+										id: 'nodeSelectionColor'
 									}
 								]
-							}
+							},
+							id: 'prefs'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -2038,7 +2140,8 @@
 							toggle: true,
 							toggled: true,
 							image: 'svg/checkmark.svg',
-							imageoff: 'svg/transparent.svg'
+							imageoff: 'svg/transparent.svg',
+							id: 'toolbar'
 						},{
 							name: 'Fullscreen',
 							func: function(_,close) {
@@ -2063,7 +2166,8 @@
 							disabledtitle: 'Your browser does not support fullscreen mode',
 							toggle: true,
 							image: 'svg/checkmark.svg',
-							imageoff: 'svg/transparent.svg'
+							imageoff: 'svg/transparent.svg',
+							id: 'fullscreen'
 						},{
 							name: 'HTML Tree',
 							func: function(_,close) {
@@ -2080,7 +2184,8 @@
 							toggle: true,
 							image: 'svg/checkmark.svg',
 							imageoff: 'svg/transparent.svg',
-							separate: true
+							separate: true,
+							id: 'htmlTree'
 						},{
 							name: 'Grid',
 							func: function(_,close) {
@@ -2092,7 +2197,8 @@
 							title: 'Toggles the overlay grid for the document',
 							toggle: true,
 							image: 'svg/checkmark.svg',
-							imageoff: 'svg/transparent.svg'
+							imageoff: 'svg/transparent.svg',
+							id: 'grid'
 						},{
 							name: 'Tooltip',
 							func: function(_,close) {
@@ -2105,7 +2211,8 @@
 							toggle: true,
 							toggled: true,
 							image: 'svg/checkmark.svg',
-							imageoff: 'svg/transparent.svg'
+							imageoff: 'svg/transparent.svg',
+							id: 'tooltip'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -2113,7 +2220,8 @@
 						items: [{
 							name: 'Oops! Something went wrong!',
 							disabled: true,
-							disabledtitle: 'Looks like something went wrong in the code and this context menu couldn\'t be displayed.'
+							disabledtitle: 'Looks like something went wrong in the code and this context menu couldn\'t be displayed.',
+							id: 'cssPlaceholder'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -2131,7 +2239,8 @@
 								selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 							},
 							title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
-							image: 'svg/select_all.svg'
+							image: 'svg/select_all.svg',
+							id: 'selectAll'
 						},{
 							name: 'Deselect All',
 							func: function(_,close) {
@@ -2143,7 +2252,8 @@
 							},
 							title: '(' + locale.cmdKey + ' + D) Deselects all elements in the document',
 							image: 'svg/deselect_all.svg',
-							separate: true
+							separate: true,
+							id: 'deselectAll'
 						},{
 							name: 'Select &lt;body&gt;',
 							func: function(e, close) {
@@ -2159,7 +2269,8 @@
 							},
 							title: '(' + locale.cmdKey + ' + B) or (' + locale.cmdKey + ' + Shift + B) Selects the root <body> element',
 							image: 'svg/select_body.svg',
-							separate: true
+							separate: true,
+							id: 'selectBody'
 						},{
 							name: 'Invert Selection',
 							func: function(_,close) {
@@ -2178,42 +2289,39 @@
 								updateTooltip();
 							},
 							title: '(' + locale.cmdKey + ' + I) Selects all not-selected elements',
-							separate: true
+							separate: true,
+							id: 'invert'
 						},{
 							name: 'Select Children',
 							func: function(_,close) {
 								close();
 								closeHeaders();
-								contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click'));
+								contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click'));
 							},
 							title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
 							disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
 							image: 'svg/select_children.svg',
-							disabledimage: 'svg/select_children_disabled.svg'
+							disabledimage: 'svg/select_children_disabled.svg',
+							id: 'selectChildren'
 						},{
 							name: 'Select Parent(s)',
 							func: function(_,close) {
 								close();
 								closeHeaders();
-								contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click'));
+								contextmenus[1].getItem('selectParent').dispatchEvent(new MouseEvent('click'));
 							},
 							title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
 							image: 'svg/select_parent.svg',
 							disabledimage: 'svg/select_parent_disabled.svg',
 							disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents',
-							separate: true
+							separate: true,
+							id: 'selectParent'
 						},{
 							name: 'Select by CSS Selector&#133;',
 							func: function(_,close) {
 								var querySelector = document.getElementById('querySelector');
-								querySelector.style.display = 'block';
-								querySelector.style.left = '7vw';
-								setTimeout(function() {
-									querySelector.className = 'topText new';
-								}, 0);
-								setTimeout(function() {
-									querySelector.className = 'topText';
-								}, 1000);
+								closeTopTexts();
+								querySelector.className = 'topText active';
 								close();
 								closeHeaders();
 								var idP = document.getElementById('idP')
@@ -2221,7 +2329,8 @@
 								idP.dispatchEvent(new Event('keyup'));
 							},
 							title: 'Select element using a CSS selector',
-							image: 'svg/select_by_selector.svg'
+							image: 'svg/select_by_selector.svg',
+							id: 'selectByCSS'
 						}]
 					})
 				],
@@ -2249,16 +2358,20 @@
 							close();
 							closeHeaders();
 						},
-						title: 'Creates a new style sheet'
+						title: 'Creates a new style sheet',
+						id: 'createNew',
+						image: 'svg/new.svg'
 					},{
 						name: 'Import from File&#133;',
 						disabled: true,
-						disabledtitle: 'Work in Progress'
+						disabledtitle: 'Work in Progress',
+						id: 'importFile'
 					},{
 						name: 'Import from URL&#133;',
 						disabled: true,
 						disabledtitle: 'Work in Progress',
-						separate: true
+						separate: true,
+						id: 'importURL'
 					}]
 				},
 				preventUpdates = false;
@@ -2319,6 +2432,11 @@
 					set: function(v) {
 						return generations = v;
 					}
+				},
+				contextMenus: {
+					get: function() {
+						return contextmenus;
+					}
 				}
 			});
 			Object.defineProperties(HTMLStudio.debug.localStorage, {
@@ -2345,7 +2463,7 @@
 				document.getElementById('title').value = history.entries[history.currentEntry].title;
 				framewindow.document.body.style.margin = framewindow.document.body.style.margin || '0';
 			} else {
-				framewindow.document.body.innerHTML = 'This is the <span style="color: #00acc1; font-family: monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
+				framewindow.document.body.innerHTML = 'This is the <span style="color: #00acc1; font-family: Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">&lt;<span>body</span>&gt;</span> element.<div>And this a <span style="color: #00acc1; font-family: Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">&lt;div&gt;</span> element.</div><div>Try clicking on elements<br>to select them</div>';
 				framewindow.document.body.style.background = 'white';
 				framewindow.document.body.style.textAlign = 'center';
 				framewindow.document.body.style.fontSize = '1.5em';
@@ -2359,10 +2477,10 @@
 			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
 			framewindow.document.querySelector('title').innerText = document.getElementById('title').value;
 			// Disable undo and redo buttons if ncessary
-			contextmenus[3].getItem(0).disabled = !history.currentEntry;
-			contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
-			contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
-			contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+			contextmenus[3].getItem('undo').disabled = !history.currentEntry;
+			contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
+			contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
+			contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
 			// Connect <body> and #overlay elements
 			overlay.alias = framewindow.document.body;
 			// Prepare for user copying
@@ -2379,13 +2497,13 @@
 				if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 				if (!index) {
 					var node = document.querySelector('[data-selected-element=selected]') || overlay;
-					contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.alias.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
-					contextmenus[index].getItem(8).disabled = node.alias == framewindow.document.body;
-					contextmenus[index].getItem(4).disabled = !node.children.length;
-					contextmenus[index].getItem(6).disabled = node instanceof SVGElement;
-					contextmenus[index].getItem(5).disabled = node.alias == framewindow.document.body;
+					contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.alias.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.trim().replace(/\s+/g,'<wbr>.') + '</span>' : typeof node.alias.className == 'string' && node.alias.className.trim() ? '<span style="color:#F44"><wbr>.' + node.alias.className.trim().replace(/\s+/g,'<wbr>.') + '</span>' : '');
+					contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
+					contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
+					contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
+					contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
 				} else {
-					contextmenus[index].getItem(1).disabled = (function() {
+					contextmenus[1].getItem('selectChildren').disabled = (function() {
 						for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
 							if (elements[i].children.length) return false;
 						}
@@ -2500,7 +2618,7 @@
 					var doc = document.getElementById('frame').contentWindow.document, body = doc.createElement('body');
 					doc.documentElement.appendChild(body);
 					document.getElementById('frameoverlay').alias = body;
-					body.innerHTML = 'The <span style="color: #00acc1; font-family: monospace;">&lt;body&gt;</span> element should not be deleted.<br>All content in the document should be kept as children of the <span>&lt;body&gt;</span> element.';
+					body.innerHTML = 'The <span style="color: #00acc1; font-family: Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">&lt;body&gt;</span> element should not be deleted.<br>All content in the document should be kept as children of the <span style="color: #00acc1; font-family: Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">&lt;body&gt;</span> element.';
 					body.style.margin = '0';
 					body.style.textAlign = 'center';
 					body.style.fontFamily = 'Arial, sans-serif';
@@ -2534,13 +2652,13 @@
 					if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 					if (!index) {
 						var node = document.querySelector('[data-selected-element=selected]') || clonednode;
-						contextmenus[index].getItem(0).firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.replace(/\s+/g,'<wbr>.') + '</span>' : node.alias.className && node.alias.className.baseVal == undefined ? '<span style="color:#F44"><wbr>.' + node.alias.className.replace(/\s+/g,'<wbr>.') + '</span>' : '');
-						contextmenus[index].getItem(8).disabled = node.alias == framewindow.document.body;
-						contextmenus[index].getItem(4).disabled = !node.children.length;
-						contextmenus[index].getItem(6).disabled = node instanceof SVGElement;
-						contextmenus[index].getItem(5).disabled = node.alias == framewindow.document.body;
+						contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.trim().replace(/\s+/g,'<wbr>.') + '</span>' : typeof node.alias.className == 'string' && node.alias.className.trim() ? '<span style="color:#F44"><wbr>.' + node.alias.className.trim().replace(/\s+/g,'<wbr>.') + '</span>' : '');
+						contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
+						contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
+						contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
+						contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
 					} else {
-						contextmenus[index].getItem(1).disabled = (function() {
+						contextmenus[1].getItem('selectChildren').disabled = (function() {
 							for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
 								if (elements[i].children.length) return false;
 							}
@@ -2641,7 +2759,7 @@
 							if (clonednode.nodeName == 'A') clonednode.removeAttribute('href');
 							// Prevent <img>s from blocking the actual nodes (their background was already changed, but not their src)
 							if (clonednode.nodeName == 'IMG') {
-								clonednode.setAttribute('src','https://upload.wikimedia.org/wikipedia/commons/2/20/16x16.png')
+								clonednode.setAttribute('src','svg/transparent.svg');
 								clonednode.setAttribute('width', Math.round(clonednode.alias.getAttribute('width') || clonednode.alias.getBoundingClientRect().width));
 								clonednode.setAttribute('height', Math.round(clonednode.alias.getAttribute('height') || clonednode.alias.getBoundingClientRect().height));
 							}
@@ -2681,6 +2799,41 @@
 
 
 			// Some global functions used in different areas
+			// Used for event listeners to trigger blur when the user presses enter
+			function onEnter(e) {
+				if (e.keyCode == 13) this.blur();
+			}
+
+			// Used for event listeners to input tab into text element instead of blurring it
+			function onTab(e) {
+				if (e.keyCode == 9) {
+					var position = false;
+					if (document.selection) {
+						this.focus();
+						var range = document.selection.createRange();
+						range.moveStart('character', -this.value.length);
+						position = range.text.length;
+					} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+					if (position === false) return;
+					if (this.createTextRange) {
+						e.preventDefault();
+						this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+						var range = this.createTextRange();
+						this.move('character', position + 1);
+						range.select();
+					} else if (typeof this.selectionStart == 'number') {
+						e.preventDefault();
+						this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+						this.focus();
+						this.setSelectionRange(position + 1, position + 1);
+					}
+				}
+			}
+
+			// Prevent blurring when the user presses tab for Edit HTML <textarea>
+			document.getElementById('idf').addEventListener('keypress', onTab);
+
 			// Restores a user's selection (like when the window is resized and selected element are deleted)
 			function restoreSelection(preset) {
 				var position = overlay.mousePositions || {x:0, y: Math.round(em(4.45))};
@@ -2695,6 +2848,13 @@
 						shiftKey: true
 					});
 					updateTooltip();
+				});
+			}
+
+			// Closes all .topText <div>s
+			function closeTopTexts() {
+				Array.prototype.forEach.call(document.getElementsByClassName('topText active'), function(element) {
+					element.className = 'topText';
 				});
 			}
 
@@ -2826,8 +2986,8 @@
 				if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
 				else if (nodes[0]) {
 					var node = nodes[0].alias,
-						className = node.className ? 'baseVal' in new Object(node.className) ? (node.className.baseVal || false) : node.className : false;
-					document.getElementById('tooltiptext').innerHTML = '<span style="font-family:monospace;font-size:1.15em"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (className ? '<span style="color:#F44">.' + className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+						className = node.className ? 'baseVal' in new Object(node.className) ? (node.className.baseVal.trim() || false) : (node.className.trim() || false) : false;
+					document.getElementById('tooltiptext').innerHTML = '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;font-size:1rem"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (className ? '<span style="color:#F44">.' + className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
 				} else if (overlay.mousePositions) {
 					document.getElementById('tooltiptext').innerHTML = '(' + overlay.mousePositions.x + ', ' + overlay.mousePositions.y + ')';
 				} else {
@@ -2994,9 +3154,48 @@
 				this.dispatchEvent(new Event('keyup'));
 			});
 
+			// Updates the element's className
+			document.getElementById('idQ').addEventListener('keyup', function() {
+				({
+					append: function() {
+						for (var i = this.elements.length - 1; i >= 0; i--) {
+							if (typeof this.elements[i].alias.className == 'string') this.elements[i].alias.className = this.origClass[i] + ' ' + this.value.trim();
+							else this.elements[i].alias.className.baseVal = this.origClass[i] + ' ' + this.value.trim();
+						}
+					},
+					replace: function() {
+						for (var i = this.elements.length - 1; i >= 0; i--) {
+							this.elements[i].alias.className = this.value.trim();
+						}
+					}
+				})[this.method].call(this);
+				deselect();
+				updateTooltip();
+			});
+			// Triggered when the user is finished editing
+			document.getElementById('idQ').addEventListener('blur', function() {
+				history.update('Edit class name' + (this.elements.length == 1 ? '' : 's'));
+				overlayUpdate();
+				this.parentNode.className = 'topText';
+			});
+			document.getElementById('idQ').addEventListener('keypress', onEnter);
+
+			// Updates the element's id
+			document.getElementById('idR').addEventListener('keyup', function() {
+				this.element.id = this.value.trim();
+				deselect();
+				updateTooltip();
+			});
+			document.getElementById('idR').addEventListener('blur', function() {
+				history.update('Edit ID');
+				overlayUpdate();
+				this.parentNode.className = 'topText';
+			});
+			document.getElementById('idR').addEventListener('keypress', onEnter);
+
 			Array.prototype.forEach.call(document.getElementsByClassName('cle'), function(element) {
 				element.addEventListener('click', function() {
-					element.parentNode.style.display = 'none';
+					element.parentNode.className = 'topText';
 				});
 			});
 
@@ -3109,7 +3308,7 @@
 			});
 
 			document.getElementById('idD').addEventListener('click', function() {
-				contextmenus[4].getItem(2).dispatchEvent(new Event('click'));
+				contextmenus[4].getItem('htmlTree').dispatchEvent(new Event('click'));
 			});
 
 			// Scrolls iframe depending on #framecontainer's scrollTop
@@ -3143,7 +3342,7 @@
 						dispatchEvent(new MouseEvent('mousedown'));
 						if (index == 3) contextmenus[5] = (function(){
 							var arg = {items: cssContextMenuArg.items.slice()};
-							Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet) {
+							Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 								arg.items.push({
 									name: (stylesheet.getAttribute('data-name') || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="color:#777;font-style:italic">Unnamed Style Sheet</span>',
 									subcontext: {
@@ -3179,7 +3378,9 @@
 												document.getElementById('idM').value = this.root.parentNode.stylesheet.getAttribute('data-name') || '';
 												close();
 												closeHeaders();
-											}
+											},
+											id: 'edit',
+											image: 'svg/edit_attributes.svg'
 										},{
 											name: 'Delete',
 											func: function(_,close) {
@@ -3197,9 +3398,12 @@
 												updateStylesheets();
 												overlayUpdate();
 												history.update('Delete style sheet');
-											}
+											},
+											id: 'delete',
+											image: 'svg/delete.svg'
 										}]
 									},
+									id: 'styleSheet' + index,
 									attributes: {
 										stylesheet: stylesheet
 									}
@@ -3210,20 +3414,21 @@
 								arg.items.push({
 									name: '<span style="color:#000;font-style:italic">No style sheets found</span>',
 									disabled: true,
-									title: 'Create or import a style sheet above'
+									title: 'Create or import a style sheet above',
+									id: 'noStyleSheets'
 								});
 							}
 							return new HTMLStudio.ContextMenu(arg);
 						})();
 						else if (index == 4) {
 							var elements = document.querySelectorAll('[data-selected-element=selected]');
-							contextmenus[6].getItem(4).disabled = (function() {
+							contextmenus[6].getItem('selectChildren').disabled = (function() {
 								for (var i = elements.length - 1; i >= 0; i--) {
 									if (elements[i].children.length) return false;
 								}
 								return true;
 							})();
-							contextmenus[6].getItem(5).disabled = elements.length == 0 || (elements.length == 1 && overlay.getAttribute('data-selected-element') == 'selected');
+							contextmenus[6].getItem('selectParent').disabled = elements.length == 0 || (elements.length == 1 && overlay.getAttribute('data-selected-element') == 'selected');
 						}
 						document.body.appendChild(contextmenus[index + 2].node);
 						contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
@@ -3249,7 +3454,7 @@
 					dispatchEvent(new MouseEvent('mousedown'));
 					if (index == 3) contextmenus[5] = (function(){
 						var arg = {items: cssContextMenuArg.items.slice()};
-						Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet) {
+						Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 							arg.items.push({
 								name: (stylesheet.getAttribute('data-name') || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="color:#777;font-style:italic">Unnamed Stylesheet</span>',
 								subcontext: {
@@ -3285,7 +3490,9 @@
 											document.getElementById('idM').value = this.root.parentNode.stylesheet.getAttribute('data-name') || '';
 											close();
 											closeHeaders();
-										}
+										},
+										id: 'edit',
+										image: 'svg/edit_attributes.svg'
 									},{
 										name: 'Delete',
 										func: function(_,close) {
@@ -3303,9 +3510,12 @@
 											updateStylesheets();
 											overlayUpdate();
 											history.update('Delete style sheet');
-										}
+										},
+										id: 'delete',
+										image: 'svg/delete.svg'
 									}]
 								},
+								id: 'styleSheet' + index,
 								attributes: {
 									stylesheet: stylesheet
 								}
@@ -3316,7 +3526,8 @@
 							arg.items.push({
 								name: '<span style="color:#000;font-style:italic">No style sheets found</span>',
 								disabled: true,
-								title: 'Create or import a style sheet above'
+								title: 'Create or import a style sheet above',
+								id: 'noStyleSheets'
 							});
 						}
 						return new HTMLStudio.ContextMenu(arg);
@@ -3550,10 +3761,10 @@
 				updateStylesheets();
 				overlayUpdate();
 				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', Math.max(+localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') - 1, 0));
-				contextmenus[3].getItem(0).disabled = !history.currentEntry;
-				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
-				contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
-				contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+				contextmenus[3].getItem('undo').disabled = !history.currentEntry;
+				contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
+				contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
+				contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
 				deselect();
 			}
 			function redo () {
@@ -3568,10 +3779,10 @@
 				updateStylesheets();
 				overlayUpdate();
 				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', Math.min(+localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') + 1, 10));
-				contextmenus[3].getItem(1).disabled = history.currentEntry == history.entries.length - 1;
-				contextmenus[3].getItem(0).disabled = !history.currentEntry;
-				contextmenus[3].getItem(0).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
-				contextmenus[3].getItem(1).getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+				contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
+				contextmenus[3].getItem('undo').disabled = !history.currentEntry;
+				contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
+				contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
 				deselect();
 			}
 			// Adds the selected nodes outerHTML to #clipboard
@@ -3660,17 +3871,17 @@
 				} else if (e.keyCode == 79 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[2].getItem(1).dispatchEvent(new MouseEvent('click'));
+					contextmenus[2].getItem('open').dispatchEvent(new MouseEvent('click'));
 				// Ctrl + N
 				} else if (e.keyCode == 78 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[2].getItem(0).dispatchEvent(new MouseEvent('click'));
+					contextmenus[2].getItem('new').dispatchEvent(new MouseEvent('click'));
 				// F11
 				} else if (e.keyCode == 122) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[4].getItem(1).dispatchEvent(new MouseEvent('click'));
+					contextmenus[4].getItem('fullscreen').dispatchEvent(new MouseEvent('click'));
 				// Ctrl + B
 				} else if (e.keyCode == 66 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
@@ -3688,17 +3899,17 @@
 				} else if (e.keyCode == 73 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[6].getItem(3).dispatchEvent(new MouseEvent('click'));
+					contextmenus[6].getItem('invert').dispatchEvent(new MouseEvent('click'));
 				// Ctrl + Up Arrow
 				} else if (e.keyCode == 38 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[1].getItem(2).dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+					contextmenus[1].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 				// Ctrl + Down Arrow
 				} else if (e.keyCode == 40 && locale.cmdKeyPressed(e)) {
 					e.preventDefault();
 					e.stopPropagation();
-					contextmenus[1].getItem(1).dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+					contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 				// Ctrl + X
 				} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard) {
 					e.stopPropagation();
@@ -3707,10 +3918,20 @@
 						prepareCopy(true);
 						if (e.isTrusted && document.queryCommandSupported('copy')) document.execCommand('copy');
 					}
-					contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
-				// Del
-				} else if (e.keyCode == 46 && (target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) {
-					contextmenus[1].getItem(0).dispatchEvent(new MouseEvent('click'));
+					contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
+				// Del or Backspace
+				} else if ((e.keyCode == 46 || e.keyCode == 8) && (target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) {
+					e.stopPropagation();
+					e.preventDefault();
+					contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
+				} else if (e.keyCode == 51 && locale.cmdKeyPressed(e) && e.shiftKey) {
+					e.stopPropagation();
+					e.preventDefault();
+					contextmenus[0].getItem('editId').dispatchEvent(new Event('click'));
+				} else if (e.keyCode == 190 && locale.cmdKeyPressed(e)) {
+					e.stopPropagation();
+					e.preventDefault();
+					contextmenus[0].getItem('editClass').dispatchEvent(new Event('click'));
 				}
 
 				// Allows Ctrl + C to be handled natively by the browser
@@ -3719,7 +3940,7 @@
 			addEventListener('keydown', windowkeydown);
 			framewindow.addEventListener('keydown', windowkeydown);
 			addEventListener('onfullscreenchange' in window ? 'fullscreenchange' : 'onmozfullscreenchange' in window ? 'mozfullscreenchange' : 'onwebkitfullscreenchange' in window ? 'webkitfullscreenchange' : '', function(e) {
-					contextmenus[4].getItem(1).toggled = (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement);
+					contextmenus[4].getItem('fullscreen').toggled = (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement);
 			});
 
 			// Explicitly adds data to the clipboard in three formats

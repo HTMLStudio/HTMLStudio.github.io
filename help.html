@@ -1,0 +1,307 @@
+<html lang='en'>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+		ga('create', 'UA-91403443-1', 'auto');
+		ga('send', 'pageview');</script>
+	<style>
+		html, body {
+			margin: 0px;
+			background: rgb(245, 245, 245) none repeat scroll 0% 0%
+		}
+
+		#headlogo {
+			width: 100%;
+			height: 15em;
+			background: rgb(221, 221, 221) url("svg/logo_color.svg") no-repeat scroll 50% 50% / auto 80%
+		}
+
+		h2 {
+			text-align: center;
+			font-family: "Roboto Slab",Arial,sans-serif;
+			font-size: 6em;
+			margin: 1rem 0px -1.5rem;
+			color: rgba(0, 0, 0, 0.87)
+		}
+
+		body > div {
+			width: 80%;
+			margin: auto;
+			border-radius: 0.3em;
+		}
+
+		body > div:not(:first-of-type) {
+			margin-top: 2.5em;
+		}
+
+		h4 {
+			margin: 0px;
+			font-family: "Roboto Slab",Arial,sans-serif;
+			font-size: 2em;
+			background: rgb(0, 172, 193) none repeat scroll 0% 0%;
+			color: rgb(255, 255, 255);
+			padding: 0.2em 0.5em;
+			border-top-left-radius: inherit;
+			border-top-right-radius: inherit;
+		}
+
+		h4 + div {
+			border: 2px solid rgb(0, 172, 193);
+			border-bottom-right-radius: inherit;
+			border-bottom-left-radius: inherit;
+			padding: 1em 40px;
+			font-family: "Open Sans",Arial,sans-serif;
+			background: rgb(249, 249, 249) none repeat scroll 0% 0%
+		}
+
+		h4 + div a {
+			color: rgb(0, 172, 193);
+			text-decoration: none;
+		}
+
+		h4 + div a:hover {
+			text-decoration: underline;
+		}
+
+		h4 + div > :first-child {
+			margin-top: 0px;
+		}
+
+		h4 + div > :last-child {
+			margin-bottom: 0px;
+		}
+
+		body > div:last-child {
+			margin-bottom: 2em;
+		}
+
+		div > ol {
+			padding: 0px;
+			margin: 0px;
+		}
+
+		div > ol ol {
+			padding-left: 25px;
+		}
+
+		.pseudo-selected {
+			animation: 1s linear 0s normal none infinite running pseudo-selected;
+		}
+
+		.pseudo-context-item {
+			background: rgb(242, 242, 242) none repeat scroll 0% 0%;
+			padding: 0px 0.2em;
+			display: inline-block;
+			border: 1px solid rgb(170, 170, 170);
+			margin: -1px 0px;
+			font-family: Arial,sans-serif;
+			font-size: 105%
+		}
+
+		.pseudo-context-item img {
+			height: 1.2em;
+			vertical-align: top;
+			position: relative;
+			top: 0.05em;
+		}
+
+		.center {
+			text-align: center;
+		}
+
+		.italic {
+			font-style: italic;
+		}
+
+		.key {
+			font-family: Consolas,Courier,monospace;
+			border: 1px solid rgb(170, 170, 170);
+			padding: 0px 0.2em;
+			border-radius: 0.2em;
+			box-shadow: 2px 2px 0.2em 0px rgba(0, 0, 0, 0.5);
+			background: rgb(245, 245, 245) none repeat scroll 0% 0%
+		}
+
+		.tldr {
+			border-bottom: 1px solid rgb(170, 170, 170)
+		}
+
+		.tldr h5 {
+			font-size: 3em;
+			font-family: "Open Sans",Arial,sans-serif;
+			font-weight: 300;
+			margin: 0px 0px 0.3em;
+		}
+
+		.tldr ul {
+			padding-left: 25px;
+		}
+
+		h6 {
+			font-size: 1.2em;
+			margin: 0px;
+			font-weight: 400;
+		}
+
+		.notop {
+			margin-top: 0px;
+		}
+
+		code {
+			font-size: 1rem;
+			font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+		}
+	</style>
+	<title>HTML Studio Help · ChristianFigueroa.GitHub.io</title>
+</head>
+<body style="margin: 0px;">
+	<div id="headlogo" style="width:100%;"></div>
+	<h2>Help Page</h2>
+	<div>
+		<h4>Contents</h4>
+		<div>
+			<ol>
+				<li><a href="#Getting_Started">Getting Started</a></li>
+				<li><a href="#Selection">Selection</a></li>
+				<li><a href="#Context Menus">Context Menus</a>
+					<ol>
+						<li><a href="#Right_Click_Context_Menu">Right Click</a></li>
+						<ol>
+							<li><a href="#Edit_Text_Context_Menu_Option">Edit Text</a></li>
+						</ol>
+					</ol>
+				</li>
+			</ol>
+		</div>
+	</div>
+	<div>
+		<h4 id="Getting_Started">1. Getting Started</h4>
+		<div>
+			<div class="tldr">
+				<h5>TL;DR</h5>
+				<ul>
+					<li>Click on an element to select it.</li>
+					<li>Right click on an element to open a list of options that allow you to edit the element.</li>
+					<li>Open a new file through <span class="pseudo-context-item">File</span> &gt; <span class="pseudo-context-item"><img src="svg/new.svg"> New…</span> or <span class="pseudo-context-item">File</span> &gt; <span class="pseudo-context-item"><img src="svg/open.svg"> Open…</span>.</li>
+					<li>Save the document through <span class="pseudo-context-item">File</span> &gt; <span class="pseudo-context-item">Download File…</span></li>
+				</ul>
+			</div>
+			<p>The first thing you should do when you get on HTML Studio for the first time is to learn basic operations. The default document you see should tell you the first, most basic thing you can do with HTML Studio: click on elements to select them. Go ahead, click on any of the text shown in the document editor and you should see that it lights up (probably flashing blue if you haven't had time to change any of the settings).</p>
+			<p class="center"><span class="pseudo-selected">This is an example of what a selected element might look like.</span></p>
+			<p>If you see something like the text shown above, then congratulations; you've successfully selected your first element. That's cool but how do you actually do anything?</p>
+			<p>Editing elements is really easy; all you've got to do is right click on it. If you are on mobile or some other touch-only device, then unfortunately you're going to have a hard time using HTML Studio since you can't right click. After right clicking, you'll see a list of options appear that let you do anything from styling the element to changing the text displayed in the element. <a href="#Right_Click_Context_Menu">Click here</a> for a more detailed explanation of what each option does. Let's start off with a simple <span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text…</span>. Go ahead and click that option from the list of options. You should now see a text caret in the element you chose that allows you to edit the element's text. When you are done editing the text, click anywhere outside the element to save it. <a href="#Context_Item_Edit_Text">Click Here</a> for more information about the cool stuff you can do while editing the text of an element.</p>
+			<p>The default document is pretty plain isn't it? We should we start a new document. There are two ways to start editing a new document, both using the <span class="pseudo-context-item">File</span> context menu found in the top left corner. Click <span class="pseudo-context-item">File</span> and you'll see the <span class="pseudo-context-item"><img src="svg/new.svg"> New…</span> option and the <span class="pseudo-context-item"><img src="svg/open.svg"> Open…</span> option. <span class="pseudo-context-item"><img src="svg/new.svg"> New…</span> will open a dialog where you can choose from a few presets to start a new document. Keep in mind that when you start a new document, the old one you were working on will be gone forever. MAKE SURE YOU SAVE BEFORE STARTING A NEW DOCUMENT.</p>
+			<p>If instead you have a local .html file that you would rather edit than start from a preset, you can select <span class="pseudo-context-item">File</span> &gt; <span class="pseudo-context-item"><img src="svg/open.svg"> Open…</span>. This will open a separate dialog where you can drop in a file and open it in the document editor. This will also completely get rid of the current document, so again, MAKE SURE YOU SAVE.</p>
+			<p><span style="text-decoration:line-through;">Once you are done editing your document and you want to download it, go to <span class="pseudo-context-item" style="text-decoration:inherit;">File</span> &gt; <span class="pseudo-context-item" style="text-decoration:inherit">Download File…</span>.</span> [This part of HTML Studio is still being worked on and isn't relevant yet.]</p>
+			<p>Check out the rest of this help page for a lot more features and tools of HTML Studio that weren't mentioned in this section.</p>
+		</div>
+	</div>
+	<div>
+		<h4 id="Selection">2. Selection</h4>
+		<div>
+			<div class="tldr">
+				<h5>TL;DR</h5>
+				<ul>
+					<li>Click elements to select/deselect them.</li>
+					<li>Hold <span class="key">Shift</span> to add/remove the element from your current selection.</li>
+				</ul>
+			</div>
+			<p>As mentioned in the <a href="#Getting_Started">Getting Started</a> section, selecting elements really is the most basic operation in HTML Studio and it's what everything else is built off of. To select an element, all you have to do is click on it. A selected element <span class="pseudo-selected">looks something like this.</span> You'll notice that it flashes so that you can easily spot it. Click on a selected element again to deselect it.</p>
+			<p>By holding <span class="key">Shift</span> as you select an element, you can <span class="italic">add</span> the element to your current selection instead of replacing it. This allows you to select more than one element to work on. You can also remove elements from your selection by holding <span class="key">Shift</span> and deselecting them. Shift-clicking works for most selection operations (e.g. <span class="pseudo-context-item">Selection</span> &gt; <span class="pseudo-context-item"><img src="svg/select_body.svg"> Select &lt;body&gt;</span>, <span class="pseudo-context-item">Selection</span> &gt; <span class="pseudo-context-item"><img src="svg/select_parent.svg"> Select Parent(s)</span>); the elements will be added to the selection instead of replacing it as long as you are holding shift.</p>
+			<p>See the <a href="Selection_Header"><span class="pseudo-context-item">Selection</span> context menu section</a> for more details, or the <a href="#Keyboard_Shortcuts">Keyboard Shortcuts section</a> for shortcuts relating to selecting elements.</p>
+		</div>
+	</div>
+	<div>
+		<h4 id="Context_Menus">3. Context Menus</h4>
+		<div>
+			<div class="tldr">
+				<h5>TL;DR</h5>
+				<ul>
+					<li>Right click elements to open an editing context menu.</li>
+					<li>Click header sections like <span class="pseudo-context-item">File</span> and <span class="pseudo-context-item">Edit</span> to open another type of context menu.</li>
+				</ul>
+			</div>
+			<div>
+				<p>Context menus are lists of options that appear upon different user interactions in HTML Studio. Simply right clicking on an element will bring up a context menu where you can choose different options that can edit and manipulate the selected element(s). Different context menus will appear depending on whether one or multiple elements are selected. You can also open other context menus by selecting any of the header sections (<span class="pseudo-context-item">File</span>, <span class="pseudo-context-item">Edit</span>, etc.) at the top of the page. Each context menu is discussed in detail in the following sections.</p>
+			</div>
+		</div>
+	</div>
+	<div>
+		<h4 id="Right_Click_Context_Menu">3.1. Right Click</h4>
+		<div>
+			<div class="tldr">
+				<h5>TL;DR</h5>
+				<ul>
+					<li><span class="pseudo-context-item"><img src="svg/edit_styles.svg"> Edit Styles…</span> allows you to edit the element's CSS.</li>
+					<li><span class="pseudo-context-item"><img src="svg/edit_attributes.svg"> Edit Attributes…</span> allows you to edit the element's attributes.</li>
+					<li><span class="pseudo-context-item"><img src="svg/edit_classes.svg"> Edit Class Name…</span> allows you to quickly edit the element's classes</li>
+					<li><span class="pseudo-context-item"><img src="svg/edit_id.svg"> Edit ID…</span> allows you to quickly edit the element's ID</li>
+					<li><span class="pseudo-context-item"><img src="svg/insert_child.svg"> Insert Child…</span> inserts a child node into the selected node.</li>
+					<li><span class="pseudo-context-item"><img src="svg/select_children.svg"> Select Children</span> selects all immediate children of the node.</li>
+					<li><span class="pseudo-context-item"><img src="svg/select_parent.svg"> Select Parent</span> selects the immediate parent of the node.</li>
+					<li><span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text</span> allows you to edit the element's textual content.</li>
+					<li><span class="pseudo-context-item"><img src="svg/edit_as_html.svg"> Edit as HTML…</span> allows you to edit the node's HTML.</li>
+					<li><span class="pseudo-context-item"><img src="svg/delete.svg"> Delete Node…</span> removes the node from the 
+					document.</li>
+					<li><span class="pseudo-context-item"><img src="svg/copy.svg"> Copy Element…</span> copies the selected element.</li>
+					<li><span class="pseudo-context-item"><img src="svg/cut.svg"> Cut Element…</span> cuts the selected element.</li>
+					<li><span class="pseudo-context-item"><img src="svg/paste.svg"> Paste in Element…</span> pastes any copied HTML into the selected node.</li>
+					
+				</ul>
+			</div>
+			<div></div>
+			<p>The right click context menu can be accessed by selecting one or more elements and right clicking anywhere in the document editor. A picture of the context menu is shown below.</p>
+			<div class="center">
+				<img>
+			</div>
+			<p>A basic summary of each option is provided below.</p>
+			<h6>Edit Styles</h6>
+			<p class="notop">Edit Styles opens a dialog with a row of text boxes for each of the element's styles. Only the styles in the elements <code>style</code> attribute are shown. To edit the styles in CSS style sheets, use the <a href="#Style_Sheets_Context_Menu">Style Sheets context menu</a>.</p>
+			<h6>Edit Attributes</h6>
+			<p class="notop">Edit Attributes does nearly the same thing as Edit Styles except that each row corresponds to an attribute instead of a style. Only the attributes defined in the element's HTML are shown (e.g. <code>id</code>, <code>class</code>, <code>tabindex</code>).</p>
+			<h6>Edit Class Name</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + .</span>) Edit Class Name opens a small textbox where you can quickly edit the classes of the selected element without having to open the entire Edit Attributes dialog and waste time. This option is meant as a time-saving shortcut.</p>
+			<h6>Edit ID</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + Shift + 3</span>) Edit ID is the same as Edit Class Name except that the textbox lets you change the element's <code>id</code> instead.</p>
+			<h6>Insert Child</h6>
+			<p class="notop">Insert Child opens a dialog that allows you to enter a new child element into the selected element. You can choose what the child's node name should be as well as where it should be in relation to the element's other children.</p>
+			<h6>Select Children</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + ↓</span>) Select Children selects the direct children of the selected element. If you hold shift while selecting this option, the children will be added to your current selection instead of replacing it.</p>
+			<h6>Select Parent</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + ↑</span>) Select Parent is exactly the same as Select Children except the direct parent of the element is selected instead.<br></p>
+			<h6>Edit Text</h6>
+			<p class="notop">Edit Text makes the selected element <code>contenteditable</code> so that you are able to edit the inner text of the element directly from the element itself. There are some cool things you can do when editing the text. View the main <a href="#Edit_Text_Context_Menu_Option">Edit Text section</a> for more details.</p>
+			<h6>Edit as HTML</h6>
+			<p class="notop">Edit as HTML opens a dialog that displays the elements outer HTML. You can directly alter the HTML from the dialog and save it.</p>
+			<h6>Delete Node</h6>
+			<p class="notop">(Shortcut: <span class="key">Del</span> or <span class="key">Backspace</span>) Delete Node does exactly as it says; the selected element is deleted from the DOM.</p>
+			<h6>Copy Element</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + C</span> or <span class="key">Ctrl/⌘ + Shift + C</span>) Copy Element copies the outer HTML of the selected element, including all its children. If you hold Shift while selecting this option, only selected children will be copied with the element. View the <a href="#Clipboard_Manipulation">Clipboard Manipulation section</a> for more details.</p>
+			<h6>Cut Element</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + X</span> or <span class="key">Ctrl/⌘ + Shift + X</span>) Cut Element does the same thing as Copy Element, except that the copied element will also be removed from the DOM. View the <a href="#Clipboard_Manipulation">Clipboard Manipulation section</a> for more details.</p>
+			<h6>Paste in Element</h6>
+			<p class="notop">(Shortcut: <span class="key">Ctrl/⌘ + V</span>) Paste in Element pastes any copied HTML into the selected element as a new child. View the <a href="#Clipboard_Manipulation">Clipboard Manipulation section</a> for more details.</p>
+			<p id="">A more limited context menu appears when more than one element is selected, since some options only work for one element. A multi-selection context menu has only the following options: <span class="pseudo-context-item"><img src="svg/delete.svg"> Delete Nodes…</span>, <span class="pseudo-context-item"><img src="svg/edit_classes.svg"> Edit Class Names…</span>, <span class="pseudo-context-item"><img src="svg/select_children.svg"> Select Children</span>, <span class="pseudo-context-item"><img src="svg/select_parent.svg"> Select Parent(s)</span>, <span class="pseudo-context-item"><img src="svg/copy.svg"> Copy Elements…</span>, <span class="pseudo-context-item"><img src="svg/cut.svg"> Cut Elements…</span>, and <span class="pseudo-context-item"><img src="svg/paste.svg"> Paste in Elements…</span>.</p>
+		</div>
+	</div>
+	<div>
+		<h4 id="Edit_Text_Context_Menu_Option" class="">3.1.1. Edit Text</h4>
+		<div>
+			<div class="tldr">
+				<h5>TL;DR</h5>
+				<ul>
+					<li>Use <span class="key">Right Click</span> &gt; <span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text</span> to change the inner text of an element</li>
+					<li>Use HTML entities like '<code>&amp;amp;</code>', '<code>&amp;#38;</code>', or '<code>&amp;#x26;</code>' to type special characters<br></li>
+				</ul>
+			</div>
+			<div>
+				<p></p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
