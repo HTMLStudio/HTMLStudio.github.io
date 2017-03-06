@@ -470,7 +470,7 @@
 		}
 
 		#idf {
-			height: calc(75vh - 6.9em - 1px);
+			height: calc(75vh - 8.9em - 1px);
 			width: calc(100% - 3.5em);
 			margin: 0;
 			padding: .75em 1.75em;
@@ -599,6 +599,7 @@
 			text-align: center;
 			border-top-left-radius: inherit;
 			border-top-right-radius: inherit;
+			border-bottom: 1px solid #999;
 		}
 
 		#idp {
@@ -621,7 +622,7 @@
 			height: inherit;
 			width: 100%;
 			border-radius: inherit;
-			background: #B0BEC5;
+			background: #F0F0F0;
 		}
 
 		#idy {
@@ -1039,7 +1040,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.1.0</h3></td>
+						<td><h3>Version 1.1.0.1</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1466,7 +1467,9 @@
 							image: 'svg/edit_text.svg',
 							func: function(_,close) {
 								close();
-								var element = document.querySelector('[data-selected-element=selected]'), boxshadow = element.alias.style.boxShadow, pendingUpdate = false, contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false;
+								var element = document.querySelector('[data-selected-element=selected]');
+								if (!element) return;
+								var boxshadow = element.alias.style.boxShadow, pendingUpdate = false, contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false;
 								// Makes element contenteditable
 								element.alias.setAttribute('contenteditable','');
 								// Prevent the user from interacting with the overlay
@@ -1533,12 +1536,34 @@
 								function createReplacers(clone, node) {
 									// Sets the alias to the proper element
 									clone.alias = node;
+									if (clone.nodeType == 1) {
+										css.forEach(function(stylesheet) {
+											stylesheet[1].forEach(function(query) {
+												if (node.matches(query[0])) {
+													query[1].forEach(function(rule) {
+														clone.style[rule[0]] = node.style[rule[0]] || rule[1];
+													})
+												}
+											})
+										});
+										clone.style.color = 'transparent';
+										clone.style.background = 'transparent';
+										if (clone.nodeName == 'A') clonednode.removeAttribute('href');
+										if (clone.nodeName == 'IMG') {
+											clone.setAttribute('src','https://upload.wikimedia.org/wikipedia/commons/2/20/16x16.png')
+											clone.setAttribute('width', Math.round(clone.alias.getAttribute('width') || clone.alias.getBoundingClientRect().width));
+											clone.setAttribute('height', Math.round(clone.alias.getAttribute('height') || clone.alias.getBoundingClientRect().height));
+										}
+										clone.removeAttribute('id');
+										clone.removeAttribute('class');
+										clone.removeAttribute('contenteditable');
+									}
 									if (clone.getAttribute && /v(w|h)/.test(clone.getAttribute('style'))) clone.setAttribute('style', clone.getAttribute('style').replace(/(\d+(?:\.\d+))vw/g, function($_, $1) {
 										return vw * $1 + 'px';
 									}).replace(/(\d+(?:\.\d+))vh/g, function($_, $1) {
 										return vh * $1 + 'px';
 									}));
-									if (clone.style) clone.style.fontSize = getComputedStyle(node).fontSize;
+									if (clone.style && node.style) clone.style.fontSize = getComputedStyle(node).fontSize;
 									// Iterate over all the element's childNodes
 									Array.prototype.slice.call(clone.childNodes).forEach(function(child, index) {
 										// If the node is a text node and has an ampersand
@@ -1671,10 +1696,12 @@
 							image: 'svg/edit_as_html.svg',
 							func: function(_,close) {
 								close();
+								var element = document.querySelector('[data-selected-element=selected]');
+								if (!element) return;
 								backdialog.style.display = 'block';
 								document.getElementById('dialog_edit_html').style.display = 'block';
-								document.getElementById('idf').value = document.querySelector('[data-selected-element=selected]').alias[(document.querySelector('[data-selected-element=selected]').alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
-								document.getElementById('idf').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
+								document.getElementById('idf').value = element.alias[(element.alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
+								document.getElementById('idf').linkedElement = element.alias;
 							},
 							title: 'Allows you to edit the node\'s HTML',
 							separate: true
@@ -1702,7 +1729,8 @@
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
-							title: '(' + locale.cmdKey + ' + C) Copies the selected element\n(' + locale.cmdKey + ' + Shift + C) Copies the selected element and all its descendants'
+							title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
+							image: 'svg/copy.svg'
 						}, {
 							name: 'Cut Element',
 							func: function(e,close) {
@@ -1715,7 +1743,8 @@
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
-							title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element and all its descendants'
+							title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element and all its descendants',
+							image: 'svg/cut.svg'
 						},{
 							name: 'Paste in Element',
 							func: function(e,close) {
@@ -1726,7 +1755,8 @@
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
-							title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected node'
+							title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected node',
+							image: 'svg/paste.svg'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -1801,7 +1831,8 @@
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
-							title: '(' + locale.cmdKey + ' + C) Copies the selected elements\n(' + locale.cmdKey + ' + Shift + C) Copies the selected elements and all their descendants'
+							title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
+							image: 'svg/copy.svg'
 						},{
 							name: 'Cut Elements',
 							func: function(e,close) {
@@ -1814,7 +1845,8 @@
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
-							title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements and all their descendants'
+							title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements and all their descendants',
+							image: 'svg/cut.svg'
 						},{
 							name: 'Paste in Elements',
 							func: function(e,close) {
@@ -1825,7 +1857,8 @@
 									document.getElementById('dialog_pseudo_paste').style.display = 'block';
 								}
 							},
-							title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected nodes'
+							title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected nodes',
+							image: 'svg/paste.svg'
 						}]
 					}),
 					new HTMLStudio.ContextMenu({
@@ -2036,10 +2069,12 @@
 							func: function(_,close) {
 								this.toggled = !this.toggled;
 								document.getElementById('html_editor_display').style.display = this.toggled ? 'block' : '';
+								var idq = document.getElementById('idq');
 								updateTree();
 								updateTreeSelections();
 								close();
 								closeHeaders();
+								idq.setAttribute('viewBox', '0 0 ' + idq.getAttribute('width') + ' ' + idq.getAttribute('height'));
 							},
 							title: 'Displays the HTML tree of the document',
 							toggle: true,
@@ -2123,6 +2158,7 @@
 								});
 							},
 							title: '(' + locale.cmdKey + ' + B) or (' + locale.cmdKey + ' + Shift + B) Selects the root <body> element',
+							image: 'svg/select_body.svg',
 							separate: true
 						},{
 							name: 'Invert Selection',
@@ -2169,15 +2205,23 @@
 						},{
 							name: 'Select by CSS Selector&#133;',
 							func: function(_,close) {
-								document.getElementById('querySelector').style.display = 'block';
-								document.getElementById('querySelector').style.left = '7vw';
+								var querySelector = document.getElementById('querySelector');
+								querySelector.style.display = 'block';
+								querySelector.style.left = '7vw';
+								setTimeout(function() {
+									querySelector.className = 'topText new';
+								}, 0);
+								setTimeout(function() {
+									querySelector.className = 'topText';
+								}, 1000);
 								close();
 								closeHeaders();
 								var idP = document.getElementById('idP')
 								idP.focus();
 								idP.dispatchEvent(new Event('keyup'));
 							},
-							disabledtitle: 'Work in Progress'
+							title: 'Select element using a CSS selector',
+							image: 'svg/select_by_selector.svg'
 						}]
 					})
 				],
@@ -2267,10 +2311,18 @@
 					set: function(v) {
 						return css = v;
 					}
+				},
+				generations: {
+					get: function() {
+						return generations;
+					},
+					set: function(v) {
+						return generations = v;
+					}
 				}
 			});
 			Object.defineProperties(HTMLStudio.debug.localStorage, {
-				stylesheets: {
+				styleSheets: {
 					get: function() {
 						return JSON.parse(localStorage.getItem('HTML-Studio_stylesheets'));
 					}
@@ -2413,8 +2465,8 @@
 				this.start = {timestamp: event.timestamp, x: event.coordinates.start.x, y: event.coordinates.start.y};
 			}, move: function(event) {
 				var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
-				viewBox[0] = Math.min((Math.max.apply(Math, generations) * 60 + 10) - viewBox[2], Math.max(0, viewBox[0] - event.coordinates.move.last.distance.x * viewBox[2] / this.getBoundingClientRect().width));
-				viewBox[1] = Math.min((generations.length * 60 + 10) - viewBox[3], Math.max(0, viewBox[1] - event.coordinates.move.last.distance.y * viewBox[3] / this.getBoundingClientRect().height));
+				viewBox[0] = Math.min((Math.max.apply(Math, generations) * 60 + 10) - viewBox[2], Math.max(0, viewBox[0] - event.coordinates.move.last.distance.x * viewBox[2] / this.clientWidth));
+				viewBox[1] = Math.min((generations.length * 80 + 10) - (viewBox[2] * 2 / 3), Math.max(0, viewBox[1] - event.coordinates.move.last.distance.y * (viewBox[2] * 2 / 3) / this.clientHeight));
 				document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
 			}, end: function(event,e) {
 				this.style.top = 0;
@@ -2559,8 +2611,8 @@
 								stylesheet[1].forEach(function(query) {
 									if (this.matches(query[0])) {
 										query[1].forEach(function(rule) {
-											clonednode.style[rule[0]] = rule[1];
-										})
+											clonednode.style[rule[0]] = this.style[rule[0]] || rule[1];
+										}.bind(this));
 									}
 								}.bind(this))
 							}.bind(this));
@@ -2803,7 +2855,7 @@
 				count(DOM, 0);
 				var fullwidth = Math.max.apply(Math, generations), svg = document.getElementById('idq');
 				svg.setAttribute('width', fullwidth * 60 + 10);
-				svg.setAttribute('height', generations.length * 60 + 10);
+				svg.setAttribute('height', generations.length * 80 + 10);
 
 				function fill(arr) {
 					return arr.fill ? arr.fill(0) : (function() {
@@ -2829,10 +2881,10 @@
 					DOM.line = line;
 					rect.DOM = DOM;
 					line.DOM = DOM;
-					rect.setAttribute('y', DOM.generation * 60 + 10);
+					rect.setAttribute('y', DOM.generation * 80 + 10);
 					rect.setAttribute('x', split(generations[DOM.generation], donegenerations[DOM.generation].lastIndexOf(0)));
 					donegenerations[DOM.generation][donegenerations[DOM.generation].lastIndexOf(0)] = 1;
-					rect.setAttribute('height', '35');
+					rect.setAttribute('height', '30');
 					rect.setAttribute('width', '50');
 					rect.setAttribute('ry', '6');
 					rect.setAttribute('class', 'html_editor');
@@ -2841,11 +2893,12 @@
 					rect.style.fill = '#456';
 					if (DOM.parent != DOM) {
 						line.setAttribute('x1', +DOM.parent.rect.getAttribute('x') + 25);
-						line.setAttribute('y1', +DOM.parent.rect.getAttribute('y') + 35);
+						line.setAttribute('y1', +DOM.parent.rect.getAttribute('y') + 30);
 						line.setAttribute('x2', +rect.getAttribute('x') + 25);
 						line.setAttribute('y2', rect.getAttribute('y'));
-						line.style.stroke = '#456';
-						line.style.strokeWidth = '1px';
+						line.style.stroke = '#000';
+						line.style.strokeWidth = '1.5px';
+						line.style.lineCap = 'butt';
 						svg.appendChild(line);
 					}
 					svg.appendChild(rect);
@@ -2936,6 +2989,9 @@
 						updateTooltip();
 					}
 				}
+			});
+			document.getElementById('idP').addEventListener('focus', function() {
+				this.dispatchEvent(new Event('keyup'));
 			});
 
 			Array.prototype.forEach.call(document.getElementsByClassName('cle'), function(element) {
@@ -3450,9 +3506,9 @@
 			document.getElementById('idr').addEventListener('wheel', function(e) {
 				var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
 				viewBox[2] = Math.max(1, Math.min(Math.max.apply(Math, generations) * 60 + 10, +viewBox[2] + +e.deltaY * 1.5));
-				viewBox[3] = Math.max(1, Math.min(generations.length * 60 + 10, +viewBox[3] + +e.deltaY));
+				viewBox[3] = Math.max(1, Math.min(generations.length * 80 + 10, viewBox[2] * 2 / 3 + +e.deltaY));
 				viewBox[0] = Math.max(0, Math.min(Math.max.apply(Math,generations) * 60 + 10 - viewBox[2], +viewBox[0] - e.deltaY * .75));
-				viewBox[1] = Math.max(0, Math.min(generations.length * 60 + 10 - viewBox[3], +viewBox[1] - e.deltaY / 2))
+				viewBox[1] = Math.max(0, Math.min(generations.length * 80 + 10 - viewBox[3], +viewBox[1] - e.deltaY / 2))
 				document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
 			});
 

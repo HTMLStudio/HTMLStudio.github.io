@@ -1,65 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   viewBox="0 0 60 60"
-   id="svg2"
-   version="1.1"
-   inkscape:version="0.91 r13725"
-   sodipodi:docname="select_from_selector.svg">
-  <defs
-     id="defs4" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="7.2368835"
-     inkscape:cx="16.835966"
-     inkscape:cy="37.286152"
-     inkscape:document-units="px"
-     inkscape:current-layer="svg2"
-     showgrid="true"
-     units="px"
-     width="60px"
-     inkscape:window-width="1366"
-     inkscape:window-height="705"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
-     gridtolerance="10"
-     guidetolerance="10">
-    <inkscape:grid
-       type="xygrid"
-       id="grid3336" />
-  </sodipodi:namedview>
-  <metadata
-     id="metadata7">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1" />
-  <path
-     style="fill:#00acc1"
-     d="M 25 0 L 25 10 L 10 10 L 10 25 L 0 25 L 0 35 L 10 35 L 10 50 L 25 50 L 25 60 L 35 60 L 35 50 L 50 50 L 50 35 L 60 35 L 60 25 L 50 25 L 50 10 L 35 10 L 35 0 L 25 0 z M 20 20 L 40 20 L 40 40 L 20 40 L 20 20 z "
-     id="rect4134" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <path style="fill:#00acc1" d="M25 0L25 10L10 10L10 25L0 25L0 35L10 35L10 50L25 50L25 60L35 60L35 50L50 50L50 35L60 35L60 25L50 25L50 10L35 10L35 0L25 0zM20 20L40 20L40 40L20 40L20 20z"/>
 </svg>

@@ -1,6 +1,12 @@
 .topText {
 	display: none;
 	left: 7vw;
+	box-shadow: 0 0 0 0 #00acc1;
+}
+
+.topText.new {
+	transition: box-shadow 1.0s ease-out;
+	box-shadow: 0 0 20px 20px rgba(0, 172, 193, 0);
 }
 
 .topText input {

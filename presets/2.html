@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html style='height:100vh'>
 <head>
+	<meta charset="utf-8">
 	<title>Picture Strips</title>
 	<style data-name='Preset Stylesheet'>
 		.strip {
@@ -45,11 +46,27 @@
 			margin: auto;
 			font-family: Garamond, "Times New Roman", serif;
 		}
+
+		#header {
+			height: 10vh;
+			position: fixed;
+			background-color: #00acc1;
+			width: 100%;
+			text-align: center;
+			font-family: Arial,sans-serif;
+			color: #fff;
+			font-size: 8vh;
+			z-index: 1;
+		}
+
+		#buffer {
+			height: 10vh;
+		}
 	</style>
 </head>
 <body style='min-height:100vh;margin:0'>
-	<div style='height:10vh;position:fixed;background-color:#00acc1;width:100%;text-align:center;font-family:Arial,sans-serif;color:#fff;font-size:8vh;z-index:1'>Header</div>
-	<div style='height:10vh'></div>
+	<div id='header'>Header</div>
+	<div id='buffer'></div>
 	<div class='strip'>
 		<img src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Veil_Nebula_-_NGC6960.jpg/1280px-Veil_Nebula_-_NGC6960.jpg'>
 		<div>
