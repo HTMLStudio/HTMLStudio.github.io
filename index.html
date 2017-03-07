@@ -15,8 +15,8 @@
 			font-family: 'BPreplay';
 			font-style: italic;
 			font-weight: 700;
-			src: local('BPreplay Bold Italic'),,
-				 local('BPreplay-BoldItalic')
+			src: local('BPreplay Bold Italic'),
+				 local('BPreplay-BoldItalic'),
 				 url('/assets/BPreplay-BoldItalics.woff2') format('woff2'),
 				 url('/assets/BPreplay-BoldItalics.woff') format('woff'),
 				 url('/assets/BPreplay-BoldItalics.ttf') format('truetype');
@@ -1040,7 +1040,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.1.0.2</h3></td>
+						<td><h3>Version 1.1.0.3</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1129,6 +1129,7 @@
 	</div>
 	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
+	<iframe id='cssTest'></iframe>
 	<noscript id='deferred-styles'>
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
@@ -1445,7 +1446,6 @@
 										idQ.method = 'append';
 										idQ.value = '';
 										idQ.origClass = idQ.elements.map(function(element) {
-											console.log(element.alias.className.baseVal ? element.alias.className.baseVal.trim() : typeof element.alias.className == 'string' ? element.alias.className.trim() : '')
 											return element.alias.className.baseVal ? element.alias.className.baseVal.trim() : typeof element.alias.className == 'string' ? element.alias.className.trim() : '';
 										});
 									}
@@ -1542,7 +1542,7 @@
 								close();
 								var element = document.querySelector('[data-selected-element=selected]');
 								if (!element) return;
-								var boxshadow = element.alias.style.boxShadow, pendingUpdate = false, contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false;
+								var boxshadow = element.alias.style.boxShadow, pendingUpdate = false, contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false, hasBlurred = false;
 								// Makes element contenteditable
 								element.alias.setAttribute('contenteditable','');
 								// Prevent the user from interacting with the overlay
@@ -1576,6 +1576,8 @@
 									// This deletes that redundant <br>
 									if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName == 'BR') element.alias.removeChild(element.alias.lastChild);
 
+									element.alias.blurred = true;
+
 									// Restores the element's original contenteditable attribute
 									if (contenteditable === false) element.alias.removeAttribute('contenteditable');
 									else element.alias.setAttribute('contenteditable', contenteditable);
@@ -1585,6 +1587,8 @@
 									element.alias.style.boxShadow = boxshadow;
 									// Reverts attribute
 									element.alias.htmlStudioTextBeingEdited = false;
+									// Keep track that the element has blurred
+									hasBlurred = true;
 									// Update the entire overlay to sync it with the updated element
 									overlayUpdate();
 									// Add the whole thing to history
@@ -1605,6 +1609,10 @@
 									e.preventDefault();
 								}
 
+								// More efficient version of overlayUpdate
+								// No event listeners (other than HTML entity replacers)
+								// Only updates the element being edited and its children
+								// The other elements don't need to be updated
 								// Finds any HTML entities, edits them, and gives all nodes an alias to refer to (even text nodes)
 								function createReplacers(clone, node) {
 									// Sets the alias to the proper element
@@ -1627,8 +1635,10 @@
 											clone.setAttribute('width', Math.round(clone.alias.getAttribute('width') || clone.alias.getBoundingClientRect().width));
 											clone.setAttribute('height', Math.round(clone.alias.getAttribute('height') || clone.alias.getBoundingClientRect().height));
 										}
-										clone.removeAttribute('id');
-										clone.removeAttribute('class');
+										if (clone != overlay) {
+											clone.removeAttribute('id');
+											clone.removeAttribute('class');
+										}
 										clone.removeAttribute('contenteditable');
 									}
 									if (clone.getAttribute && /v(w|h)/.test(clone.getAttribute('style'))) clone.setAttribute('style', clone.getAttribute('style').replace(/(\d+(?:\.\d+))vw/g, function($_, $1) {
@@ -1730,21 +1740,32 @@
 								function keypress(e) {
 									// Blur on Enter + any function key
 									if (e.keyCode == 13 && (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return blur();
+									if (hasBlurred) return;
 
 									opacity = -Math.abs(currentFrame - 25) + 25;
 
 									// fragment and clone are used as opposed to the actual DOM since DocumentFragments run faster
-									var fragment = document.createDocumentFragment(), clone = element.cloneNode(true);
-									fragment.appendChild(clone);
-									// Find all instances of an actual entity
-									clone.innerHTML = element.alias.innerHTML;
-									createReplacers(clone, element.alias);
-									
+									var fragment = document.createDocumentFragment();
+									if (element == overlay) {
+										// Can't get a speed boost from using a document fragment
+										// since we are recycling the same element each time
+										element.innerHTML = element.alias.innerHTML;
+										createReplacers(element, element.alias);
+									} else {
+										console.assert(element.parentNode, element.alias.blurred)
+										var clone = element.cloneNode(true);
+										fragment.appendChild(clone);
+										// Runs a more efficient overlayUpdate() for the element being edited only
+										// The rest of the overlay is unaffected
+										clone.innerHTML = element.alias.innerHTML;
+										createReplacers(clone, element.alias);
+										
 
-									clone.alias = element.alias;
-									clone.DOM = element.DOM;
-									element.parentNode.replaceChild(clone, element);
-									element = clone;
+										clone.alias = element.alias;
+										clone.DOM = element.DOM;
+										element.parentNode.replaceChild(clone, element);
+										element = clone;
+									}
 								}
 
 								// Add some events for blurring the element
@@ -2328,7 +2349,7 @@
 								idP.focus();
 								idP.dispatchEvent(new Event('keyup'));
 							},
-							title: 'Select element using a CSS selector',
+							title: 'Select element(s) using a CSS selector',
 							image: 'svg/select_by_selector.svg',
 							id: 'selectByCSS'
 						}]
@@ -2393,6 +2414,11 @@
 						return overlayUpdate;
 					}
 				},
+				updateStylesheets: {
+					get: function() {
+						return updateStylesheets;
+					}
+				},
 				DOM: {
 					get: function() {
 						return DOM;
@@ -2437,6 +2463,14 @@
 					get: function() {
 						return contextmenus;
 					}
+				},
+				fullReset: {
+					get: function() {
+						console.warn('Calling this function will destroy all your saved work and force HTML Studio to reload thinking that it\'s your first time on this page. All your current work is stored in localStorage, which will be wiped clean if you continue. This is only for debugging purposes. Place two pairs of parentheses to reset HTML Studio (i.e. window.HTMLStudio.debug.fullReset()(); )');
+						return function ReadTheWarningFirst() {
+							return function BeCareful(){['blockNoPaste','stylesheets','documentHistoryEntries','documentHistoryCurrentEntry','presets','session'].forEach(function(a){localStorage.removeItem('HTML-Studio_'+a)});location.reload()}
+						}
+					}
 				}
 			});
 			Object.defineProperties(HTMLStudio.debug.localStorage, {
@@ -2479,8 +2513,10 @@
 			// Disable undo and redo buttons if ncessary
 			contextmenus[3].getItem('undo').disabled = !history.currentEntry;
 			contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
-			contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
-			contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+			if (history.entries.length) {
+				contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
+				contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+			}
 			// Connect <body> and #overlay elements
 			overlay.alias = framewindow.document.body;
 			// Prepare for user copying
@@ -2652,7 +2688,7 @@
 					if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
 					if (!index) {
 						var node = document.querySelector('[data-selected-element=selected]') || clonednode;
-						contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.trim().replace(/\s+/g,'<wbr>.') + '</span>' : typeof node.alias.className == 'string' && node.alias.className.trim() ? '<span style="color:#F44"><wbr>.' + node.alias.className.trim().replace(/\s+/g,'<wbr>.') + '</span>' : '');
+						contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.alias.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.trim().replace(/\s+/g,'<wbr>.') + '</span>' : typeof node.alias.className == 'string' && node.alias.className.trim() ? '<span style="color:#F44"><wbr>.' + node.alias.className.trim().replace(/\s+/g,'<wbr>.') + '</span>' : '');
 						contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
 						contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
 						contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
@@ -2866,56 +2902,47 @@
 					stylesheet.parentNode.removeChild(stylesheet);
 				});
 				!function() {
-					var template = document.createElement('template'), allstylesheets = [];
+					var iframe = document.getElementById('cssTest'), allstylesheets = [], win = iframe.contentWindow;
 					for (var stylesheets = JSON.parse(localStorage.getItem('HTML-Studio_stylesheets')), i = stylesheets.length - 1; i >= 0; i--) {
-						template.innerHTML = stylesheets[i];
-						var style = template.content.querySelector('style'),
+						win.document.head.innerHTML = stylesheets[i];
+						var style = win.document.querySelector('style'),
 							ref = style.getAttribute('data-name') || '',
-							encoding,
 							stylesheet = document.createElement('style'),
-							offset = 0,
-							fontstylesheet = document.createElement('style');
+							fontstylesheet = document.createElement('style'),
+							html = '',
+							fontHtml = '';
 
 						stylesheet.setAttribute('data-name', ref);
 						css.push([ref,[]]);
-						style = style.innerText.trim();
-						while (style) {
-							if (style[0] == '@') {
-								if (style.substring(1,8) == 'charset' && offset == 0) {
-									style = style.substring(8);
-									if (/^ "[^"]+";/.test(style)) {
-										var encoding = style.substring(2).match(/[^"]+";/)[0]
-										encoding = encoding.substring(0, encoding.length - 2);;
-										style = style.replace(/[^;]+;/,'');
-										stylesheet.innerHTML = '@charset "' + encoding + '";';
-									} else style.replace(/^[^;]+;/,'');
-								} else if (style.substring(1,10) == 'font-face') {
-									var html = style.match(/^[^}]*}/)[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g,': ').replace(/(\w)(\s+)}/g, '$1;$2}')
-									stylesheet.innerHTML += html;
-									fontstylesheet.innerHTML += html + '\n\n';
-									style = style.replace(/^[^}]*}/,'');
-								}
-							} else {
-								var query = style.match(/^[^\{]+(?={)/)[0], rules;
-								style = style.replace(query, '');
-								rules = style.match(/{([^}]*)}/);
-								style = style.replace(rules[0], '');
-								stylesheet.innerHTML += query.trim() + ' ' + rules[0].replace(/(;|\{)(?!\n)/g, '$1\n\t').replace(/\t}/g,'}').replace(/(\S)}/g,'$1\n}').replace(/:(?!\s)/g, ': ').replace(/(\w)(\s+)}/g, '$1;$2}');
-								css[css.length - 1][1].push([query.trim(),[]]);
-
-								rules[1].replace(/(?:^\s*|;\s*)([a-z-]+)?\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)*)/g, function($0,$1,$2) {
+						var rules = style.sheet.cssRules;
+						for (var n = 0, l = rules.length; n < l; n++, html += '\n\n') {
+							if (rules[n] instanceof CSSStyleRule) {
+								html += rules[n].selectorText + ' {\n';
+								css[css.length - 1][1].push([rules[n].selectorText,[]]);
+								rules[n].cssText.replace(/(?:{\s*|;\s*)([a-z-]+)\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)+)/g, function($0,$1,$2) {
+									html += '\t' + $1 + ': ' + $2 + ';\n';
 									css[css.length - 1][1][css[css.length - 1][1].length - 1][1].push([$1,$2]);
+									return $0;
 								});
+								html += '}'
+							} else if (rules[n] instanceof CSSFontFaceRule) {
+								html += '@font-face {\n';
+								fontHtml += '@font-face{'
+								rules[n].cssText.replace(/(?:{\s*|;\s*)([a-z-]+)\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)+)/g, function($0,$1,$2) {
+									html += '\t' + $1 + ': ' + $2 + ';\n';
+									fontHtml += $1 + ':' + $2 + ';';
+									return $0;
+								});
+								html += '}';
+								fontHtml += '}';
 							}
-							style = style.replace(/^\s+/,'');
-							stylesheet.innerHTML += '\n\n';
-							offset = 1;
-						};
-						stylesheet.innerHTML = stylesheet.innerHTML.replace(/\n\n$/,'');
-						fontstylesheet.innerHTML = fontstylesheet.innerHTML.replace(/\n\n$/,'');
+						}
+						stylesheet.innerHTML = html;
 						framewindow.document.head.appendChild(stylesheet);
 						allstylesheets.push(stylesheet.outerHTML);
-						if (document.getElementById('user-font-stylesheet')) document.getElementById('user-font-stylesheet').parentNode.removeChild(document.getElementById('user-font-stylesheet'));
+						var prevFontSS = document.getElementById('user-font-stylesheet');
+						if (prevFontSS) prevFontSS.parentNode.removeChild(prevFontSS);
+						fontstylesheet.innerHTML = fontHtml;
 						fontstylesheet.id = 'user-font-stylesheet';
 						document.head.appendChild(fontstylesheet);
 					}
