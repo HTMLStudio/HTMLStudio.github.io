@@ -1201,7 +1201,10 @@
 				 - Use blob library for saving
 				 - Edit prefs dialog
 				 - Unwrap elements
-
+				 - Better grid
+				 - Toggleable toolbar
+				 - Import stylesheets
+				 - Minifier
 			*/
 
 
@@ -2141,12 +2144,6 @@
 							disabledtitle: '(' + locale.cmdKey + '+Y) There are no changes to be redone',
 							image: 'svg/redo.svg',
 							id: 'redo'
-						},{
-							name: 'History',
-							disabled: true,
-							disabledtitle: 'Work in Progress',
-							separate: true,
-							id: 'history'
 						},{
 							name: 'Preferences',
 							title: 'Edit preferences',
@@ -3375,11 +3372,11 @@
 			// Controls opening and closing of header sections
 			var sectionopen = false;
 			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element,index,array){
-				element.addEventListener('mousedown', function (e){
+				element.addEventListener('mousedown', function(e) {
 					e.stopPropagation();
 					sectionopen = !sectionopen;
 					var open = true;
-					for (var i = array.length - 1; i >= 0 && !open; i--) {
+					for (var i = array.length - 1; i >= 0 && open; i--) {
 						if (contextmenus[i + 2].node.parentNode) open = false;
 					}
 					if (open) {
