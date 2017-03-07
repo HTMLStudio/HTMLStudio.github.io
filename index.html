@@ -1040,7 +1040,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.1.0.3</h3></td>
+						<td><h3>Version 1.1.0.4</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1194,6 +1194,17 @@
 
 
 		!function(){
+			/*
+				TODO:
+				 - Insert Child dialog
+				 - CSSEditor <textarea> on comma + enter
+				 - Use blob library for saving
+				 - Edit prefs dialog
+				 - Unwrap elements
+
+			*/
+
+
 			// Run on page load
 			if (+localStorage.getItem('HTML-Studio_session')) alreadyActive();
 			// Tests if user on mobile
@@ -2546,6 +2557,7 @@
 						return true;
 					})();
 				}
+				closeHeaders();
 				document.body.appendChild(contextmenus[index].node);
 				var style = contextmenus[index].node.getBoundingClientRect();
 				contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
@@ -2701,6 +2713,7 @@
 							return true;
 						})();
 					}
+					closeHeaders();
 					document.body.appendChild(contextmenus[index].node);
 					var style = contextmenus[index].node.getBoundingClientRect();
 					contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
@@ -3365,7 +3378,11 @@
 				element.addEventListener('mousedown', function (e){
 					e.stopPropagation();
 					sectionopen = !sectionopen;
-					if (sectionopen) {
+					var open = true;
+					for (var i = array.length - 1; i >= 0 && !open; i--) {
+						if (contextmenus[i + 2].node.parentNode) open = false;
+					}
+					if (open) {
 						dispatchEvent(new MouseEvent('mousedown'));
 						if (index == 3) contextmenus[5] = (function(){
 							var arg = {items: cssContextMenuArg.items.slice()};
@@ -3470,8 +3487,12 @@
 						else if (getSelection) getSelection().removeAllRanges();
 					},0)
 				});
-				element.addEventListener('mouseenter', function (){
-					if (!sectionopen) return;
+				element.addEventListener('mouseenter', function() {
+					var open = false;
+					for (var i = array.length - 1; i >= 0 && !open; i--) {
+						if (contextmenus[i + 2].node.parentNode) open = true;
+					}
+					if (!open) return;
 					Array.prototype.forEach.call(array, function(element, index) {
 						element.style.background = '';
 						try{
