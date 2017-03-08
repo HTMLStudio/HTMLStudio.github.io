@@ -1797,7 +1797,7 @@
 															else if (attribute[0] == '#') obj.id = attribute.substring(1);
 															else {
 																var values = attribute.match(regex.divide);
-																obj[values[1]] = values[2] && (values[2][0] != '"' || values[2][0] != "'") ? values[2] : values[2] ? values[2].substring(1, values[2].length - 1) : '';
+																obj[values[1]] = values[2] && values[2][0] != '"' && values[2][0] != "'" ? values[2] : values[2] ? values[2].substring(1, values[2].length - 1) : '';
 															}
 														});
 														return obj;

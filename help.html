@@ -9,6 +9,34 @@
 		ga('create', 'UA-91403443-1', 'auto');
 		ga('send', 'pageview');</script>
 	<style>
+		@keyframes pseudo-selected {
+			0% {
+				background: rgba(0,172,193,.35);
+			}
+
+			50% {
+				background: rgba(0,172,193,.15);
+			}
+
+			100% {
+				background: rgba(0,172,193,.35);
+			}
+		}
+
+		@keyframes pseudo-replacer {
+			0% {
+				color: #00acc1;
+			}
+
+			50% {
+				color: #005661;
+			}
+
+			100% {
+				color: #00acc1;
+			}
+		}
+
 		html, body {
 			margin: 0px;
 			background: rgb(245, 245, 245) none repeat scroll 0% 0%
@@ -92,6 +120,10 @@
 			animation: 1s linear 0s normal none infinite running pseudo-selected;
 		}
 
+		.pseudo-replacer {
+			animation: 1s linear 0s normal none infinite running pseudo-replacer;
+		}
+
 		.pseudo-context-item {
 			background: rgb(242, 242, 242) none repeat scroll 0% 0%;
 			padding: 0px 0.2em;
@@ -155,6 +187,17 @@
 			font-size: 1rem;
 			font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
 		}
+
+		p {
+			text-align: justify;
+		}
+
+		samp {
+			font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+			background: #E5E5E5;
+			border: 1px solid #AAA;
+			margin: -1px 0;
+		}
 	</style>
 	<title>HTML Studio Help · ChristianFigueroa.GitHub.io</title>
 </head>
@@ -165,9 +208,9 @@
 		<h4>Contents</h4>
 		<div>
 			<ol>
-				<li><a href="#Getting_Started">Getting Started</a></li>
+				<li><a href="#Getting_Started" style="outline: 1px dotted; outline-offset: 0px;">Getting Started</a></li>
 				<li><a href="#Selection">Selection</a></li>
-				<li><a href="#Context Menus">Context Menus</a>
+				<li><a href="#Context_Menus">Context Menus</a>
 					<ol>
 						<li><a href="#Right_Click_Context_Menu">Right Click</a></li>
 						<ol>
@@ -175,7 +218,7 @@
 						</ol>
 					</ol>
 				</li>
-			</ol>
+			<li><a href="#Clipboard_Manipulation">Clipboard Manipulation</a></li></ol>
 		</div>
 	</div>
 	<div>
@@ -193,7 +236,7 @@
 			<p>The first thing you should do when you get on HTML Studio for the first time is to learn basic operations. The default document you see should tell you the first, most basic thing you can do with HTML Studio: click on elements to select them. Go ahead, click on any of the text shown in the document editor and you should see that it lights up (probably flashing blue if you haven't had time to change any of the settings).</p>
 			<p class="center"><span class="pseudo-selected">This is an example of what a selected element might look like.</span></p>
 			<p>If you see something like the text shown above, then congratulations; you've successfully selected your first element. That's cool but how do you actually do anything?</p>
-			<p>Editing elements is really easy; all you've got to do is right click on it. If you are on mobile or some other touch-only device, then unfortunately you're going to have a hard time using HTML Studio since you can't right click. After right clicking, you'll see a list of options appear that let you do anything from styling the element to changing the text displayed in the element. <a href="#Right_Click_Context_Menu">Click here</a> for a more detailed explanation of what each option does. Let's start off with a simple <span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text…</span>. Go ahead and click that option from the list of options. You should now see a text caret in the element you chose that allows you to edit the element's text. When you are done editing the text, click anywhere outside the element to save it. <a href="#Context_Item_Edit_Text">Click Here</a> for more information about the cool stuff you can do while editing the text of an element.</p>
+			<p>Editing elements is really easy; all you've got to do is right click on it. If you are on mobile or some other touch-only device, then unfortunately you're going to have a hard time using HTML Studio since you can't right click. After right clicking, you'll see a list of options appear that let you do anything from styling the element to changing the text displayed in the element. <a href="#Right_Click_Context_Menu">Click here</a> for a more detailed explanation of what each option does. Let's start off with a simple <span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text…</span>. Go ahead and click that option from the list of options. You should now see a text caret in the element you chose that allows you to edit the element's text. When you are done editing the text, click anywhere outside the element to save it. <a href="#Edit_Text_Context_Menu_Option">Click Here</a> for more information about the cool stuff you can do while editing the text of an element.</p>
 			<p>The default document is pretty plain isn't it? We should we start a new document. There are two ways to start editing a new document, both using the <span class="pseudo-context-item">File</span> context menu found in the top left corner. Click <span class="pseudo-context-item">File</span> and you'll see the <span class="pseudo-context-item"><img src="svg/new.svg"> New…</span> option and the <span class="pseudo-context-item"><img src="svg/open.svg"> Open…</span> option. <span class="pseudo-context-item"><img src="svg/new.svg"> New…</span> will open a dialog where you can choose from a few presets to start a new document. Keep in mind that when you start a new document, the old one you were working on will be gone forever. MAKE SURE YOU SAVE BEFORE STARTING A NEW DOCUMENT.</p>
 			<p>If instead you have a local .html file that you would rather edit than start from a preset, you can select <span class="pseudo-context-item">File</span> &gt; <span class="pseudo-context-item"><img src="svg/open.svg"> Open…</span>. This will open a separate dialog where you can drop in a file and open it in the document editor. This will also completely get rid of the current document, so again, MAKE SURE YOU SAVE.</p>
 			<p><span style="text-decoration:line-through;">Once you are done editing your document and you want to download it, go to <span class="pseudo-context-item" style="text-decoration:inherit;">File</span> &gt; <span class="pseudo-context-item" style="text-decoration:inherit">Download File…</span>.</span> [This part of HTML Studio is still being worked on and isn't relevant yet.]</p>
@@ -289,18 +332,23 @@
 		</div>
 	</div>
 	<div>
-		<h4 id="Edit_Text_Context_Menu_Option" class="">3.1.1. Edit Text</h4>
+		<h4 id="Edit_Text_Context_Menu_Option">3.1.1. Edit Text</h4>
 		<div>
 			<div class="tldr">
 				<h5>TL;DR</h5>
 				<ul>
 					<li>Use <span class="key">Right Click</span> &gt; <span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text</span> to change the inner text of an element</li>
-					<li>Use HTML entities like '<code>&amp;amp;</code>', '<code>&amp;#38;</code>', or '<code>&amp;#x26;</code>' to type special characters<br></li>
+					<li>Use HTML entities like <samp>&amp;copy;</samp>, <samp>&amp;#169;</samp>, or <samp>&amp;#xa9;</samp> to type special characters</li>
+					<li>Use CSS-like syntax to auto-add elements (<samp>&lt;span[attr=val]#id.class&gt;</samp>&nbsp; ==&gt;&nbsp;&nbsp;<samp>&lt;span attr="val" id="id" class="class"&gt;&lt;/span&gt;</samp>)</li>
 				</ul>
 			</div>
-			<div>
-				<p></p>
-			</div>
+			
+			<p>The purpose of most webpages is to display text. Sure there are other elements to make a webpage look nice, but usually, the whole point of the webpage is to display text of some kind. That's why it's so important to be able to edit the text of elements really easily in HTML Studio. You can edit the inner text of an element by selecting it, right clicking to open a context menu, and selecting <code><br></code><span class="pseudo-context-item"><img src="svg/edit_text.svg"> Edit Text</span> from the list of options. This will focus the selected element and place a text caret inside of it. Now you can go about changing any words inside the element to whatever you want it to say.</p>
+			<p class="">You'll probably notice that the element has a flashing border around it so you can see exactly which element you're editing while still being able to see everything inside the element clearly. Obviously, if you are editing something like the body element, the border won't show up since it's being cut off by the side of the screen.</p>
+			<p>Editing the text of an element is really cool and all, but it only helps when you want to type some basic characters that your keyboard lets you. For example, what if you wanted to type a copyright symbol? HTML Studio is able to recognize special sequences of characters (called HTML entities) and translate them into any symbol. If you're already familiar with HTML entities, then inputting special characters will be really easy. If not, it's really simple. <a href="http://www.amp-what.com/unicode/search/copyright" target="_blank">Here's</a> a website that tells you all the HTML entities you could ever want. With the copyright symbol example, all you would have to type into the element is "&amp;copy;" and you'll notice the text should start flashing.</p><p class="center"><span class="pseudo-replacer">This is an example of what the flashing text might look like.</span></p>
+			<p>Once you see some flashing text, click on it to replace it with its translated value. In the case of the copyright symbol, clicking on "&amp;copy;" will replace the text with "©". This way, you'll never have to go look up random characters you want to paste into the element; you can just type them using their HTML entity.</p>
+			<p class="">HTML Studio also recognizes certain CSS-like syntax to add elements into the element being edited. While typing the text for the element, you can use the following format to add an element without having to mess with the element's HTML: <samp>&lt;nodeName[attribute=value][attributeWithNoValue]#id.class1.class2&gt;</samp>. For example, say you wanted to make a new link with red text and an id of "link". You would use <samp>&lt;a[href=https://example.com][style=color:red;]#link&gt;</samp>. After clicking the text (it will flash like the text shown above), you should see "[<a href="https://example.com" target="_blank" style="color:red;" id="link">Inserted Element</a>]". As you can see, HTML Studio will generate the corresponding element with the right attributes and allow you to change the text of the element right away.<br><span style="font-size:90%;margin-top:.5em;display:inline-block"><strong>*NOTE:</strong> Notice that no white space is allowed in the element-replacer text. To use white space in an attribute (e.g. <samp>&lt;nodeName[style=border: 1px solid black]&gt;</samp>), you have to quote the value (e.g. <samp>&lt;nodeName[style="border: 1px solid black"]&gt;</samp>). Single quotes work too. Also quote values that use special characters (like "=") in order for them to be interpreted correctly.</span></p>
+			<p>Once you're done editing the element's text click anywhere outside the element to finalize the change and continue editing. You can also double click the element or use Enter + Shift/Ctrl/Alt/⌘ to save the changes.</p>
 		</div>
 	</div>
 </body>
