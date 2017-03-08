@@ -3571,7 +3571,7 @@
 						var arg = {items: cssContextMenuArg.items.slice()};
 						Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 							arg.items.push({
-								name: (stylesheet.getAttribute('data-name') || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="color:#777;font-style:italic">Unnamed Stylesheet</span>',
+								name: (stylesheet.getAttribute('data-name') || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="font-style:italic">Unnamed Stylesheet</span>',
 								subcontext: {
 									items: [{
 										name: 'Edit&#133;',
