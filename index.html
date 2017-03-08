@@ -666,7 +666,8 @@
 			display: block;
 		}
 
-		html-entity-replacer {
+		html-entity-replacer,
+		html-element-replacer {
 			display: inline;
 			pointer-events: initial;
 			cursor: pointer;
@@ -1040,7 +1041,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.1.0.4</h3></td>
+						<td><h3>Version 1.1.0.5</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1203,8 +1204,12 @@
 				 - Unwrap elements
 				 - Better grid
 				 - Toggleable toolbar
-				 - Import stylesheets
+				 - Import style sheets
 				 - Minifier
+				 - Node duplicator
+				 - Fix <a> Edit Text auto-blur
+				 - Fix CSS precedence
+				 - Fix Edit Text bottom scrolling bug
 			*/
 
 
@@ -1304,9 +1309,9 @@
 										element.addEventListener('focus', function() {
 											element.active = true;
 										});
-										element.addEventListener('keypress', function(e) {
-											if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling) || (e.charCode == 59 && element.parentNode.previousElementSibling)) {
-												if (e.charCode == 59) {
+										element.addEventListener('keydown', function(e) {
+											if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || (e.keyCode == 59 && element.parentNode.previousElementSibling)) {
+												if (e.keyCode == 59) {
 													var position = 0;
 													if (document.selection) {
 														element.focus();
@@ -1341,9 +1346,9 @@
 									element.addEventListener('focus', function(e) {
 										element.active = true;
 									});
-									element.addEventListener('keypress', function(e) {
-										if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling) || (e.charCode == 59 && element.parentNode.previousElementSibling)) {
-											if (e.charCode == 59) {
+									element.addEventListener('keydown', function(e) {
+										if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || (e.keyCode == 59 && element.parentNode.previousElementSibling)) {
+											if (e.keyCode == 59) {
 												var position = 0;
 												if (document.selection) {
 													element.focus();
@@ -1403,8 +1408,8 @@
 										element.addEventListener('focus', function() {
 											element.active = true;
 										});
-										element.addEventListener('keypress', function(e) {
-											if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling)) {
+										element.addEventListener('keydown', function(e) {
+											if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
 												e.preventDefault();
 												(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
 											};
@@ -1425,8 +1430,8 @@
 									element.addEventListener('focus', function(e) {
 										element.active = true;
 									});
-									element.addEventListener('keypress', function(e) {
-										if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((e.charCode == 58 || e.charCode == 61) && element.parentNode.nextElementSibling)) {
+									element.addEventListener('keydown', function(e) {
+										if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 58 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
 											e.preventDefault();
 											(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
 										};
@@ -1574,8 +1579,14 @@
 								var elemcount = element.alias.children.length,
 								// Used for HTML entity replacers
 								regex = {
-									pre: /(?=&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);))/g,
-									post: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);)/g,
+									pre: /(?=(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);)))/g,
+									post: /(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);))/g,
+									entity: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);)/,
+									tag: /<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>/,
+									tag_name: /<([a-zA-Z][a-zA-Z\d_-]*)/,
+									attrs: /<[a-zA-Z][a-zA-Z\d_-]*((?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*)>/,
+									getAttr: /\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*/g,
+									divide: /\[([a-zA-Z][a-zA-Z\d_-]*)(?:=("(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]/
 								},
 								// Used for testing if the entity actually translates into something
 								testElement = document.createElement('span'),
@@ -1617,6 +1628,32 @@
 									keypress.call(element.alias, {});
 								}
 
+								// Runs when an HTML element replacer is clicked on (when the user wants to replace it)
+								function onClickTagReplacer(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									var origNode = this.alias,
+										origText = this.alias.textContent,
+										frag = document.createDocumentFragment(),
+										replacee = document.createElement(this.tag_name);
+									replacee.appendChild(document.createTextNode('Inserted Element'))
+									frag.appendChild(document.createTextNode(origText.substring(0, this.charIndex) + '['));
+									frag.appendChild(replacee);
+									frag.appendChild(document.createTextNode(']' + origText.substring(this.charIndex + this.tagLength)));
+									for (var attribute in this.tag_attrs) {
+										replacee.setAttribute(attribute, this.tag_attrs[attribute]);
+									}
+									origNode.parentNode.replaceChild(frag, origNode);
+									if (document.getSelection && document.createRange) {
+										var selection = framewindow.document.getSelection();
+										var range = framewindow.document.createRange();
+										range.selectNodeContents(replacee);
+										selection.removeAllRanges();
+										selection.addRange(range);
+									}
+									keypress.call(element.alias, {});
+								}
+
 								// Function used to prevent blurring when the user clicks a replacer
 								function prevent(e) {
 									e.stopPropagation();
@@ -1629,6 +1666,12 @@
 								// The other elements don't need to be updated
 								// Finds any HTML entities, edits them, and gives all nodes an alias to refer to (even text nodes)
 								function createReplacers(clone, node) {
+									if (clone.nodeType == 3 && clone.nextSibling && clone.nextSibling.nodeType == 3 && node.nodeType == 3 && node.nextSibling && node.nextSibling.nodeType == 3) {
+										clone.textContent += clone.nextSibling.textContent;
+										node.textContent += node.nextSibling.textContent;
+										clone.parentNode.removeChild(clone.nextSibling);
+										node.parentNode.removeChild(node.nextSibling);
+									}
 									// Sets the alias to the proper element
 									clone.alias = node;
 									if (clone.nodeType == 1 && node.nodeType == 1) {
@@ -1643,9 +1686,10 @@
 										});
 										clone.style.color = 'transparent';
 										clone.style.background = 'transparent';
+										clone.style.fontFamily = getComputedStyle(node).fontFamily;
 										if (clone.nodeName == 'A') clone.removeAttribute('href');
 										if (clone.nodeName == 'IMG') {
-											clone.setAttribute('src','svg/transparent.svg')
+											if (node.getAttribute('src')) clone.setAttribute('src','svg/transparent.svg')
 											clone.setAttribute('width', Math.round(clone.alias.getAttribute('width') || clone.alias.getBoundingClientRect().width));
 											clone.setAttribute('height', Math.round(clone.alias.getAttribute('height') || clone.alias.getBoundingClientRect().height));
 										}
@@ -1664,25 +1708,26 @@
 									// Iterate over all the element's childNodes
 									Array.prototype.slice.call(clone.childNodes).forEach(function(child, index) {
 										// If the node is a text node and has an ampersand
-										if (child.nodeType == 3 && child.textContent.includes("&")) {
+										if (child.nodeType == 3 && (child.textContent.includes("&") || regex.tag.test(child.textContent))) {
 											// Keeps track of how many character precede replacer
 											var charIndex = 0;
 
-											// Splits strings right before an entity
-											// e.g. "filler&nbsp;filler" -- > ["filler", "&nbsp;filler"]
+											// Splits strings right before an entity or tag
+											// e.g. "filler&nbsp;filler" ==> ["filler", "&nbsp;filler"]
+											// "filler<code>filler" ==> ["filler", "<code>filler"]
 											var before = child.textContent.split(regex.pre), array = [];
 											// Get the entity for each string
 											before.forEach(function(str, ind) {
-												// The first string never contains an entity
+												// The first string never contains an entity or tag
 												if (!ind && !str) return;
-												// Match the entity
-												var entity = str.match(regex.post);
+												// Match the entity/tag
+												var object = str.match(regex.post);
 												// This happens if the text node contains no entities
-												if (!entity) return array.push({entity: false, val: str});
+												if (!object) return array.push({object: false, val: str});
 												// Get the actual match instead of an array
-												entity = entity[0];
+												object = object[0];
 												// Add to an array that keeps all the string in order
-												array.push({entity: true, val: entity}, {entity: false, val: str.replace(entity, '')});
+												array.push({object: true, entity: regex.entity.test(object), tag: regex.tag.test(object), val: object}, {object: false, val: str.replace(object, '')});
 											});
 
 											// Used to replace the child
@@ -1698,40 +1743,85 @@
 													if ((character = testElement.innerText) == str.val) {
 														array[ind] = document.createTextNode(str.val);
 														array[ind].alias = node.childNodes[index];
-														return;
+													} else {
+														// Create a <html-entity-replacer> custom tag
+														var replacer = document.createElement('html-entity-replacer'), character;
+														// Store it in the array
+														array[ind] = replacer
+														// Set the innerText
+														replacer.innerText = str.val;
+														// Sets attributes that are used when the replacer is click on
+														replacer.alias = node.childNodes[index];
+														replacer.charIndex = charIndex;
+														replacer.character = testElement.innerText;
+														replacer.entityLength = str.val.length;
+
+														// Configures the replacer
+														// Adds a title so the user can see which character it will be replaced with
+														replacer.title = 'Click to replace with "' + character + '"';
+														// Adds styles now so that it doesn't have to wait until the next interval loop
+														// Without this, the text appears transparent for an instant before being updated
+														replacer.style.color = 'rgba(0,172,193,' + (.03 * opacity + .25) + ')';
+														replacer.style.textShadow = '0 0 1px rgba(0,172,193,' + (.02 * opacity + .5) + ')';
+
+														// Adds click listener for when the user wants to replace the replacer
+														replacer.addEventListener('touchstart', onClickEntityReplacer);
+														replacer.addEventListener('click', onClickEntityReplacer);
+														// Adds more event listeners to preventDefault and stopPropogation
+														// This prevents the editable element from blurring
+														replacer.addEventListener('mousedown', prevent);
+														replacer.addEventListener('mouseup', prevent);
+														replacer.addEventListener('dblclick', prevent);
+														replacer.addEventListener('touchend', prevent);
+														replacer.addEventListener('touchcancel', prevent);
 													}
-
-
-													// Create a <html-entity-replacer> custom tag
-													var replacer = document.createElement('html-entity-replacer'), character;
+												// If the array element is a tag
+												} else if (str.tag) {
+													// Create a <html-element-replacer> custom tag
+													var replacer = document.createElement('html-element-replacer');
 													// Store it in the array
-													array[ind] = replacer
+													array[ind] = replacer;
 													// Set the innerText
 													replacer.innerText = str.val;
-													// Sets attributes that are used when the replacer is click on
+													// Sets attributes that are used when the replacer is clicked on
 													replacer.alias = node.childNodes[index];
 													replacer.charIndex = charIndex;
-													replacer.character = testElement.innerText;
-													replacer.entityLength = str.val.length;
+													replacer.tagLength = str.val.length;
+													replacer.tag_name = str.val.match(regex.tag_name)[1];
+													replacer.tag_attrs = (function() {
+														var obj = {};
+														var attrs = str.val.match(regex.attrs)[1];
+														if (!attrs) return obj;
+														attrs.match(regex.getAttr).forEach(function(attribute) {
+															if (attribute[0] == '.') obj.class = ((obj.class || '') + ' ' + attribute.substring(1)).trim();
+															else if (attribute[0] == '#') obj.id = attribute.substring(1);
+															else {
+																var values = attribute.match(regex.divide);
+																obj[values[1]] = values[2] && (values[2][0] != '"' || values[2][0] != "'") ? values[2] : values[2] ? values[2].substring(1, values[2].length - 1) : '';
+															}
+														});
+														return obj;
+													})();
 
 													// Configures the replacer
-													// Adds a title so the user can see which character it will be replaced with
-													replacer.title = 'Click to replace with "' + character + '"';
+													// Adds a title so the user can see which tag it will be replaced with
+													replacer.title = 'Click to replace with a ' + replacer.tag_name + ' element';
 													// Adds styles now so that it doesn't have to wait until the next interval loop
 													// Without this, the text appears transparent for an instant before being updated
 													replacer.style.color = 'rgba(0,172,193,' + (.03 * opacity + .25) + ')';
 													replacer.style.textShadow = '0 0 1px rgba(0,172,193,' + (.02 * opacity + .5) + ')';
 
 													// Adds click listener for when the user wants to replace the replacer
-													replacer.addEventListener('touchstart', onClickEntityReplacer);
-													replacer.addEventListener('click', onClickEntityReplacer);
-													// Adds more event listeners to preventDefault and stopPropogation
+													replacer.addEventListener('touchstart', onClickTagReplacer);
+													replacer.addEventListener('click', onClickTagReplacer);
+													// Adds more event listeners to preventDefault and stopPropagation
 													// This prevents the editable element from blurring
 													replacer.addEventListener('mousedown', prevent);
 													replacer.addEventListener('mouseup', prevent);
 													replacer.addEventListener('dblclick', prevent);
 													replacer.addEventListener('touchend', prevent);
 													replacer.addEventListener('touchcancel', prevent);
+
 												// The array element is just plain text
 												} else {
 													// Create a regular text node
@@ -1740,7 +1830,11 @@
 													array[ind].alias = node.childNodes[index];
 												}
 												charIndex += str.val.length;
-												fragment.appendChild(array[ind]);
+												if (ind && array[ind].nodeType == 3 && array[ind - 1].nodeType == 3) {
+													fragment.lastChild.textContent += array[ind].textContent;
+												} else {
+													fragment.appendChild(array[ind]);
+												}
 											});
 
 											child.parentNode.replaceChild(fragment, child);
@@ -1766,7 +1860,6 @@
 										element.innerHTML = element.alias.innerHTML;
 										createReplacers(element, element.alias);
 									} else {
-										console.assert(element.parentNode, element.alias.blurred)
 										var clone = element.cloneNode(true);
 										fragment.appendChild(clone);
 										// Runs a more efficient overlayUpdate() for the element being edited only
@@ -2235,6 +2328,7 @@
 								close();
 								closeHeaders();
 								document.getElementById('tooltip').style.display = this.toggled ? '' : 'none';
+								localStorage.setItem('HTML-Studio_tooltipShown', this.toggled ? 1 : 0);
 							},
 							title: 'Toggles the tooltip at the bottom of the screen',
 							toggle: true,
@@ -2405,6 +2499,10 @@
 				},
 				preventUpdates = false;
 
+			// Check if tooltip should be shown
+			document.getElementById('tooltip').style.display = localStorage.getItem('HTML-Studio_tooltipShown') == 0 ? 'none' : '';
+			contextmenus[4].getItem('tooltip').toggled = localStorage.getItem('HTML-Studio_tooltipShown') != 0;
+
 			// Add some debugging options for developers
 			(window.HTMLStudio = window.HTMLStudio || {}).debug = {};
 			HTMLStudio.debug.localStorage = {};
@@ -2474,10 +2572,7 @@
 				},
 				fullReset: {
 					get: function() {
-						console.warn('Calling this function will destroy all your saved work and force HTML Studio to reload thinking that it\'s your first time on this page. All your current work is stored in localStorage, which will be wiped clean if you continue. This is only for debugging purposes. Place two pairs of parentheses to reset HTML Studio (i.e. window.HTMLStudio.debug.fullReset()(); )');
-						return function ReadTheWarningFirst() {
-							return function BeCareful(){['blockNoPaste','stylesheets','documentHistoryEntries','documentHistoryCurrentEntry','presets','session'].forEach(function(a){localStorage.removeItem('HTML-Studio_'+a)});location.reload()}
-						}
+						return console.warn('Calling this function will destroy all your saved work and force HTML Studio to reload thinking that it\'s your first time on this page. All your current work is stored in localStorage, which will be wiped clean if you continue. This is only for debugging purposes. Place two pairs of parentheses to reset HTML Studio (i.e. window.HTMLStudio.debug.fullReset()(); )'),function ReadTheWarningFirst(){return function DidYouReadTheWarning(){['blockNoPaste','stylesheets','documentHistoryEntries','documentHistoryCurrentEntry','presets','session','tooltipShown'].forEach(function(a){localStorage.removeItem('HTML-Studio_'+a)});location.reload()}}
 					}
 				}
 			});
@@ -2493,6 +2588,11 @@
 							entries: JSON.parse(localStorage.getItem('HTML-Studio_documentHistoryEntries')),
 							currentEntry: +localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry')
 						}
+					}
+				},
+				tooltipShown: {
+					get: function() {
+						return localStorage.getItem('HTML-Studio_tooltipShown') != 0;
 					}
 				}
 			});
@@ -2583,7 +2683,7 @@
 			});
 			overlay.addEventListener('mousemove', function(e) {
 				updateTooltip();
-				this.mousePositions = {x: (e.offsetX || e.clientX), y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop)};
+				this.mousePositions = {x: e.clientX, y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop)};
 			});
 			overlay.addEventListener('mouseleave', function() {
 				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
@@ -2629,7 +2729,7 @@
 			}, move: function(event) {
 				var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
 				viewBox[0] = Math.min((Math.max.apply(Math, generations) * 60 + 10) - viewBox[2], Math.max(0, viewBox[0] - event.coordinates.move.last.distance.x * viewBox[2] / this.clientWidth));
-				viewBox[1] = Math.min((generations.length * 80 + 10) - (viewBox[2] * 2 / 3), Math.max(0, viewBox[1] - event.coordinates.move.last.distance.y * (viewBox[2] * 2 / 3) / this.clientHeight));
+				viewBox[1] = Math.min((generations.length * 80 + 10) - Math.min(generations.length * 80 + 10, viewBox[2] * 2 / 3), Math.max(0, viewBox[1] - event.coordinates.move.last.distance.y * (viewBox[2] * 2 / 3) / this.clientHeight));
 				document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
 			}, end: function(event,e) {
 				this.style.top = 0;
@@ -2805,7 +2905,7 @@
 							if (clonednode.nodeName == 'A') clonednode.removeAttribute('href');
 							// Prevent <img>s from blocking the actual nodes (their background was already changed, but not their src)
 							if (clonednode.nodeName == 'IMG') {
-								clonednode.setAttribute('src','svg/transparent.svg');
+								if (clonednode.alias.getAttribute('src')) clonednode.setAttribute('src','svg/transparent.svg');
 								clonednode.setAttribute('width', Math.round(clonednode.alias.getAttribute('width') || clonednode.alias.getBoundingClientRect().width));
 								clonednode.setAttribute('height', Math.round(clonednode.alias.getAttribute('height') || clonednode.alias.getBoundingClientRect().height));
 							}
@@ -2878,7 +2978,7 @@
 			}
 
 			// Prevent blurring when the user presses tab for Edit HTML <textarea>
-			document.getElementById('idf').addEventListener('keypress', onTab);
+			document.getElementById('idf').addEventListener('keydown', onTab);
 
 			// Restores a user's selection (like when the window is resized and selected element are deleted)
 			function restoreSelection(preset) {
@@ -2987,36 +3087,6 @@
 			function quoteEscape(string) {
 				return string.replace(/"/g, "&quot;");
 			};
-			// Unused code, but may come in handy later
-			/*function setStyle(element, doChildren) {
-				element = element || framewindow.document.body;
-				doChildren = doChildren ? true : arguments.length > 1 ? true : false;
-				function style(element) {
-					element.htmlStudioComputedStyles = element.getAttribute('style') || '';
-					element.setAttribute('style', element.getAttribute('data-html-studio-original-style-attribute') || '');
-					element.removeAttribute('data-html-studio-original-style-attribute');
-					if (doChildren && element.children) {
-						for (var i = element.children.length - 1; i >= 0; i--) {
-							style(element.children[i]);
-						}
-					}
-				};
-				style(element);
-			};
-			function unsetStyle(element, doChildren) {
-				element = element || framewindow.document.body;
-				doChildren = doChildren ? true : arguments.length > 1 ? true : false;
-				function style(element) {
-					element.setAttribute('data-html-studio-original-style-attribute', element.getAttribute('style') || '');
-					element.setAttribute('style', element.htmlStudioComputedStyles);
-					if (doChildren && element.children) {
-						for (var i = element.children.length - 1; i >= 0; i--) {
-							style(element.children[i]);
-						}
-					}
-				};
-				style(element);	
-			}*/
 			// Updates the text shown in the tooltip
 			function updateTooltip() {
 				var nodes = document.querySelectorAll('[data-selected-element=selected]');
@@ -3026,7 +3096,7 @@
 						className = node.className ? 'baseVal' in new Object(node.className) ? (node.className.baseVal.trim() || false) : (node.className.trim() || false) : false;
 					document.getElementById('tooltiptext').innerHTML = '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;font-size:1rem"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (className ? '<span style="color:#F44">.' + className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
 				} else if (overlay.mousePositions) {
-					document.getElementById('tooltiptext').innerHTML = '(' + overlay.mousePositions.x + ', ' + overlay.mousePositions.y + ')';
+					document.getElementById('tooltiptext').innerHTML = 'x: ' + overlay.mousePositions.x + ', y: ' + overlay.mousePositions.y;
 				} else {
 					document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
 				}
@@ -3215,7 +3285,7 @@
 				overlayUpdate();
 				this.parentNode.className = 'topText';
 			});
-			document.getElementById('idQ').addEventListener('keypress', onEnter);
+			document.getElementById('idQ').addEventListener('keydown', onEnter);
 
 			// Updates the element's id
 			document.getElementById('idR').addEventListener('keyup', function() {
@@ -3228,7 +3298,7 @@
 				overlayUpdate();
 				this.parentNode.className = 'topText';
 			});
-			document.getElementById('idR').addEventListener('keypress', onEnter);
+			document.getElementById('idR').addEventListener('keydown', onEnter);
 
 			Array.prototype.forEach.call(document.getElementsByClassName('cle'), function(element) {
 				element.addEventListener('click', function() {
@@ -3760,12 +3830,22 @@
 				location.reload();
 			});
 			document.getElementById('idr').addEventListener('wheel', function(e) {
-				var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
-				viewBox[2] = Math.max(1, Math.min(Math.max.apply(Math, generations) * 60 + 10, +viewBox[2] + +e.deltaY * 1.5));
-				viewBox[3] = Math.max(1, Math.min(generations.length * 80 + 10, viewBox[2] * 2 / 3 + +e.deltaY));
-				viewBox[0] = Math.max(0, Math.min(Math.max.apply(Math,generations) * 60 + 10 - viewBox[2], +viewBox[0] - e.deltaY * .75));
-				viewBox[1] = Math.max(0, Math.min(generations.length * 80 + 10 - viewBox[3], +viewBox[1] - e.deltaY / 2))
-				document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
+				this.delta += Math.min(this.clientHeight / 4, e.deltaY);
+				if (this.timeout) return;
+				this.delta = 0;
+				this.timeout = setTimeout(function() {
+					this.timeout = false;
+					var rect = this.getBoundingClientRect();
+					var xPos = (e.clientX - rect.left) / this.clientWidth * 1.5,
+						yPos = (e.clientY - rect.top) / this.clientHeight
+					var viewBox = document.getElementById('idq').getAttribute('viewBox').split(' ');
+					var delta = this.delta * viewBox[2] / 300;
+					viewBox[2] = Math.max(1, Math.min(Math.max.apply(Math, generations) * 60 + 10, +viewBox[2] + delta * 1.5));
+					viewBox[3] = Math.max(1, Math.min(generations.length * 80 + 10, viewBox[2] * 2 / 3));
+					viewBox[0] = Math.max(0, Math.min(Math.max.apply(Math,generations) * 60 + 10 - viewBox[2], +viewBox[0] - delta * xPos));
+					viewBox[1] = Math.max(0, Math.min(generations.length * 80 + 10 - viewBox[3], +viewBox[1] - delta * yPos))
+					document.getElementById('idq').setAttribute('viewBox', viewBox.join(' '));
+				}.bind(this), 100);
 			});
 
 
@@ -4071,7 +4151,7 @@
 				Array.prototype.forEach.call(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
 					element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(0,172,193,' + (1 - currentFrame / 50) + ')';
 				});
-				Array.prototype.forEach.call(document.getElementsByTagName('html-entity-replacer'), function(element) {
+				Array.prototype.forEach.call(document.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
 					element.style.color = 'rgba(0,172,193,'+(.02*opacity+.5)+')';
 					element.style.textShadow = '0 0 1px rgba(0,172,193,' + (.03 * opacity + .25) + ')'
 				});

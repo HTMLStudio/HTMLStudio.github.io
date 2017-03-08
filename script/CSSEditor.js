@@ -99,14 +99,14 @@
 		exit.title = 'Delete this CSS rule'
 		rule.appendChild(exit);
 		exit.addEventListener('click', self.deleteSelf);
-		exit.addEventListener('keypress', onEnter);
+		exit.addEventListener('keydown', onEnter);
 		// Create input box for CSS selector
 		var selector = this.selectorNode = document.createElement('input');
 		selector.type = 'text';
 		selector.addEventListener('keyup', function() {
 			self.selector = this.value;
 		});
-		selector.addEventListener('keypress', selectorKeypress);
+		selector.addEventListener('keydown', selectorKeypress);
 		selector.value = this.selector;
 		selector.placeholder = 'CSS selector';
 		selector.CSSRuleObject = this;
@@ -128,7 +128,7 @@
 		this.add.title = 'Create a new CSS rule';
 		rule.appendChild(this.add);
 		this.add.addEventListener('click', addFollowRule);
-		this.add.addEventListener('keypress', onEnter);
+		this.add.addEventListener('keydown', onEnter);
 		this.add.CSSRuleObject = this;
 	}
 
@@ -174,13 +174,13 @@
 		container.appendChild(exit);
 		exit.addEventListener('click', self.deleteSelf);
 		exit.addEventListener('blur', blur);
-		exit.addEventListener('keypress', onEnter);
+		exit.addEventListener('keydown', onEnter);
 		exit.CSSStyleObject = this;
 		this.nameNode = document.createElement('input');
 		this.nameNode.className = 'cssStyleName';
 		this.nameNode.type = 'text';
 		container.appendChild(this.nameNode);
-		this.nameNode.addEventListener('keypress', nameKeyPress);
+		this.nameNode.addEventListener('keydown', nameKeyPress);
 		this.nameNode.addEventListener('blur', blur);
 		this.nameNode.addEventListener('keyup', function() {
 			self.name = this.value.trim();
@@ -195,7 +195,7 @@
 		this.valueNode.className = 'cssStyleValue';
 		this.valueNode.type = 'text';
 		container.appendChild(this.valueNode);
-		this.valueNode.addEventListener('keypress', valueKeypress);
+		this.valueNode.addEventListener('keydown', valueKeypress);
 		this.valueNode.addEventListener('blur', blur);
 		this.valueNode.addEventListener('keyup', function() {
 			self.value = this.value.trim();
@@ -212,16 +212,16 @@
 
 
 	function nameKeyPress(e) {
-		if (e.charCode == 58 || e.charCode == 61 || e.keyCode == 13) {
+		if ((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61 || e.keyCode == 13) {
 			e.preventDefault();
 			this.CSSStyleObject.valueNode.focus();
 		}
 	}
 
 	function valueKeypress(e) {
-		if (e.charCode == 59 || e.keyCode == 13 || (e.keyCode == 9 && !e.shiftKey)) {
+		if (e.keyCode == 59 || e.keyCode == 13 || (e.keyCode == 9 && !e.shiftKey)) {
 			var obj = this.CSSStyleObject;
-			if (e.charCode == 59) {
+			if (e.keyCode == 59) {
 				var position = 0;
 				if (document.selection) {
 					this.focus();
