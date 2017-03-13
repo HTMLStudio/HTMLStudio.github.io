@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 60">
+  <defs>
+    <linearGradient id="linearGradient5310">
+      <stop style="stop-color:#456" offset="0"/>
+      <stop style="stop-color:#00acc1" offset="1"/>
+    </linearGradient>
+    <linearGradient xlink:href="#linearGradient5310" id="linearGradient5316" x1="34" y1="11" x2="49" y2="26" gradientUnits="userSpaceOnUse"/>
+  </defs>
+  <path style="fill:#456" d="M0,0 27,0 27,28 0,28Z"/>
+  <path style="fill:#00acc1" d="m33,33 27,0 0,27 -27,0z"/>
+  <path style="fill:url(#linearGradient5316)" d="m30,20 5,0c5,0 5,5 5,5l0,5 13,0 0,-5C53,25 53,7 35,7l-5,0z"/>
+  <path d="m30,40 -5,0c-5,0 -5,-5 -5,-5l0,-5 -13,0 0,5c0,0 0,18 18,18l5,0z" style="fill:url(#linearGradient5316)"/>
+</svg>

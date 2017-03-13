@@ -5,6 +5,10 @@
 	box-shadow: 0 0 0 0 #00acc1;
 }
 
+.topText:not(.active) * {
+	display: none;
+}
+
 .topText.active {
 	opacity: 1;
 	pointer-events: initial;

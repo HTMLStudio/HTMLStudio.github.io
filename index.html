@@ -11,17 +11,6 @@
 		ga('create', 'UA-91403443-1', 'auto');
 		ga('send', 'pageview');</script>
 	<style type="text/css">
-		@font-face {
-			font-family: 'BPreplay';
-			font-style: italic;
-			font-weight: 700;
-			src: local('BPreplay Bold Italic'),
-				 local('BPreplay-BoldItalic'),
-				 url('/assets/BPreplay-BoldItalics.woff2') format('woff2'),
-				 url('/assets/BPreplay-BoldItalics.woff') format('woff'),
-				 url('/assets/BPreplay-BoldItalics.ttf') format('truetype');
-		}
-
 		body, html {
 			margin: 0;
 			height: 100%;
@@ -65,20 +54,16 @@
 			top: -1rem;
 			left: -1pt;
 		}
-		.contextmenuitem {
-			background: #F2F2F2;
-			font-family: Arial, Calibri, Sego UI, sans-serif;
-		}
 
-		.contextmenu {
-			padding: .2em 0;
-			background-color: #F2F2F2;
-			border: 1px solid #DDD;
-			box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
-		}
-
-		.contextmenu:not(.subcontextmenu) {
-			font-size: 88%;
+		#dialogcover {
+			z-index: 9999997;
+			background: rgba(0,0,0,.7);
+			height: 100vh;
+			width: 100vw;
+			position: fixed;
+			display: none;
+			top: 0;
+			left: 0;
 		}
 
 		#framecontainer {
@@ -283,242 +268,6 @@
 			left: 100vw;
 		}
 
-		#dialogcover {
-			z-index: 9999997;
-			background: rgba(0,0,0,.7);
-			height: 100vh;
-			width: 100vw;
-			position: fixed;
-			display: none;
-			top: 0;
-			left: 0;
-		}
-
-		.dialog { 
-			width: 50%;
-			max-height: 75vh;
-			background: #F0F0F0;
-			text-align: center;
-			border-radius: .6em;
-			left: calc(25% - 1px);
-			margin-top: calc(12.5vh - 1px);
-			border: 1px solid #AAA;
-			box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
-			font-family: Arial, sans-serif;
-			position: relative;
-			display: none;
-			cursor: pointer;
-			padding-bottom: 2.2em;
-		}
-
-		.dialog>span {
-			font-size: 1.1em;
-			display: block;
-			margin: .2em 0;
-		}
-
-		.dialog>.content {
-			max-height: calc(75vh - 5.9em - 1px);
-			width: calc(100% - 4.5em);
-			position: relative;
-			left: .5em;
-			border-radius: inherit;
-			background: #FFF;
-			border: 1px solid #AAA;
-			margin: -1px -1px .5em;
-			padding: .75em 1.75em;
-			overflow: auto;
-			cursor: initial;
-		}
-
-		.dialog>.exit {
-			height: 1.2em;
-			width: 1.2em;
-			position: absolute;
-			top: .26em;
-			right: .5em;
-			background: rgba(0, 0, 0, 0) url("svg/exit.svg") 50% 50%/70% 70% no-repeat;
-			border: 1px solid #AAA;
-			margin: -1px;
-			border-radius: .3em;
-			cursor: pointer;
-		}
-
-		.dialog>.exit.disabled {
-			background: #F0F0F0;
-			cursor: default;
-		}
-
-		.dialog .optioncontainer {
-			float: right;
-		}
-
-		.dialog .option {
-			background: #FFF;
-			display: inline-block;
-			padding: .3em .5em;
-			font-family: Arial, sans-serif;
-			border-radius: .3em;
-			border: 1px solid #AAA;
-			margin: -1px .5em -1px -1px;
-			cursor: pointer;
-			position: static;
-			width: initial;
-			float: left;
-		}
-
-		.dialog .option:hover, .dialog>.option:focus {
-			background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
-		}
-
-		.dialog .option:active {
-			background: linear-gradient(to bottom, #BBB 0%,#DDD 100%);
-			box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
-		}
-
-		.dialog .option.disabled {
-			background: #F0F0F0;
-			color: #999;
-			box-shadow: initial;
-			cursor: default;
-		}
-
-		.dialog>.content h3 {
-			font-weight: normal;
-			font-family: Arial, sans-serif;
-			margin: 0;
-		}
-
-		#id1 {
-			width: calc(100% - 2em);
-			height: 40vh;
-			background: #FFF;
-			border: 1em dashed #00acc1;
-			display: table;
-			table-layout: fixed;
-			margin-bottom: .75em;
-		}
-
-		#id1.active {
-			border-color: #008ca1;
-		}
-
-		#id2 {
-			margin-top: 2.5em;
-			cursor: pointer;
-		}
-
-		#id3 {
-			font-size: 10vh;
-			display: block;
-		}
-
-		#id5 {
-			font-size: 7vh;
-			font-family: "BPreplay", Arial, sans-serif;
-			font-style: italic;
-			font-weight: 700;
-		}
-
-		#id4 {
-			height: 100%;
-			width: 100%;
-			vertical-align: middle;
-			display: table-cell;
-			color: #00acc1;
-			font-family: "BPreplay", Arial, sans-serif;
-			font-style: italic;
-			font-weight: 700;
-			pointer-events: none;
-		}
-
-		#id6 {
-			font-family: Arial, sans-serif;
-			height: 100%;
-			text-align: left;
-			font-style: normal;
-			font-weight: normal;
-		}
-
-		#id7 {
-			font-family: "Open Sans", Arial, sans-serif;
-			font-weight: normal;
-			padding: 2.5vh;
-			font-size: 3.5vh;
-			color: #000;
-			font-weight: 600;
-			border: 1vh solid #FFF;
-			border-radius: 3vh;
-		}
-
-		#id8 {
-			font-size: 5vh;
-			color:#00acc1;
-			font-family: "BPreplay", Arial, sans-serif;
-			font-weight: 700;
-			font-style: italic;
-			display: block;
-			margin: 5vh 1em;
-			line-height: 1.3;
-			text-align: center;
-		}
-
-		#ide {
-			padding: 0;
-			height: calc(75vh - 4.4em - 1px);
-			width: calc(100% - 1em);
-		}
-
-		#idf {
-			height: calc(75vh - 8.9em - 1px);
-			width: calc(100% - 3.5em);
-			margin: 0;
-			padding: .75em 1.75em;
-			border: 0;
-			resize: none;
-		}
-
-		#id1.active #id4 {
-			color: #008ca1;
-		}
-
-		#idi, #idu {
-			table-layout: fixed;
-			width: 100%;
-		}
-
-		.cl1 {
-			float:left;
-		}
-
-		.cl2 {
-			float: right;
-		}
-
-		.cl3 {
-			background: #F2F2F2;
-			border: 0;
-			padding: .3rem .6rem;
-			font-size: 1.1em;
-			border-radius: .4em;
-			width: calc(100% - 1.4rem);
-			margin-bottom: .5rem;
-			font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
-			box-shadow: 0 1px 5px 0 rgba(0,0,0,.3);
-			transition: .15s box-shadow;
-		}
-
-		.cl3:focus {
-			box-shadow: 0 2px 5px 2px rgba(0,0,0,.3);
-		}
-
-		#idk, #idw {
-			opacity: 0;
-			position: absolute;
-			top: 0;
-			pointer-events: none;
-		}
-
 		.nojscrossstripes{
 			height:10%;
 			width:100%;
@@ -543,36 +292,6 @@
 			width:40vmin;
 			display:block;
 			margin:auto
-		}
-
-		#idm {
-			table-layout: fixed;
-			width: 100%;
-			margin-top: 2em;
-			border-collapse: collapse;
-		}
-
-		#idm td {
-			position: relative;
-			cursor: pointer;
-			padding-top: .4em;
-		}
-
-		.cl5 {
-			height: 9.0754vw;
-			width: 16.1419vw;
-			border: 1px solid #000;
-			box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
-			margin: -1px;
-		}
-
-		#idm td:hover {
-			background: rgba(0,0,0,.15);
-		}
-
-		.cl6 {
-			margin: .75em 0 .35em;
-			font-family: "Open Sans", Arial, sans-serif;
 		}
 
 		#html_editor_display {
@@ -623,70 +342,6 @@
 			width: 100%;
 			border-radius: inherit;
 			background: #F0F0F0;
-		}
-
-		#idy {
-			width: calc(40vw - 3.6em);
-			height: calc(calc(40vw - 3.6em) * 0.5622262558930485);
-			margin-top: 2em;
-		}
-
-		#idA {
-			width: calc(40vw - 3.6rem);
-			font-size: 1em;
-			text-align: center;
-			font-family: Arial, sans-serif;
-			margin: .25em -1px .75em;
-			border: 1px solid #AAA;
-		}
-
-		#idA:hover, #idA:focus {
-			box-shadow: 0 0 5px 2px rgba(0, 172, 193, .4);
-			border: 1px solid #00acc1;
-		}
-
-		.cl9 {
-			position: absolute;
-			right: .2em;
-			top: .2em;
-			width: 1.2em;
-			height: 1.2em;
-			background: #FFF url("svg/exit.svg") 50% 50%/70% 70% no-repeat;
-			border: 1px solid #AAA;
-			margin: -1px;
-			border-radius: .3em;
-			display: none;
-		}
-
-		.cl9:hover, #idD:hover {
-			background-color: #EEE;
-		}
-
-		#idm td:hover .cl9 {
-			display: block;
-		}
-
-		html-entity-replacer,
-		html-element-replacer {
-			display: inline;
-			pointer-events: initial;
-			cursor: pointer;
-		}
-
-		#idC {
-			width: 100%;
-		}
-
-		#idC tr:first-child {
-			font-size: calc((50vw - 4.5em) / 3 / 4.5);
-		}
-
-		#idC tr:nth-child(3) {
-			font-size: calc((50vw - 4.5em) / 3 / 8);
-		}
-
-		#idC tr:nth-child(3) td {
-			padding: .3em 0 0 0
 		}
 
 		#idD {
@@ -788,48 +443,8 @@
 			margin: 0 .35em 0 .2em;
 		}
 
-		#idE {
-			text-align: justify;
-			font-size: .95em;
-		}
-
 		a:not([href]) {
 			cursor: pointer;
-		}
-
-		#dialog_about .content a, #dialog_license .content a {
-			color: #00acc1;
-			text-decoration: none;
-		}
-
-		#dialog_about .content a:hover, #dialog_license .content a {
-			text-decoration: underline;
-		}
-
-		#idG img {
-			width: 80%;
-		}
-
-		#idF {
-			table-layout: fixed;
-			width: 100%;
-		}
-
-		#idF tr:not(:first-child) td {
-			text-align: left;
-			font-size: 95%;
-		}
-
-		#idF td:not(#idG) {
-			padding: .2em 0 .2em 2em;
-		}
-
-		#idF h1 {
-			font-family: "Open Sans", Arial, sans-serif;
-		}
-
-		#idG {
-			width: 40%;
 		}
 
 		.cla {
@@ -913,7 +528,7 @@
 			<div class='exit' tabindex='0'></div>
 			<div class='optioncontainer'>
 				<div class='option disabled' tabindex='0' id='id9'>Open File</div>
-				<div class='option exit' tabindex='0' id='ida'>Cancel</div>
+				<div class='option exit' tabindex='0'>Cancel</div>
 			</div>
 		</div>
 		<div id='dialog_edit_html' class='dialog'>
@@ -924,7 +539,7 @@
 			<div class='exit' tabindex='0'></div>
 			<div class='optioncontainer'>
 				<div class='option' tabindex='0' id='idd'>Save</div>
-				<div class='option exit' tabindex='0' id='idc'>Cancel</div>
+				<div class='option exit' tabindex='0'>Cancel</div>
 			</div>
 		</div>
 		<div id='dialog_edit_attributes' class='dialog'>
@@ -1041,7 +656,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.1.0.5</h3></td>
+						<td><h3>Version 1.2.0</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1104,6 +719,41 @@
 				<div class='option exit' tabindex='0'>Cancel</div>
 			</div>
 		</div>
+		<div id='dialog_new_child' class='dialog'>
+			<span>Add New Child</span>
+			<div class='content' id='ida'>
+				<h3>Select the name of the node to insert.</h3>
+				<br>
+				<input type='text' id='idc' class='clf' placeholder='Custom HTML Element'>
+				<div class='clf' tabindex='0'>&lt;div&gt;</div>
+				<div class='clf' tabindex='0'>&lt;p&gt;</div>
+				<div class='clf' tabindex='0'>&lt;span&gt;</div>
+				<div class='clf' tabindex='0'>&lt;a&gt;</div>
+				<div class='clf' tabindex='0'>#text</div>
+				<br>
+				<br>
+				<div id='idW'>
+					<input type='text' id='idX' placeholder='Text Content'>
+					<span style='font-size:.7em;vertical-align:top'>*Adjacent text nodes are automatically combined<br></span>
+					<br>
+					<br>
+				</div>
+				<div id='idT'>
+					<h3>Position the node relative to its siblings.</h3>
+					<br>
+					<div id='idU'>
+						<div id='idV'></div>
+					</div>
+					<br>
+					<br>
+				</div>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='optioncontainer'>
+				<div class='option disabled' id='idS' tabindex='0'>Insert Node</div>
+				<div class='option exit' tabindex='0'>Cancel</div>
+			</div>
+		</div>
 	</div>
 	<div id='html_editor_display'>
 		<span id='ids'>HTML Tree<div id='idD'></div></span>
@@ -1132,24 +782,29 @@
 	<textarea id='clipboard' class='hidden'></textarea>
 	<iframe id='cssTest'></iframe>
 	<noscript id='deferred-styles'>
-		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic' rel='stylesheet' type='text/css'>
+		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
+		<link href='css/ContextMenu.css' rel='stylesheet' type='text/css'>
+		<link href='css/deferredElements.css' rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
 		<link href='css/topText.css' rel='stylesheet' type='text/css'>
 	</noscript>
 	<script type="text/javascript">
-		// Taken straight from https://developers.google.com/speed/docs/insights/OptimizeCSSDelivery#example
-		// Optimizes loading Open Sans from googleapis
-		var loadDeferredStyles = function() {
-			var addStylesNode = document.getElementById("deferred-styles");
-			var replacement = document.createElement("div");
-			replacement.innerHTML = addStylesNode.textContent;
-			document.body.appendChild(replacement)
-			addStylesNode.parentElement.removeChild(addStylesNode);
-		};
-		var raf = requestAnimationFrame || mozRequestAnimationFrame ||
-			webkitRequestAnimationFrame || msRequestAnimationFrame;
-		if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
-		else window.addEventListener('load', loadDeferredStyles);
+		!function() {
+			// Taken straight from https://developers.google.com/speed/docs/insights/OptimizeCSSDelivery#example
+			// Optimizes loading Open Sans from googleapis
+			var loadDeferredStyles = function() {
+				var addStylesNode = document.getElementById("deferred-styles");
+				var replacement = document.createElement("div");
+				replacement.innerHTML = addStylesNode.textContent;
+				document.body.appendChild(replacement)
+				addStylesNode.parentElement.removeChild(addStylesNode);
+			};
+			var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+				webkitRequestAnimationFrame || msRequestAnimationFrame;
+			if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
+			else window.addEventListener('load', loadDeferredStyles);
+		}();
 	</script>
 	<script type='text/javascript' src='/JavaScript/Draggable-Elements/Draggable-Elements.js'></script>
 	<script type="text/javascript" src="script/ContextMenu.js"></script>
@@ -1197,7 +852,6 @@
 		!function(){
 			/*
 				TODO:
-				 - Insert Child dialog
 				 - CSSEditor <textarea> on comma + enter
 				 - Use blob library for saving
 				 - Edit prefs dialog
@@ -1477,6 +1131,7 @@
 								idQ.focus();
 							},
 							title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the element\'s classes',
+							image: 'svg/edit_class.svg',
 							id: 'editClass'
 						},{
 							name: 'Edit ID&#133;',
@@ -1496,9 +1151,87 @@
 							},
 							title: '(' + locale.cmdKey + ' + Shift + 3) Allows you to quickly edit the element\'s ID',
 							separate: true,
+							image: 'svg/edit_id.svg',
 							id: 'editId'
 						},{
 							name: 'Insert Child&#133;',
+							func: function(_,close) {
+								close();
+								var element = document.querySelector('[data-selected-element="selected"]');
+								if (!element) return;
+								backdialog.style.display = 'block';
+								document.getElementById('dialog_new_child').style.display = 'block';
+								Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
+									element.className = 'clf';
+								});
+								var obj;
+								document.getElementById('ida').insertChild = obj = {textNode: Symbol(), element: element.alias, children: null};
+								var idc = document.getElementById('idc');
+								idc.value = '';
+								idc.focus();
+								var hasChildren = false;
+								function esc(str) {
+									str = str.replace(/^\s+|\s+$/g,' ').replace(/\$/g,'$$');
+									str = (str.length < 33 ? str : str.substring(0,15) + '-$-' + str.substring(str.length - 15))
+									var test = document.createElement('span');
+									test.innerText = str;
+									return test.innerHTML.replace(/<br>/g, '<span style="color:#009;font-weight:700">\\n</span>').replace(/-\$-/,'<span style="color:#009;font-weight:700">&#133;</span>').replace(/\$\$/g,'$');
+								}
+								Array.prototype.forEach.call(element.alias.childNodes, function(child, i) {
+									if (child.nodeType == 1) {
+										hasChildren = true;
+										var format = formatElementInfo(child);
+										(obj.children = obj.children || []).push({str: '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="font-weight:700">&lt;</span>' + format.name + format.id + format.class + '<span style="font-weight:700">&gt;</span></span>', i: i, n: child});
+									} else if (child.nodeType == 3 && child.textContent.trim()) {
+										hasChildren = true;
+										(obj.children = obj.children || []).push({str: '<span style="color:#F44;font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace" title="#text &quot;' + quoteEscape(child.textContent) + '&quot;">#text "<span style="color:#33F;white-space:pre-wrap">' + esc(child.textContent) + '</span>"</span>', i: i, n: child});
+									}
+								});
+								document.getElementById('idT').style.display = hasChildren ? '' : 'none';
+								if (hasChildren) {
+									var html = '';
+									for (var i = obj.children.length - 1; i >= 0; i--) {
+										html = '<div class="clh" tabindex="0" data-index="' + obj.children[i].i + '">' + obj.children[i].str + '</div>' + html;
+									}
+									var idU = document.getElementById('idU');
+									idU.innerHTML = '<div id="idV" tabindex="0">Your Node</div>' + html;
+
+									var index = obj.children[0].i,
+										clicked = false,
+										replace = function(e) {
+											var attr = this.getAttribute('data-index');
+											if (index < attr || this.previousElementSibling == idV) {
+												idU.insertBefore(idV, this.nextElementSibling);
+											} else {
+												idU.insertBefore(idV, this);
+											}
+											index = +this.getAttribute('data-index');
+											obj.index = Array.prototype.indexOf.call(idU.children, idV);
+											if (e.type == 'focus' || e.type == 'keydown') idV.focus();
+										},
+										clickEvent = function(e) {
+											if (!clicked) Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
+												element.removeEventListener('mouseenter', replace);
+												element.removeEventListener('focus', replace);
+												element.addEventListener('click', replace);
+												element.addEventListener('keydown', function(e) {
+													if (e.keyCode == 13) replace.call(this,e);
+												});
+											});
+											clicked = true;
+										};
+
+									// On hover for [Right Click] > Insert Child... > [Node Position <div>s]
+									Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
+										element.addEventListener('mouseenter', replace);
+										element.addEventListener('focus', replace);
+									});
+									idV.addEventListener('click', clickEvent);
+									idV.addEventListener('keydown', function(e) {
+										if (e.keyCode == 13) clickEvent.call(this);
+									})
+								}
+							},
 							title: 'Inserts a child node into the selected node',
 							image: 'svg/insert_child.svg',
 							separate: true,
@@ -1594,7 +1327,7 @@
 								opacity = -Math.abs(currentFrame - 25) + 25,
 								vh = framewindow.innerHeight / 100,
 								vw = framewindow.innerWidth / 100;
-
+									if (hasBlurred) return;
 								// Runs when the element is blurred
 								function blur() {
 									// Browsers sometimes add an extra <br> to the end of the element for no reason
@@ -1990,7 +1723,9 @@
 								contextmenus[0].getItem('editClass').dispatchEvent(new Event('click'));
 							},
 							title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the elements\' classes',
-							separate: true
+							separate: true,
+							image: 'svg/edit_class.svg',
+							if: 'editClass'
 						},{
 							name: 'Select Children',
 							func: function(e,close) {
@@ -2413,6 +2148,7 @@
 							},
 							title: '(' + locale.cmdKey + ' + I) Selects all not-selected elements',
 							separate: true,
+							image: 'svg/invert.svg',
 							id: 'invert'
 						},{
 							name: 'Select Children',
@@ -2677,17 +2413,17 @@
 				}
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
-				updateTooltip();
 				updateTreeSelections();
 				selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+				updateTooltip();
 			});
 			overlay.addEventListener('mousemove', function(e) {
-				updateTooltip();
 				this.mousePositions = {x: e.clientX, y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop)};
+				updateTooltip();
 			});
 			overlay.addEventListener('mouseleave', function() {
-				if (!document.querySelectorAll('[data-selected-element=selected]').length) document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
 				this.mousePositions = null;
+				updateTooltip();
 			});
 
 			// Other stuff
@@ -2708,7 +2444,7 @@
 			}
 			// Lets dialogs && .topText <div>s be draggable
 			Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
-				new DraggableElement(element,{bounds:'body'});
+				new DraggableElement(element,{bounds:'body',init:function(){this.style.left = innerWidth / 4 + 'px'}});
 			});
 			Array.prototype.forEach.call(document.getElementsByClassName('topText'), function(element) {
 				element.style.left = '0';
@@ -2783,6 +2519,7 @@
 
 				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), body = framewindow.document.body;
 				body.alias = overlay;
+				overlay.alias = body;
 				overlay.innerHTML = '';
 				if (body.htmlStudioTextBeingEdited) overlay.setAttribute('data-html-studio-text-being-edited', 'true');
 				else overlay.removeAttribute('data-html-studio-text-being-edited');
@@ -2890,7 +2627,8 @@
 								return vh * $1 + 'px';
 							}));
 
-							clonednode.style.fontFamily = getComputedStyle(this).fontFamily;
+							var comStyles = getComputedStyle(this);
+							clonednode.style.fontFamily = comStyles.fontFamily;
 							// Saves the computed styles as a hidden attribute of the original node
 							this.htmlStudioComputedStyles = clonednode.getAttribute('style') || '';
 							// Other styles to make them transparent (since they are just an overlay)
@@ -2939,6 +2677,7 @@
 
 				document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
 
+				restoreSelection();
 				updateTree();
 			}
 
@@ -2984,8 +2723,9 @@
 			function restoreSelection(preset) {
 				var position = overlay.mousePositions || {x:0, y: Math.round(em(4.45))};
 				// Ensure nothing is selected
+				preset = preset || selection;
 				deselect();
-				(preset || selection).forEach(function(element) {
+				preset.forEach(function(element) {
 					clickhandler.call(element.alias.alias, {
 						stopPropagation: function(){},
 						clientX: position.x,
@@ -3085,16 +2825,50 @@
 				})
 			};
 			function quoteEscape(string) {
-				return string.replace(/"/g, "&quot;");
+				return string.replace(/&/g,'&amp;').replace(/"/g, "&quot;");
 			};
+			// Returns an object with the info of the provided element
+			function formatElementInfo(elem) {
+				return {
+					toString: function() {
+						return '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;font-size:1rem">' + this.name + this.id + this.class + '</span>';
+					},
+					name: {
+						toString: function() {
+							return '<span style="color:#33f">' + this.value + '</span>';
+						},
+						value: elem.nodeName.toLowerCase(),
+						format: function(str1, str2) {
+							return this.value ? str1 + this.value + str2 : '';
+						}
+					},
+					id: {
+						toString: function() {
+							return this.value ? '<span style="color:#009">#' + this.value + '</span>' : '';
+						},
+						value: elem.id.trim(),
+						format: function(str1, str2) {
+							return this.value ? str1 + '#' + this.value + str2 : '';
+						}
+					},
+					class: {
+						toString: function() {
+							return this.value ? '<span style="color:#F44">.' + this.value.replace(/\s+/g,'.') + '</span>' : '';
+						},
+						value: (elem.className ? elem.className.baseVal ? elem.className.baseVal : typeof elem.className == 'string' ? elem.className : '' : '').trim(),
+						format: function() {
+							return this.value ? str1 + '.' + this.value.replace(/\s+/g,'.') + str2 : '';
+						}
+					}
+				}
+			}
 			// Updates the text shown in the tooltip
-			function updateTooltip() {
-				var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			function updateTooltip(custom) {
+				var nodes = custom || document.querySelectorAll('[data-selected-element=selected]');
 				if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
 				else if (nodes[0]) {
-					var node = nodes[0].alias,
-						className = node.className ? 'baseVal' in new Object(node.className) ? (node.className.baseVal.trim() || false) : (node.className.trim() || false) : false;
-					document.getElementById('tooltiptext').innerHTML = '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;font-size:1rem"><span style="color:#33f">' + node.nodeName.toLowerCase() + '</span>' + (node.id ? '<span style="color:#009">#' + node.id + '</span>' : '') + (className ? '<span style="color:#F44">.' + className.replace(/\s+/g,'.') + '</span>' : '') + '</span>';
+					var node = nodes[0].alias;
+					document.getElementById('tooltiptext').innerHTML = formatElementInfo(node);
 				} else if (overlay.mousePositions) {
 					document.getElementById('tooltiptext').innerHTML = 'x: ' + overlay.mousePositions.x + ', y: ' + overlay.mousePositions.y;
 				} else {
@@ -3221,6 +2995,88 @@
 				license.addEventListener('click', select);
 				license.addEventListener('keypress', keypress);
 			}();
+
+			// Insert Node button for [Right Click] > Insert Child...
+			document.getElementById('idS').addEventListener('click', function() {
+				var obj = document.getElementById('ida').insertChild,
+					node = obj.nodeName == obj.textNode ? document.createTextNode(document.getElementById('idX').value) : document.createElement(obj.nodeName);
+				var symbol = Symbol();
+				var refNode = obj.children[obj.index] || {n:{s:symbol, previousSibling: obj.children[obj.children.length - 1].n}};
+
+				if (node.nodeType == 3 && (refNode.n.previousSibling || {nodeType: 0}).nodeType == 3) {
+					refNode.n.previousSibling.textContent += node.textContent;
+				} else if (node.nodeType == 3 && (refNode.n || {nodeType: 0}).nodeType == 3) {
+					refNode.n.textContent = node.textContent + refNode.n.textContent;
+				} else if (node.nodeType == 1 && refNode.n.nodeType == 1 && refNode.n.previousSibling.nodeType == 3 && !refNode.n.previousSibling.textContent.trim()) {
+					var text = refNode.n.previousSibling.textContent;
+					obj.element.insertBefore(node, refNode.n)
+					obj.element.insertBefore(document.createTextNode(text), refNode.n);
+				} else {
+					obj.element.insertBefore(node, refNode.n.s == symbol ? null : refNode.n);
+				}
+
+				document.getElementById('dialog_new_child').style.display = '';
+				backdialog.style.display = '';
+
+				history.update('Insert Child');
+				overlayUpdate();
+				clickhandler.call(node.nodeType == 1 ? node.alias : obj.element, {
+					stopPropagation: function(){},
+					clientX: 0,
+					clientY: Math.round(em(4.45)),
+					isTrusted: true
+				});
+				updateTooltip();
+			});
+
+			// On click for node name selector <div>s in [Right Click] > Insert Child...
+			Array.prototype.forEach.call(document.querySelectorAll('.clf:not(input)'), function(element) {
+				element.addEventListener('click', function() {
+					Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
+						element.className = 'clf';
+					});
+					element.className = 'clf clg';
+					document.getElementById('idS').className = 'option';
+					var ida = document.getElementById('ida');
+					if (element.innerText == '#text') {
+						ida.insertChild.nodeName = ida.insertChild.textNode;
+						document.getElementById('idW').style.display = 'block';
+					} else {
+						ida.insertChild.nodeName = element.innerText.replace(/^<|>$/g,'');
+						document.getElementById('idW').style.display = '';
+					}
+				});
+				element.addEventListener('keydown', function(e) {
+					if (e.keyCode == 13) this.dispatchEvent(new Event('click'));
+				});
+			});
+
+			// On keyup for [Right Click] > Insert Child... > Custom HTML Element
+			document.getElementById('idc').addEventListener('keyup', function() {
+				Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
+					element.className = 'clf';
+				});
+				if (/^<?[a-zA-Z][a-zA-Z\d-]*>?$/.test(this.value.trim())) {
+					this.className = 'clf clg';
+					document.getElementById('idS').className = 'option';
+					document.getElementById('ida').insertChild.nodeName = this.value.trim().replace(/^<|>$/g,'');
+					document.getElementById('idW').style.display = '';
+				} else if (this.value.trim().toLowerCase() == '#text') {
+					this.className = 'clf clg';
+					document.getElementById('idS').className = 'option';
+					var obj = document.getElementById('ida').insertChild;
+					obj.nodeName = obj.textNode;
+					document.getElementById('idW').style.display = 'block';
+				} else {
+					this.className = 'clf';
+					document.getElementById('idS').className = 'option disabled';
+					document.getElementById('ida').insertChild.nodeName = null;
+					document.getElementById('idW').style.display = '';
+				}
+			});
+			document.getElementById('idc').addEventListener('focus', function() {
+				this.dispatchEvent(new Event('keyup'));
+			});
 
 			// On mouseover for #logo
 			// Clears header context menus when user enters #logo
@@ -3354,7 +3210,7 @@
 					// getComputedStyles returns old styles until the styles have updated
 					setTimeout(overlayUpdate, 500);
 					setTimeout(overlayUpdate, 1000);
-					// Close the current idalog
+					// Close the current dialog
 					closeDialogs();
 					// Add a new entry into the user's history
 					history.update('Create style sheet');
@@ -3663,7 +3519,7 @@
 					var width = document.getElementById('titlewidth');
 					width.innerText = this.value;
 					document.getElementById('title').style.width = width.scrollWidth + em(.6) + 'px';
-					document.title = (this.value || 'HTML Studio') + ' \xb7 ChristianFigueroa.GitHub.io';
+					document.title = (this.value.trim() ? this.value.trim() + ' - ' : '') + 'HTML Studio \xb7 ChristianFigueroa.GitHub.io';
 					framewindow.document.querySelector('title').innerText = this.value;
 				}.bind(this),0);
 			});
@@ -3882,6 +3738,9 @@
 				title.value = history.entries[history.currentEntry].title;
 				if (!title.value) title.style.fontStyle = 'italic';
 				else title.style.fontStyle = '';
+				var width = document.getElementById('titlewidth');
+				width.innerText = title.value;
+				title.style.width = width.scrollWidth + em(.6) + 'px';
 				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(history.entries[history.currentEntry].stylesheets || []));
 				updateStylesheets();
 				overlayUpdate();
@@ -3900,6 +3759,9 @@
 				title.value = history.entries[history.currentEntry].title;
 				if (!title.value) title.style.fontStyle = 'italic';
 				else title.style.fontStyle = '';
+				var width = document.getElementById('titlewidth');
+				width.innerText = title.value;
+				title.style.width = width.scrollWidth + em(.6) + 'px';
 				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(history.entries[history.currentEntry].stylesheets || []));
 				updateStylesheets();
 				overlayUpdate();

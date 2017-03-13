@@ -1,0 +1,111 @@
+@font-face {
+	font-family: 'BPreplay';
+	font-style: italic;
+	font-weight: 700;
+	src: local('BPreplay Bold Italic'),
+		 local('BPreplay-BoldItalic'),
+		 url('/assets/BPreplay-BoldItalics.woff2') format('woff2'),
+		 url('/assets/BPreplay-BoldItalics.woff') format('woff'),
+		 url('/assets/BPreplay-BoldItalics.ttf') format('truetype');
+}
+
+.dialog { 
+	width: 50%;
+	max-height: 75vh;
+	background: #F0F0F0;
+	text-align: center;
+	border-radius: .6em;
+	left: calc(25% - 1px);
+	margin-top: calc(12.5vh - 1px);
+	border: 1px solid #AAA;
+	box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
+	font-family: Arial, sans-serif;
+	position: relative;
+	display: none;
+	cursor: pointer;
+	padding-bottom: 2.2em;
+}
+
+.dialog>span {
+	font-size: 1.1em;
+	display: block;
+	margin: .2em 0;
+}
+
+.dialog>.content {
+	max-height: calc(75vh - 5.9em - 1px);
+	width: calc(100% - 4.5em);
+	position: relative;
+	left: .5em;
+	border-radius: inherit;
+	background: #FFF;
+	border: 1px solid #AAA;
+	margin: -1px -1px .5em;
+	padding: .75em 1.75em;
+	overflow: auto;
+	cursor: initial;
+}
+
+.dialog>.exit {
+	height: 1.2em;
+	width: 1.2em;
+	position: absolute;
+	top: .26em;
+	right: .5em;
+	background: rgba(0, 0, 0, 0) url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	border: 1px solid #AAA;
+	margin: -1px;
+	border-radius: .3em;
+	cursor: pointer;
+}
+
+.dialog>.exit.disabled {
+	background: #F0F0F0;
+	cursor: default;
+}
+
+.dialog .optioncontainer {
+	float: right;
+}
+
+.dialog .option {
+	background: #FFF;
+	display: inline-block;
+	padding: .3em .5em;
+	font-family: Arial, sans-serif;
+	border-radius: .3em;
+	border: 1px solid #AAA;
+	margin: -1px .5em -1px -1px;
+	cursor: pointer;
+	position: static;
+	width: initial;
+	float: left;
+	transition: all .15s linear;
+}
+
+.dialog .option:hover, .dialog>.option:focus {
+	background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
+}
+
+.dialog .option:active {
+	background: linear-gradient(to bottom, #BBB 0%,#DDD 100%);
+	box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
+}
+
+.dialog .option.disabled {
+	background: #F0F0F0;
+	color: #999;
+	box-shadow: initial;
+	cursor: default;
+	pointer-events: none;
+}
+
+.dialog>.content h3 {
+	font-weight: normal;
+	font-family: "Open Sans", Arial, sans-serif;
+	margin: 0;
+}
+
+.dialog>.content h3 strong {
+	font-weight: 600;
+}

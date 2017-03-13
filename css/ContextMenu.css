@@ -1,0 +1,15 @@
+.contextmenuitem {
+	background: #F2F2F2;
+	font-family: Arial, Calibri, Sego UI, sans-serif;
+}
+
+.contextmenu {
+	padding: .2em 0;
+	background-color: #F2F2F2;
+	border: 1px solid #DDD;
+	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
+}
+
+.contextmenu:not(.subcontextmenu) {
+	font-size: 88%;
+}
