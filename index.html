@@ -1327,13 +1327,13 @@
 								opacity = -Math.abs(currentFrame - 25) + 25,
 								vh = framewindow.innerHeight / 100,
 								vw = framewindow.innerWidth / 100;
-									if (hasBlurred) return;
+
 								// Runs when the element is blurred
 								function blur() {
+									if (hasBlurred) return;
 									// Browsers sometimes add an extra <br> to the end of the element for no reason
 									// This deletes that redundant <br>
 									if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName == 'BR') element.alias.removeChild(element.alias.lastChild);
-
 									element.alias.blurred = true;
 
 									// Restores the element's original contenteditable attribute
@@ -2970,9 +2970,9 @@
 				}
 				if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 				else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
-				updateTooltip();
 				updateTreeSelections();
 				selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+				updateTooltip();
 			};
 
 
