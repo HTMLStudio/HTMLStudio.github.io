@@ -410,7 +410,7 @@
 			margin: calc((4.45rem - 1px) * .05) 0 0 5px;
 		}
 
-		.pesudoContextMenuItem {
+		.pseudoContextMenuItem {
 			width: 200px;
 			height: calc((4.45rem - 1px) * .4);
 			display: inline-block;
@@ -423,16 +423,21 @@
 			margin: -1px 0;
 		}
 
-		.pesudoContextMenuItem span {
+		.pseudoContextMenuItem span {
 			vertical-align: middle;
 		}
 
 		#logoContextHolder a {
 			margin-left: 10px;
 			color: #FFF;
+			display: none;
 		}
 
-		a:hover .pesudoContextMenuItem {
+		#logo:hover #logoContextHolder a {
+			display: initial;
+		}
+
+		a:hover .pseudoContextMenuItem {
 			background: #10bcd1;
 			border-color: #10bcd1;
 		}
@@ -478,11 +483,11 @@
 			<div id='titlewidth'></div>
 		</div>
 		<div id='headersectionbar'>
-			<div class='headersection' id='section_file'>File</div>
-			<div class='headersection' id='section_edit'>Edit</div>
-			<div class='headersection' id='section_view'>View</div>
-			<div class='headersection' id='section_stylesheets'>Style Sheets</div>
-			<div class='headersection' id='section_selection'>Selection</div>
+			<div class='headersection' id='section_file' tabindex='0'>File</div>
+			<div class='headersection' id='section_edit' tabindex='0'>Edit</div>
+			<div class='headersection' id='section_view' tabindex='0'>View</div>
+			<div class='headersection' id='section_stylesheets' tabindex='0'>Style Sheets</div>
+			<div class='headersection' id='section_selection' tabindex='0'>Selection</div>
 		</div>
 		<div id='logo'>
 			<table>
@@ -490,10 +495,10 @@
 			</table>
 			<div id='logoDivider'></div>
 			<div id='logoContextHolder'>
-				<a id='meta_about' tabindex='0'><div class='pesudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
-				<a href='help' target='_blank'><div class='pesudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
-				<a href='https://github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'><div class='pesudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
-				<a href='documentation' target='_blank'><div class='pesudoContextMenuItem'><img src='svg/documentation.svg'><span>Documentation</span></div></a>
+				<a id='meta_about' tabindex='0'><div class='pseudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
+				<a href='help' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
+				<a href='https://github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
+				<a href='documentation' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/documentation.svg'><span>Documentation</span></div></a>
 			</div>
 		</div>
 	</div>
@@ -778,6 +783,10 @@
 		<span>You can only edit the ID of one element at a time.</span>
 		<div class='cle'></div>
 	</div>
+	<div id='htmlNoEdit' class='topText'>
+		<span>You can only edit the HTML of one element at a time.</span>
+		<div class='cle'></div>
+	</div>
 	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
 	<iframe id='cssTest'></iframe>
@@ -855,7 +864,6 @@
 				 - CSSEditor <textarea> on comma + enter
 				 - Use blob library for saving
 				 - Edit prefs dialog
-				 - Unwrap elements
 				 - Better grid
 				 - Toggleable toolbar
 				 - Import style sheets
@@ -919,8 +927,7 @@
 							disabled: true,
 							pad: false,
 							css: {
-								fontFamily: 'Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace',
-								fontSize: '1rem'
+								fontFamily: 'Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace'
 							},
 							separate: true,
 							id: 'info'
@@ -1642,6 +1649,40 @@
 							separate: true,
 							id: 'editHTML'
 						},{
+							name: 'Unwrap Element',
+							image: 'svg/transparent.svg',
+							func: function(_,close) {
+								close();
+								var element = document.querySelector('[data-selected-element="selected"]');
+								if (!element || element == overlay) return;
+								element = element.alias;
+								var frag = document.createDocumentFragment();
+								for (var i = element.childNodes.length - 1; i >= 0; i--) {
+									frag.insertBefore(element.childNodes[i], frag.firstChild);
+								}
+								var children = Array.prototype.slice.call(frag.childNodes);
+								element.parentNode.replaceChild(frag, element);
+
+								history.update('Unwrap element');
+								overlayUpdate();
+								deselect();
+								var y = Math.round(em(4.45));
+								children.forEach(function(child) {
+									if (child.nodeType == 1) {
+										clickhandler.call(child.alias, {
+											stopPropagation: function(){},
+											clientX: 0,
+											clientY: y,
+											isTrusted: true,
+											shiftKey: true
+										});
+									}
+								});
+							},
+							title: 'Replaces the element with all its child nodes',
+							separate: true,
+							id: 'unwrap'
+						},{
 							name: 'Delete Node',
 							func: function(_,close) {
 								document.querySelector('[data-selected-element=selected]').alias.parentNode.removeChild(document.querySelector('[data-selected-element=selected]').alias);
@@ -1955,7 +1996,8 @@
 							disabled: true,
 							disabledtitle: 'Work in Progress',
 							id: 'minify'
-						}]
+						}],
+						pseudoParent: document.getElementById('section_file')
 					}),
 					new HTMLStudio.ContextMenu({
 						items: [{
@@ -1987,7 +2029,8 @@
 								]
 							},
 							id: 'prefs'
-						}]
+						}],
+						pseudoParent: document.getElementById('section_edit')
 					}),
 					new HTMLStudio.ContextMenu({
 						items: [{
@@ -2071,7 +2114,8 @@
 							image: 'svg/checkmark.svg',
 							imageoff: 'svg/transparent.svg',
 							id: 'tooltip'
-						}]
+						}],
+						pseudoParent: document.getElementById('section_view')
 					}),
 					new HTMLStudio.ContextMenu({
 						// Placeholder for Stylesheets header
@@ -2080,7 +2124,8 @@
 							disabled: true,
 							disabledtitle: 'Looks like something went wrong in the code and this context menu couldn\'t be displayed.',
 							id: 'cssPlaceholder'
-						}]
+						}],
+						pseudoParent: document.getElementById('section_stylesheets')
 					}),
 					new HTMLStudio.ContextMenu({
 						items: [{
@@ -2190,7 +2235,8 @@
 							title: 'Select element(s) using a CSS selector',
 							image: 'svg/select_by_selector.svg',
 							id: 'selectByCSS'
-						}]
+						}],
+						pseudoParent: document.getElementById('section_selection')
 					})
 				],
 				css = [],
@@ -2231,7 +2277,8 @@
 						disabledtitle: 'Work in Progress',
 						separate: true,
 						id: 'importURL'
-					}]
+					}],
+					pseudoParent: document.getElementById('section_stylesheets')
 				},
 				preventUpdates = false;
 
@@ -2354,7 +2401,7 @@
 			// Make sure <head> has a proper title
 			framewindow.document.head.appendChild(framewindow.document.createElement('title'));
 			framewindow.document.querySelector('title').innerText = document.getElementById('title').value;
-			// Disable undo and redo buttons if ncessary
+			// Disable undo and redo buttons if necessary
 			contextmenus[3].getItem('undo').disabled = !history.currentEntry;
 			contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
 			if (history.entries.length) {
@@ -2374,10 +2421,12 @@
 				e.stopPropagation();
 				var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
 				if (!index) (document.querySelector('[data-selected-element=selected]') || overlay).dispatchEvent(new Event('click'));
-				if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
+				if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
 				if (!index) {
-					var node = document.querySelector('[data-selected-element=selected]') || overlay;
-					contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.alias.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.trim().replace(/\s+/g,'<wbr>.') + '</span>' : typeof node.alias.className == 'string' && node.alias.className.trim() ? '<span style="color:#F44"><wbr>.' + node.alias.className.trim().replace(/\s+/g,'<wbr>.') + '</span>' : '');
+					var node = document.querySelector('[data-selected-element=selected]') || overlay,
+						format = formatElementInfo(node.alias),
+						re = /(?:([a-z])(?=[A-Z\d])|(\d)(?=[a-zA-Z])|([a-zA-Z\d])(?=[^a-zA-Z\d])|([^a-zA-Z\d])(?=[a-zA-Z\d]))/g;
+					contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : '');
 					contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
 					contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
 					contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
@@ -2391,7 +2440,7 @@
 					})();
 				}
 				closeHeaders();
-				document.body.appendChild(contextmenus[index].node);
+				contextmenus[index].open();
 				var style = contextmenus[index].node.getBoundingClientRect();
 				contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
 				contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
@@ -2520,6 +2569,7 @@
 				var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), body = framewindow.document.body;
 				body.alias = overlay;
 				overlay.alias = body;
+				overlay.isOverlay = true;
 				overlay.innerHTML = '';
 				if (body.htmlStudioTextBeingEdited) overlay.setAttribute('data-html-studio-text-being-edited', 'true');
 				else overlay.removeAttribute('data-html-studio-text-being-edited');
@@ -2531,10 +2581,12 @@
 					e.stopPropagation();
 					var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
 					if (!index) clonednode.dispatchEvent(new Event('click'));
-					if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.body.removeChild(document.getElementsByClassName('contextmenu')[0]);
+					if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
 					if (!index) {
-						var node = document.querySelector('[data-selected-element=selected]') || clonednode;
-						contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="color:#33F">' + node.alias.nodeName.toLowerCase() + '</span>' + (node.alias.id ? '<span style="color:#009"><wbr>#' + node.alias.id + '</span>' : '') + (node.alias.className && node.alias.className.baseVal ? '<span style="color:#F44"><wbr>.' + node.alias.className.baseVal.trim().replace(/\s+/g,'<wbr>.') + '</span>' : typeof node.alias.className == 'string' && node.alias.className.trim() ? '<span style="color:#F44"><wbr>.' + node.alias.className.trim().replace(/\s+/g,'<wbr>.') + '</span>' : '');
+						var node = document.querySelector('[data-selected-element=selected]') || clonednode,
+							format = formatElementInfo(node.alias),
+							re = /(?:([a-z])(?=[A-Z\d])|(\d)(?=[a-zA-Z])|([a-zA-Z\d])(?=[^a-zA-Z\d])|([^a-zA-Z\d])(?=[a-zA-Z\d]))/g;
+						contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : '');
 						contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
 						contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
 						contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
@@ -2548,7 +2600,7 @@
 						})();
 					}
 					closeHeaders();
-					document.body.appendChild(contextmenus[index].node);
+					contextmenus[index].open();
 					var style = contextmenus[index].node.getBoundingClientRect();
 					contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
 					contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
@@ -2590,6 +2642,7 @@
 						var clonednode = this.cloneNode();
 						this.alias = clonednode;
 						clonednode.alias = this;
+						clonednode.isOverlay = true;
 						if (clonednode instanceof Element || clonednode.nodeType == 1) {
 							var DOMNodeObject = {
 								name: clonednode.nodeName,
@@ -2654,12 +2707,18 @@
 							// Prevents the user from editting the inner text
 							clonednode.removeAttribute('contenteditable');
 						}
-						parent.insertBefore(clonednode, parent.firstChild);
+
 						if (this.childNodes.length) {
 							for (var i = this.childNodes.length - 1; i >= 0; i--) {
 								clone.call(this.childNodes[i], clonednode, DOMNodeObject);
 							}
 						}
+
+						if (clonednode.nodeType == 3 && parent.firstChild && parent.firstChild.nodeType == 3) {
+							parent.firstChild.textContent = clonednode.textContent + parent.firstChild.textContent;
+							parent.firstChild.alias.textContent = this.textContent + parent.firstChild.alias.textContent;
+							this.parentNode.removeChild(this);
+						} else parent.insertBefore(clonednode, parent.firstChild);
 					};
 					clone.call(elements[i], overlay, DOM);
 				}
@@ -2684,6 +2743,21 @@
 
 
 			// Some global functions used in different areas
+			// Array.prototype.forEach
+			function forEach(array, func) {
+				return Array.prototype.forEach.call(array, func);
+			}
+
+
+			// Checks if a dialog is open
+			function dialogOpen() {
+				var elements = document.getElementsByClassName('dialog');
+				for (var i = elements.length - 1; i >= 0; i--) {
+					if (elements[i].style.display == 'block') return true;
+				}
+				return false;
+			}
+
 			// Used for event listeners to trigger blur when the user presses enter
 			function onEnter(e) {
 				if (e.keyCode == 13) this.blur();
@@ -2812,7 +2886,7 @@
 				Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element) {
 					sectionopen = false;
 					contextmenus.forEach(function(context) {
-						if (context.node.parentNode == document.body) document.body.removeChild(context.node);
+						context.close();
 					});
 					element.style.background = '';
 				})
@@ -3298,7 +3372,7 @@
 			// Controls opening and closing of header sections
 			var sectionopen = false;
 			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element,index,array){
-				element.addEventListener('mousedown', function(e) {
+				function open(e) {
 					e.stopPropagation();
 					sectionopen = !sectionopen;
 					var open = true;
@@ -3308,7 +3382,7 @@
 					if (open) {
 						dispatchEvent(new MouseEvent('mousedown'));
 						if (index == 3) contextmenus[5] = (function(){
-							var arg = {items: cssContextMenuArg.items.slice()};
+							var arg = {items: cssContextMenuArg.items.slice(), pseudoParent: cssContextMenuArg.pseudoParent};
 							Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 								arg.items.push({
 									name: (stylesheet.getAttribute('data-name') || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="font-style:italic">Unnamed Style Sheet</span>',
@@ -3397,20 +3471,20 @@
 							})();
 							contextmenus[6].getItem('selectParent').disabled = elements.length == 0 || (elements.length == 1 && overlay.getAttribute('data-selected-element') == 'selected');
 						}
-						document.body.appendChild(contextmenus[index + 2].node);
+						contextmenus[index + 2].open();
 						contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
 						contextmenus[index + 2].node.style.top = this.getBoundingClientRect().bottom - em() + 'px';
 						this.style.background = '#DDD';
 					} else {
-						document.body.removeChild(contextmenus[index + 2].node);
+						contextmenus[index + 2].close();
 						this.style.background = '';
 					};
 					setTimeout(function(){
 						if (document.selection) document.selection.empty();
 						else if (getSelection) getSelection().removeAllRanges();
 					},0)
-				});
-				element.addEventListener('mouseenter', function() {
+				}
+				function enter(e) {
 					var open = false;
 					for (var i = array.length - 1; i >= 0 && !open; i--) {
 						if (contextmenus[i + 2].node.parentNode) open = true;
@@ -3419,12 +3493,12 @@
 					Array.prototype.forEach.call(array, function(element, index) {
 						element.style.background = '';
 						try{
-							document.body.removeChild(contextmenus[index + 2].node);
+							contextmenus[index + 2].close();
 						}catch(_){}
 					});
 					dispatchEvent(new MouseEvent('mousedown'));
 					if (index == 3) contextmenus[5] = (function(){
-						var arg = {items: cssContextMenuArg.items.slice()};
+						var arg = {items: cssContextMenuArg.items.slice(), pseudoParent: cssContextMenuArg.pseudoParent};
 						Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 							arg.items.push({
 								name: (stylesheet.getAttribute('data-name') || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="font-style:italic">Unnamed Style Sheet</span>',
@@ -3503,10 +3577,39 @@
 						}
 						return new HTMLStudio.ContextMenu(arg);
 					})();
-					document.body.appendChild(contextmenus[index + 2].node);
+					contextmenus[index + 2].open();
 					contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
 					contextmenus[index + 2].node.style.top = this.getBoundingClientRect().bottom - em() + 'px';
 					this.style.background = '#DDD';
+				}
+				element.addEventListener('mousedown', open);
+				element.addEventListener('mouseenter', enter);
+				element.addEventListener('keydown', function(e) {
+					if (e.keyCode == 13) open.call(this,e);
+					else if (e.keyCode == 40) {
+						if (!contextmenus[index + 2].node.parentNode) closeHeaders(), open.call(this, e);
+						contextmenus[index + 2].getItem(0).focus();
+					} else if (e.keyCode == 37) {
+						(array[index - 1] || array[array.length - 1]).focus();
+					} else if (e.keyCode == 39) {
+						(array[index + 1] || array[0]).focus();
+					} else if (e.keyCode == 38) {
+						if (!contextmenus[index + 2].node.parentNode) closeHeaders(), open.call(this, e);
+						contextmenus[index + 2].node.lastElementChild.focus();
+					}
+				});
+				element.addEventListener('focus', enter);
+			});
+
+			contextmenus.forEach(function(cm) {
+				forEach(cm.node.children, function(child, index) {
+					if (child.nodeName == 'LI') {
+						child.addEventListener('keydown', function(e) {
+							if (e.keyCode == 40 && child.nextElementSibling) {
+								(child.nextSibling.nodeName == 'LI' ? child.nextElementSibling : child.nextElementSibling.nextElementSibling).focus();
+							}
+						});
+					}
 				});
 			});
 
@@ -3719,8 +3822,14 @@
 				document.getElementById('framecontainer').dispatchEvent(new Event('scroll'));
 			});
 			addEventListener('mousedown',function(e){
+				if (e.shiftKey && e.target.isOverlay) {
+					if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
+					else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
+					e.stopPropagation();
+					e.preventDefault();
+				}
 				if (!document.getElementsByClassName('contextmenu')[0] || (e.target.className && e.target.className.baseVal == undefined && e.target.className.includes('contextmenu'))) return;
-				document.body.removeChild(document.getElementsByClassName('contextmenu')[0] || {});
+				document.getElementsByClassName('contextmenu')[0].close();
 				if (sectionopen) {
 					Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element, index) {
 						element.style.background = '';
@@ -3834,11 +3943,11 @@
 				// Only keeps #clipboard as target if user is interacting with elements
 				var target = (e.target == clipboard && e.keyCode != 88) || !e.target.getAttribute ? document.body : e.target;
 				// Ctrl + Z
-				if (e.keyCode == 90 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') undo();
+				if (e.keyCode == 90 && locale.cmdKeyPressed(e) && !dialogOpen() && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') undo();
 				// Ctrl + Y
-				else if (e.keyCode == 89 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') redo();
+				else if (e.keyCode == 89 && locale.cmdKeyPressed(e) && !dialogOpen() && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') redo();
 				// Ctrl + A
-				else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
+				else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && !dialogOpen() && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
 					e.preventDefault();
 					e.stopPropagation();
 					for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
@@ -3848,19 +3957,19 @@
 					updateTreeSelections();
 					selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 				// Ctrl + D
-				} else if (e.keyCode == 68 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 68 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					deselect();
 					updateTooltip();
 					updateTreeSelections();
 				// Ctrl + O
-				} else if (e.keyCode == 79 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 79 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[2].getItem('open').dispatchEvent(new MouseEvent('click'));
 				// Ctrl + N
-				} else if (e.keyCode == 78 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 78 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[2].getItem('new').dispatchEvent(new MouseEvent('click'));
@@ -3870,7 +3979,7 @@
 					e.stopPropagation();
 					contextmenus[4].getItem('fullscreen').dispatchEvent(new MouseEvent('click'));
 				// Ctrl + B
-				} else if (e.keyCode == 66 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 66 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					clickhandler.call(overlay, {
@@ -3883,22 +3992,22 @@
 
 					updateTooltip();
 				// Ctrl + I
-				} else if (e.keyCode == 73 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 73 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[6].getItem('invert').dispatchEvent(new MouseEvent('click'));
 				// Ctrl + Up Arrow
-				} else if (e.keyCode == 38 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 38 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[1].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 				// Ctrl + Down Arrow
-				} else if (e.keyCode == 40 && locale.cmdKeyPressed(e)) {
+				} else if (e.keyCode == 40 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.preventDefault();
 					e.stopPropagation();
 					contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 				// Ctrl + X
-				} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard) {
+				} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard && !dialogOpen()) {
 					e.stopPropagation();
 					e.preventDefault();
 					if (e.shiftKey) {
@@ -3907,18 +4016,26 @@
 					}
 					contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
 				// Del or Backspace
-				} else if ((e.keyCode == 46 || e.keyCode == 8) && (target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) {
+				} else if ((e.keyCode == 46 || e.keyCode == 8) && !dialogOpen() && (target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) {
 					e.stopPropagation();
 					e.preventDefault();
 					contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
-				} else if (e.keyCode == 51 && locale.cmdKeyPressed(e) && e.shiftKey) {
+				// Ctrl + Shift + 3 (Ctrl + #)
+				} else if (e.keyCode == 51 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
 					e.stopPropagation();
 					e.preventDefault();
 					contextmenus[0].getItem('editId').dispatchEvent(new Event('click'));
-				} else if (e.keyCode == 190 && locale.cmdKeyPressed(e)) {
+				// Ctrl + .
+				} else if (e.keyCode == 190 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 					e.stopPropagation();
 					e.preventDefault();
 					contextmenus[0].getItem('editClass').dispatchEvent(new Event('click'));
+				// Ctrl + H
+				} else if (e.keyCode == 72 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+					e.stopPropagation();
+					e.preventDefault();
+					if (document.querySelectorAll('[data-selected-element="selected"]').length == 1) contextmenus[0].getItem('editHTML').dispatchEvent(new Event('click'));
+					else document.getElementById('htmlNoEdit').className = 'topText active';
 				}
 
 				// Allows Ctrl + C to be handled natively by the browser
