@@ -3270,7 +3270,7 @@
 					stylesheet.setAttribute('data-name', document.getElementById('idK').value.trim());
 					// Minify the stylesheets innerHTML
 					var testStyle = stylesheet.cloneNode();
-					testStyle.innerHTML = stylesheets.innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'');
+					testStyle.innerHTML = stylesheet.innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'');
 					var html = testStyle.outerHTML;
 					// Get current stylesheets
 					var array = JSON.parse(localStorage.getItem('HTML-Studio_stylesheets') || '[]');
