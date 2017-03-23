@@ -139,7 +139,7 @@
 	margin-top: 2em;
 }
 
-#idA {
+#idA, #Ida {
 	width: calc(40vw - 3.6rem);
 	font-size: 1em;
 	text-align: center;
@@ -148,7 +148,7 @@
 	border: 1px solid #AAA;
 }
 
-#idA:hover, #idA:focus {
+#idA:hover, #idA:focus, #Ida:hover, #Ida:focus {
 	box-shadow: 0 0 5px 2px rgba(0, 172, 193, .4);
 	border: 1px solid #00acc1;
 }
@@ -204,6 +204,38 @@
 	display: none;
 }
 
+#idX {
+	cursor: initial;
+}
+
+#idY, #idZ, #Idb {
+	font-family: Arial, sans-serif;
+	background: #F5F5F5;
+	color: #456;
+	padding: .3em 1em;
+	border: 1px solid #AAA;
+	border-radius: .3em;
+	font-size: 1.2em;
+	cursor: pointer;
+}
+
+#idY:hover, #idZ:hover, #Idb:hover,
+#idY:focus, #idZ:focus, #Idb:focus {
+	background: #00acc1;
+	color: #FFF;
+}
+
+#idZ {
+	background: #F0F0F0;
+	color: #AAA;
+	pointer-events: none;
+}
+
+#Ida {
+	display: block;
+	margin: 0 auto 1.2em;
+}
+
 .cl9 {
 	position: absolute;
 	right: .2em;
@@ -239,6 +271,7 @@
 	margin-bottom: .5rem;
 	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
 	box-shadow: 0 1px 5px 0 rgba(0,0,0,.3);
+	-webkit-transition: .15s box-shadow;
 	transition: .15s box-shadow;
 }
 

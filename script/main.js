@@ -430,29 +430,6 @@ function main(){
 					separate: true,
 					id: 'insertChild'
 				},{
-					name: 'Select Children',
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
-					func: function(e,close) {
-						close();
-						var element = document.querySelector('[data-selected-element=selected]');
-						if (!e.shiftKey) deselect();
-						for (var i = element.children.length - 1; i >= 0; i--) {
-							element.children[i].setAttribute('data-selected-element', 'selected');
-						};
-						if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
-							document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
-						} else {
-							var node = document.querySelector('[data-selected-element=selected]').alias;
-							updateTooltip();
-						};
-						updateTreeSelections();
-						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
-					},
-					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
-					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
-					id: 'selectChildren'
-				},{
 					name: 'Select Parent',
 					image: 'svg/select_parent.svg',
 					disabledimage: 'svg/select_parent_disabled.svg',
@@ -477,9 +454,32 @@ function main(){
 						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
 					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
-					separate: true,
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected',
 					id: 'selectParent'
+				},{
+					name: 'Select Children',
+					image: 'svg/select_children.svg',
+					disabledimage: 'svg/select_children_disabled.svg',
+					func: function(e,close) {
+						close();
+						var element = document.querySelector('[data-selected-element=selected]');
+						if (!e.shiftKey) deselect();
+						for (var i = element.children.length - 1; i >= 0; i--) {
+							element.children[i].setAttribute('data-selected-element', 'selected');
+						};
+						if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
+							document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
+						} else {
+							var node = document.querySelector('[data-selected-element=selected]').alias;
+							updateTooltip();
+						};
+						updateTreeSelections();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+					},
+					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
+					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
+					separate: true,
+					id: 'selectChildren'
 				},{
 					name: 'Edit Text',
 					image: 'svg/edit_text.svg',
@@ -817,7 +817,7 @@ function main(){
 						keypress.call(element.alias, {});
 					},
 					title: 'Allows you to edit the element\'s textual content',
-					disabledtitle: 'SVG elements should not contain textual content',
+					disabledtitle: 'This element cannot contain textual content',
 					id: 'editText'
 				},{
 					name: 'Edit as HTML&#133;',
@@ -954,27 +954,6 @@ function main(){
 					image: 'svg/edit_class.svg',
 					if: 'editClass'
 				},{
-					name: 'Select Children',
-					func: function(e,close) {
-						close();
-						var elements = document.querySelectorAll('[data-selected-element=selected]');
-						if (!elements.length) return;
-						if (!e.shiftKey) deselect();
-						Array.prototype.forEach.call(elements, function(element) {
-							Array.prototype.forEach.call(element.children, function(child) {
-								child.setAttribute('data-selected-element', 'selected');
-							})
-						});
-						updateTooltip();
-						updateTreeSelections();
-						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
-					},
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
-					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
-					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
-					id: 'selectChildren'
-				},{
 					name: 'Select Parent(s)',
 					image: 'svg/select_parent.svg',
 					disabledimage: 'svg/select_parent_disabled.svg',
@@ -998,8 +977,29 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents',
-					separate: true,
 					id: 'selectParent'
+				},{
+					name: 'Select Children',
+					func: function(e,close) {
+						close();
+						var elements = document.querySelectorAll('[data-selected-element=selected]');
+						if (!elements.length) return;
+						if (!e.shiftKey) deselect();
+						Array.prototype.forEach.call(elements, function(element) {
+							Array.prototype.forEach.call(element.children, function(child) {
+								child.setAttribute('data-selected-element', 'selected');
+							})
+						});
+						updateTooltip();
+						updateTreeSelections();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+					},
+					image: 'svg/select_children.svg',
+					disabledimage: 'svg/select_children_disabled.svg',
+					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
+					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
+					separate: true,
+					id: 'selectChildren'
 				},{
 					name: 'Copy Elements',
 					func: function(e,close) {
@@ -1173,15 +1173,28 @@ function main(){
 					id: 'open'
 				},{
 					name: 'Download File&#133;',
-					disabled: true,
-					disabledtitle: 'Work in Progress',
+					func: function(_,close) {
+						close();
+						closeHeaders();
+						backdialog.style.display = 'block';
+						document.getElementById('dialog_download').style.display = 'block';
+						var textbox = document.getElementById('Ida');
+						textbox.placeholder = document.getElementById('title').value.trim() || 'index.html';
+						textbox.value = '';
+					},
+					title: 'Download the document as an HTML file',
 					separate: true,
 					id: 'download'
 				},{
-					name: 'Minify Document File',
+					name: 'Edit Metadata',
+					func: function(_,close) {
+						close();
+						closeHeaders();
+					},
+					title: 'Edit the meta data of the HTML document',
 					disabled: true,
 					disabledtitle: 'Work in Progress',
-					id: 'minify'
+					id: 'meta'
 				}],
 				pseudoParent: document.getElementById('section_file')
 			}),
@@ -1382,18 +1395,6 @@ function main(){
 					image: 'svg/invert.svg',
 					id: 'invert'
 				},{
-					name: 'Select Children',
-					func: function(_,close) {
-						close();
-						closeHeaders();
-						contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click'));
-					},
-					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
-					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
-					id: 'selectChildren'
-				},{
 					name: 'Select Parent(s)',
 					func: function(_,close) {
 						close();
@@ -1404,8 +1405,148 @@ function main(){
 					image: 'svg/select_parent.svg',
 					disabledimage: 'svg/select_parent_disabled.svg',
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents',
-					separate: true,
 					id: 'selectParent'
+				},{
+					name: 'Select Previous Sibling(s)',
+					func: function(e,close) {
+						close();
+						closeHeaders();
+						var elements = document.querySelectorAll('[data-selected-element="selected"]');
+						if (!elements.length) return;
+						var y = Math.round(em(4.45));
+						if (e.shiftKey) {
+							function unique(array) {
+								var uniques = [], counter = 0;
+								for (var i = 0; i < array.length; i++ ) {
+									var current = array[i];
+									for (var n = 0;n < uniques.length;n++) {
+										if (current != uniques[n]) {
+											counter++;
+										}
+									}
+									if (counter == uniques.length) {
+										uniques.push(current);
+									}
+									counter = 0;
+								}
+
+								array.length = 0;
+								for (i = 0;i < uniques.length;i++) {
+									array.push(uniques[i]);
+								}
+
+								return array;
+							}
+
+							elements = Array.prototype.slice.call(elements);
+							deselect();
+							
+							unique(elements.concat(elements.map(function(elem) {
+								return elem == overlay ? overlay : elem.previousElementSibling || elem.lastElementChild;
+							}))).forEach(function(element) {
+								clickhandler.call(element, {
+									stopPropagation: function(){},
+									clientX: 0,
+									clientY: y,
+									isTrusted: true,
+									shiftKey: true
+								});
+							});
+						} else {
+							deselect();
+							forEach(elements, function(element) {
+								clickhandler.call(element == overlay ? overlay : element.previousElementSibling || element.parentNode.lastElementChild, {
+									stopPropagation: function(){},
+									clientX: 0,
+									clientY: y,
+									isTrusted: true,
+									shiftKey: true
+								});
+							});
+						}
+						
+						updateTooltip();
+					},
+					title: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) Selects the elements\' previous sibling.',
+					disabledtitle: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) No nodes are selected.',
+					id: 'selectPreviousSibling'
+				},{
+					name: 'Select Next Sibling(s)',
+					func: function(e,close) {
+						close();
+						closeHeaders();
+						var elements = document.querySelectorAll('[data-selected-element="selected"]');
+						if (!elements.length) return;
+						var y = Math.round(em(4.45));
+						if (e.shiftKey) {
+							function unique(array) {
+								var uniques = [], counter = 0;
+								for (var i = 0; i < array.length; i++ ) {
+									var current = array[i];
+									for (var n = 0;n < uniques.length;n++) {
+										if (current != uniques[n]) {
+											counter++;
+										}
+									}
+									if (counter == uniques.length) {
+										uniques.push(current);
+									}
+									counter = 0;
+								}
+
+								array.length = 0;
+								for (i = 0;i < uniques.length;i++) {
+									array.push(uniques[i]);
+								}
+
+								return array;
+							}
+
+							elements = Array.prototype.slice.call(elements);
+							deselect();
+							
+							unique(elements.concat(elements.map(function(elem) {
+								return elem == overlay ? overlay : elem.nextElementSibling || elem.firstElementChild;
+							}))).forEach(function(element) {
+								clickhandler.call(element, {
+									stopPropagation: function(){},
+									clientX: 0,
+									clientY: y,
+									isTrusted: true,
+									shiftKey: true
+								});
+							});
+						} else {
+							deselect();
+							forEach(elements, function(element) {
+								clickhandler.call(element == overlay ? overlay : element.nextElementSibling || element.parentNode.firstElementChild, {
+									stopPropagation: function(){},
+									clientX: 0,
+									clientY: y,
+									isTrusted: true,
+									shiftKey: true
+								});
+							});
+						}
+						
+						updateTooltip();
+					},
+					title: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) Selects the elements\' next sibling.',
+					disabledtitle: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) No nodes are selected.',
+					id: 'selectNextSibling'
+				},{
+					name: 'Select Children',
+					func: function(_,close) {
+						close();
+						closeHeaders();
+						contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click'));
+					},
+					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
+					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
+					image: 'svg/select_children.svg',
+					disabledimage: 'svg/select_children_disabled.svg',
+					separate: true,
+					id: 'selectChildren'
 				},{
 					name: 'Select by CSS Selector&#133;',
 					func: function(_,close) {
@@ -1466,7 +1607,8 @@ function main(){
 			}],
 			pseudoParent: document.getElementById('section_stylesheets')
 		},
-		preventUpdates = false;
+		preventUpdates = false,
+		documentMeta = JSON.parse(localStorage.getItem('HTML-Studio_meta') || '{"charset":"utf-8"}');
 
 	// Check if tooltip should be shown
 	document.getElementById('tooltip').style.display = localStorage.getItem('HTML-Studio_tooltipShown') == 0 ? 'none' : '';
@@ -1587,6 +1729,9 @@ function main(){
 	// Make sure <head> has a proper title
 	framewindow.document.head.appendChild(framewindow.document.createElement('title'));
 	framewindow.document.querySelector('title').innerText = document.getElementById('title').value;
+	// Set charset of document
+	framewindow.document.head.appendChild(framewindow.document.createElement('meta'));
+	framewindow.document.querySelector('meta').setAttribute('charset',documentMeta.charset);
 	// Disable undo and redo buttons if necessary
 	contextmenus[3].getItem('undo').disabled = !history.currentEntry;
 	contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
@@ -1603,6 +1748,7 @@ function main(){
 
 	// Overlay event listeners
 	overlay.addEventListener('contextmenu', function(e){
+		if (e.shiftKey) return;
 		e.preventDefault();
 		e.stopPropagation();
 		var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
@@ -1615,7 +1761,7 @@ function main(){
 			contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : '');
 			contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
 			contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
-			contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
+			contextmenus[0].getItem('editText').disabled = node instanceof SVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName);
 			contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
 		} else {
 			contextmenus[1].getItem('selectChildren').disabled = (function() {
@@ -1653,7 +1799,7 @@ function main(){
 		updateTooltip();
 	});
 	overlay.addEventListener('mousemove', function(e) {
-		this.mousePositions = {x: e.clientX, y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + document.getElementById('framecontainer').scrollTop)};
+		this.mousePositions = {x: e.clientX, y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + Math.round(document.getElementById('framecontainer').scrollTop))};
 		updateTooltip();
 	});
 	overlay.addEventListener('mouseleave', function() {
@@ -1761,6 +1907,7 @@ function main(){
 		else overlay.removeAttribute('data-html-studio-text-being-edited');
 
 		var contextmenuhandler = function(e){
+			if (e.shiftKey) return;
 			var clonednode = this;
 			if (document.querySelectorAll('[data-selected-element=selected]').length) clonednode.preventClick = true;
 			e.preventDefault();
@@ -1775,7 +1922,7 @@ function main(){
 				contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : '');
 				contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
 				contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
-				contextmenus[0].getItem('editText').disabled = node instanceof SVGElement;
+				contextmenus[0].getItem('editText').disabled = node instanceof SVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName);
 				contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
 			} else {
 				contextmenus[1].getItem('selectChildren').disabled = (function() {
@@ -1831,7 +1978,7 @@ function main(){
 				clonednode.isOverlay = true;
 				if (clonednode instanceof Element || clonednode.nodeType == 1) {
 					var DOMNodeObject = {
-						name: clonednode.nodeName,
+						name: clonednode.alias.nodeName,
 						node: clonednode.alias,
 						generation: DOM.generation + 1,
 						children: [],
@@ -1882,9 +2029,22 @@ function main(){
 					if (clonednode.nodeName == 'A') clonednode.removeAttribute('href');
 					// Prevent <img>s from blocking the actual nodes (their background was already changed, but not their src)
 					if (clonednode.nodeName == 'IMG') {
-						if (clonednode.alias.getAttribute('src')) clonednode.setAttribute('src','svg/transparent.svg');
-						clonednode.setAttribute('width', Math.round(clonednode.alias.getAttribute('width') || clonednode.alias.getBoundingClientRect().width));
-						clonednode.setAttribute('height', Math.round(clonednode.alias.getAttribute('height') || clonednode.alias.getBoundingClientRect().height));
+						clonednode.style.verticalAlign = clonednode.style.verticalAlign || 'text-bottom';
+						clonednode.setAttribute('src',clonednode.alias.getAttribute('src') == '' ? '' : 'svg/transparent.svg');
+
+						var resize = function() {
+							var newStyles = getComputedStyle(clonednode.alias);
+							clonednode.style.width = (clonednode.width = Math.round(clonednode.alias.getAttribute('width') || clonednode.alias.clientWidth)) + 'px';
+							clonednode.style.height = (clonednode.height = Math.round(clonednode.alias.getAttribute('height') || clonednode.alias.clientHeight)) + 'px';
+
+							clonednode.removeEventListener('load',resize);
+							clonednode.removeEventListener('error',resize);
+						}
+						if (clonednode.alias.complete || !clonednode.alias.hasAttribute('src') || clonednode.alias.getAttribute('src').trim() == '') resize();
+						else { 
+							clonednode.alias.addEventListener('load',resize);
+							clonednode.alias.addEventListener('error',resize);
+						}
 					}
 					// Prevent conflicting ids and incorrect inheritance from non-user style sheets
 					clonednode.removeAttribute('id');
@@ -1931,7 +2091,9 @@ function main(){
 	// Some global functions used in different areas
 	// Array.prototype.forEach
 	function forEach(array, func) {
-		return Array.prototype.forEach.call(array, func);
+		for (var i = 0; i < array.length; i++) {
+			func.call(array[i], array[i], i, array);
+		}
 	}
 
 
@@ -2024,7 +2186,11 @@ function main(){
 
 				stylesheet.setAttribute('data-name', ref);
 				css.push([ref,[]]);
-				var rules = style.sheet.cssRules;
+				var rules = style.sheet.cssRules,
+					// Makes sure the each CSSRule object is from the correct document
+					// Firefox sees no difference between the two, but Chrome does
+					CSSStyleRule = win.document.defaultView.CSSStyleRule,
+					CSSFontFaceRule = win.document.defaultView.CSSFontFaceRule;
 				for (var n = 0, l = rules.length; n < l; n++, html += '\n\n') {
 					if (rules[n] instanceof CSSStyleRule) {
 						html += rules[n].selectorText + ' {\n';
@@ -2045,6 +2211,8 @@ function main(){
 						});
 						html += '}';
 						fontHtml += '}';
+					} else if (rules[n] instanceof CSSKeyframesRule) {
+						console.log('A CSS @keyframes declaration was ignored for compatibility: ' + rules[n].name);
 					}
 				}
 				stylesheet.innerHTML = html;
@@ -2125,14 +2293,19 @@ function main(){
 	// Updates the text shown in the tooltip
 	function updateTooltip(custom) {
 		var nodes = custom || document.querySelectorAll('[data-selected-element=selected]');
-		if (nodes.length > 1) document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
-		else if (nodes[0]) {
+		if (nodes.length > 1) {
+			document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
+			document.getElementById('tooltip').style.opacity = '';
+		} else if (nodes[0]) {
 			var node = nodes[0].alias;
 			document.getElementById('tooltiptext').innerHTML = formatElementInfo(node);
+			document.getElementById('tooltip').style.opacity = '';
 		} else if (overlay.mousePositions) {
 			document.getElementById('tooltiptext').innerHTML = 'x: ' + overlay.mousePositions.x + ', y: ' + overlay.mousePositions.y;
+			document.getElementById('tooltip').style.opacity = '';
 		} else {
-			document.getElementById('tooltiptext').innerHTML = 'Extra information will appear here';
+			document.getElementById('tooltiptext').innerHTML = '';
+			document.getElementById('tooltip').style.opacity = '.5';
 		}
 	};
 	// Updates which nodes are selected in the HTML tree
@@ -2255,6 +2428,32 @@ function main(){
 		license.addEventListener('click', select);
 		license.addEventListener('keypress', keypress);
 	}();
+
+	// File > Download File... > Unchanged
+	document.getElementById('idY').addEventListener('click', function() {
+		function toFileName(filename) {
+			filename = filename.trim();
+			if (!filename) return '';
+			if (filename.substring(filename.length - 5) == '.html' || filename.substring(filename.length - 4) == '.htm' || filename.substring(filename.length - 6) == '.xhtml') return filename;
+			return filename + '.html';
+		}
+		framewindow.document.documentElement.style.overflowY = '';
+		HTMLStudio.saveAs(new Blob(['<!DOCTYPE html>' + HTMLStudio.minifyHTML()], {type: 'text/html'}), toFileName(document.getElementById('Ida').value) || toFileName(document.getElementById('title').value) || 'index.html');
+		framewindow.document.documentElement.style.overflowY = 'hidden';
+	});
+
+	// File > Download File... > Unchanged
+	document.getElementById('Idb').addEventListener('click', function() {
+		function toFileName(filename) {
+			filename = filename.trim();
+			if (!filename) return '';
+			if (filename.substring(filename.length - 5) == '.html' || filename.substring(filename.length - 4) == '.htm' || filename.substring(filename.length - 6) == '.xhtml') return filename;
+			return filename + '.html';
+		}
+		framewindow.document.documentElement.style.overflowY = '';
+		HTMLStudio.saveAs(new Blob(['<!DOCTYPE html>' + framewindow.document.documentElement.outerHTML], {type: 'text/html'}), toFileName(document.getElementById('Ida').value) || toFileName(document.getElementById('title').value) || 'index.html');
+		framewindow.document.documentElement.style.overflowY = 'hidden';
+	});
 
 	// Insert Node button for [Right Click] > Insert Child...
 	document.getElementById('idS').addEventListener('click', function() {
@@ -2656,6 +2855,7 @@ function main(){
 						return true;
 					})();
 					contextmenus[6].getItem('selectParent').disabled = elements.length == 0 || (elements.length == 1 && overlay.getAttribute('data-selected-element') == 'selected');
+					contextmenus[6].getItem('selectPreviousSibling').disabled = contextmenus[6].getItem('selectNextSibling').disabled = elements.length == 0;
 				}
 				contextmenus[index + 2].open();
 				contextmenus[index + 2].node.style.left = this.getBoundingClientRect().left + 'px';
@@ -3192,6 +3392,16 @@ function main(){
 			e.preventDefault();
 			e.stopPropagation();
 			contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+		// Ctrl + Left Arrow
+		} else if (e.keyCode == 37 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+			e.preventDefault();
+			e.stopPropagation();
+			contextmenus[6].getItem('selectPreviousSibling').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+		// Ctrl + Right Arrow
+		} else if (e.keyCode == 39 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+			e.preventDefault();
+			e.stopPropagation();
+			contextmenus[6].getItem('selectNextSibling').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 		// Ctrl + X
 		} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard && !dialogOpen()) {
 			e.stopPropagation();
@@ -3325,6 +3535,8 @@ function main(){
 			element.style.color = 'rgba(0,172,193,'+(.02*opacity+.5)+')';
 			element.style.textShadow = '0 0 1px rgba(0,172,193,' + (.03 * opacity + .25) + ')'
 		});
+
+	if (!currentFrame) document.documentElement.scrollTop = document.body.scrollTop = window.scrollY = 0;
 	}, 20);
 
 
@@ -3339,8 +3551,35 @@ function main(){
 	}
 
 
-	overlayUpdate();
+	// Updates the overlay after all imgs have finished loading
+	// This ensures the overlay is aligned correctly
+	// Only calls updateOverlay after the last img has finished loading (or returns a 404 status)
+	var imgs = framewindow.document.querySelectorAll('img[src]'), completeimgs = 0;
+	if (imgs.length) {
+		forEach(imgs, function(img,_,array) {
+			// If img is already loaded
+			// Includes a second kinda-if statement to test if it was the last img
+			if (img.complete) ++completeimgs == array.length && overlayUpdate();
+			// If the img has yet to be loaded
+			else {
+				function func(e) {
+					// If the img was the last to be loaded
+					if (++completeimgs == array.length) overlayUpdate();
+					// Remove event listeners
+					this.removeEventListener('load', func);
+					this.removeEventListener('error', func);
+				}
+				// Test for load and error (for 404 srcs)
+				img.addEventListener('load', func);
+				img.addEventListener('error', func)
+			}
+		})
+	// Runs if no imgs are present
+	} else overlayUpdate();
+	// Ensure history has at least one entry to start from
 	if (!history.entries.length) history.update();
+
+	document.documentElement.scrollTop = document.body.scrollTop = window.scrollY = 0;
 };
 
 
