@@ -35,12 +35,10 @@ function main(){
 	/*
 		TODO:
 		 - CSSEditor <textarea> on comma + enter
-		 - Use blob library for saving
 		 - Edit prefs dialog
 		 - Better grid
 		 - Toggleable toolbar
 		 - Import style sheets
-		 - Minifier
 		 - Node duplicator
 		 - Fix <a> Edit Text auto-blur
 		 - Fix CSS precedence
@@ -157,8 +155,8 @@ function main(){
 									element.active = true;
 								});
 								element.addEventListener('keydown', function(e) {
-									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || (e.keyCode == 59 && element.parentNode.previousElementSibling)) {
-										if (e.keyCode == 59) {
+									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || ((e.keyCode == 59 || e.keyCode == 186) && element.parentNode.previousElementSibling)) {
+										if (e.keyCode == 59 || e.keyCode == 186) {
 											var position = 0;
 											if (document.selection) {
 												element.focus();
@@ -194,8 +192,8 @@ function main(){
 								element.active = true;
 							});
 							element.addEventListener('keydown', function(e) {
-								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || (e.keyCode == 59 && element.parentNode.previousElementSibling)) {
-									if (e.keyCode == 59) {
+								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || ((e.keyCode == 59 || e.keyCode == 186) && element.parentNode.previousElementSibling)) {
+									if (e.keyCode == 59 || e.keyCode == 186) {
 										var position = 0;
 										if (document.selection) {
 											element.focus();
@@ -256,7 +254,7 @@ function main(){
 									element.active = true;
 								});
 								element.addEventListener('keydown', function(e) {
-									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
+									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
 										e.preventDefault();
 										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
 									};
@@ -505,9 +503,9 @@ function main(){
 						var elemcount = element.alias.children.length,
 						// Used for HTML entity replacers
 						regex = {
-							pre: /(?=(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);)))/g,
-							post: /(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);))/g,
-							entity: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+);)/,
+							pre: /(?=(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$))))/g,
+							post: /(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$)))/g,
+							entity: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$))/,
 							tag: /<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>/,
 							tag_name: /<([a-zA-Z][a-zA-Z\d_-]*)/,
 							attrs: /<[a-zA-Z][a-zA-Z\d_-]*((?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*)>/,
@@ -519,7 +517,8 @@ function main(){
 						// Used for styling later
 						opacity = -Math.abs(currentFrame - 25) + 25,
 						vh = framewindow.innerHeight / 100,
-						vw = framewindow.innerWidth / 100;
+						vw = framewindow.innerWidth / 100,
+						scrollTop = document.getElementById('framecontainer').scrollTop;
 
 						// Runs when the element is blurred
 						function blur() {
@@ -550,7 +549,44 @@ function main(){
 						function onClickEntityReplacer(e) {
 							e.preventDefault();
 							e.stopPropagation();
-							this.alias.textContent = this.alias.textContent.substring(0, this.charIndex) + this.character + this.alias.textContent.substring(this.charIndex + this.entityLength);
+							// Save the user's selection
+							var selection = framewindow.document.getSelection(),
+								range = selection.getRangeAt(0),
+								rangeData = {
+									start: range.startOffset,
+									startNode: range.startContainer,
+									end: range.endOffset,
+									endNode: range.endContainer
+								};
+
+							function replace(override) {
+								if (framewindow.document.queryCommandSupported('insertText')) {
+									// Setup custom range to replace the old text
+									if (document.getSelection && document.createRange) {
+										var selection = framewindow.document.getSelection();
+										var range = framewindow.document.createRange();
+										range.setStart(this.alias, this.charIndex);
+										range.setEnd(this.alias, this.charIndex + this.entityLength);
+										selection.removeAllRanges();
+										selection.addRange(range);
+									}
+									// Execcommand to allow for undoing/redoing
+									// If it fails for some reason, revert to the manual node insertion method
+									if (!framewindow.document.execCommand('insertText', null, this.character)) return replace.call(this,true);
+								} else {
+									// Replace text with the escaped character
+									this.alias.textContent = this.alias.textContent.substring(0, this.charIndex) + this.character + this.alias.textContent.substring(this.charIndex + this.entityLength);
+								}
+							}
+							replace.call(this);
+
+							if (rangeData.startNode != this.alias) return keypress.call(element.alias, {});
+
+							// Restore the user's selection
+							selection.removeAllRanges();
+							range.setStart(rangeData.startNode, rangeData.start < this.charIndex ? rangeData.start : rangeData.start < this.charIndex + this.entityLength ? this.charIndex + this.character.length : rangeData.start - (this.entityLength - this.character.length));
+							range.setEnd(rangeData.endNode, rangeData.endNode != this.alias || rangeData.end < this.charIndex ? rangeData.end : rangeData.end < this.charIndex + this.entityLength ? this.charIndex + this.character.length : rangeData.end - (this.entityLength - this.character.length));
+							selection.addRange(range);
 							keypress.call(element.alias, {});
 						}
 
@@ -558,6 +594,8 @@ function main(){
 						function onClickTagReplacer(e) {
 							e.preventDefault();
 							e.stopPropagation();
+
+							// Create element as child of a document fragment
 							var origNode = this.alias,
 								origText = this.alias.textContent,
 								frag = document.createDocumentFragment(),
@@ -569,14 +607,48 @@ function main(){
 							for (var attribute in this.tag_attrs) {
 								replacee.setAttribute(attribute, this.tag_attrs[attribute]);
 							}
-							origNode.parentNode.replaceChild(frag, origNode);
-							if (document.getSelection && document.createRange) {
-								var selection = framewindow.document.getSelection();
-								var range = framewindow.document.createRange();
-								range.selectNodeContents(replacee);
-								selection.removeAllRanges();
-								selection.addRange(range);
+
+							function replace(override) {
+								// If the browser supports adding HTML to the contenteditable element
+								// Allows for undoing/redoing by the user
+								if (framewindow.document.queryCommandSupported('insertHTML') && !override) {
+									// Setup custom range to replace the old text
+									if (document.getSelection && document.createRange) {
+										var selection = framewindow.document.getSelection();
+										var range = framewindow.document.createRange();
+										range.setStart(origNode, this.charIndex);
+										range.setEnd(origNode, this.charIndex + this.tagLength);
+										selection.removeAllRanges();
+										selection.addRange(range);
+									}
+									// Execcommand to allow for undoing/redoing
+									// If it fails for some reason, revert to the manual node insertion method
+									if (!framewindow.document.execCommand('insertHTML', null, '[' + frag.firstElementChild.outerHTML + ']')) return replace.call(this,true);
+									// Select the new element
+									if (document.getSelection && document.createRange) {
+										var selection = framewindow.document.getSelection();
+										var range = framewindow.document.createRange(),
+											newElement = selection.anchorNode.previousElementSibling;
+										if (newElement.nodeName.toLowerCase() != this.tag_name.toLowerCase() || newElement.innerText != 'Inserted Element') return;
+										range.setStart(newElement.firstChild, 0);
+										range.setEnd(newElement.firstChild, 16);
+										selection.removeAllRanges();
+										selection.addRange(range);
+									}
+								// The browser does not support insertHTML command
+								// The HTML will still be added, but the user won't be able to undo/redo
+								} else {
+									origNode.parentNode.replaceChild(frag, origNode);
+									if (document.getSelection && document.createRange) {
+										var selection = framewindow.document.getSelection();
+										var range = framewindow.document.createRange();
+										range.selectNodeContents(replacee);
+										selection.removeAllRanges();
+										selection.addRange(range);
+									}
+								}
 							}
+							replace.call(this);
 							keypress.call(element.alias, {});
 						}
 
@@ -600,6 +672,7 @@ function main(){
 							}
 							// Sets the alias to the proper element
 							clone.alias = node;
+							node.alias = clone;
 							if (clone.nodeType == 1 && node.nodeType == 1) {
 								css.forEach(function(stylesheet) {
 									stylesheet[1].forEach(function(query) {
@@ -666,7 +739,7 @@ function main(){
 											// If the html entity does not actually translate into anything,
 											// create a text node and continue
 											testElement.innerHTML = str.val;
-											if ((character = testElement.innerText) == str.val) {
+											if ((character = testElement.innerText) == str.val || character.length > 1) {
 												array[ind] = document.createTextNode(str.val);
 												array[ind].alias = node.childNodes[index];
 											} else {
@@ -693,7 +766,7 @@ function main(){
 												// Adds click listener for when the user wants to replace the replacer
 												replacer.addEventListener('touchstart', onClickEntityReplacer);
 												replacer.addEventListener('click', onClickEntityReplacer);
-												// Adds more event listeners to preventDefault and stopPropogation
+												// Adds more event listeners to preventDefault and stopPropagation
 												// This prevents the editable element from blurring
 												replacer.addEventListener('mousedown', prevent);
 												replacer.addEventListener('mouseup', prevent);
@@ -799,13 +872,56 @@ function main(){
 								element.parentNode.replaceChild(clone, element);
 								element = clone;
 							}
+
+							// User pressed tab
+							// Try to auto-click a replacer if the caret is inside one
+							if (e.type == 'keydown' && e.keyCode == 9 && !e.shiftKey) {
+								var selection = framewindow.document.getSelection(),
+									children = selection.anchorNode.parentNode.alias.childNodes,
+									index = 0,
+									offset = selection.anchorOffset,
+									origOffset = offset,
+									focusedNode,
+									temp = selection.anchorNode,
+									replacerOffset,
+									range = selection.getRangeAt(0);
+
+								// If the user has characters selected, don't continue
+								if (!selection.isCollapsed) return document.getElementById('framecontainer').scrollTop = scrollTop;
+
+								// Used to find the caret's position relative to the text node's parent
+								while (temp = temp.previousSibling) {
+									offset += (temp.textContent || temp.innerText).length
+								}
+
+								// Find the node that caret is in (i.e. check if it is in a replacer)
+								forEach(children, function() {
+									if ((index += (this.innerText || this.textContent).length) < offset) return;
+									focusedNode = this;
+									replacerOffset = index - (this.innerText || this.textContent).length - offset + origOffset;
+									return 'break';
+								});
+
+								// If the node is a <html-(entity|element)-replacer>, simulate a click
+								focusedNode.nodeName.toLowerCase() == 'html-entity-replacer' && onClickEntityReplacer.call(focusedNode, pseudoEvent) || focusedNode.nodeName.toLowerCase() == 'html-element-replacer' && onClickTagReplacer.call(focusedNode, pseudoEvent);
+							} else if (e.type == 'keydown' && e.keyCode == 73 && locale.cmdKeyPressed(e)) {
+								if (framewindow.document.queryCommandSupported('italic')) framewindow.document.execCommand('italic');
+							} else if (e.type == 'keydown' && e.keyCode == 66 && locale.cmdKeyPressed(e)) {
+								if (framewindow.document.queryCommandSupported('bold')) framewindow.document.execCommand('bold');
+							}
+							document.getElementById('framecontainer').scrollTop = scrollTop;
 						}
 
 						// Add some events for blurring the element
 						element.alias.addEventListener('blur', blur);
 						element.alias.addEventListener('dblclick', blur);
 						// Adds the events for keypress and keyup
-						element.alias.addEventListener('keypress', function(e) {
+						element.alias.addEventListener('keydown', function(e) {
+							scrollTop = document.getElementById('framecontainer').scrollTop;
+							if (e.keyCode == 9 && !e.shiftKey || e.keyCode == 73 && locale.cmdKeyPressed(e) || e.keyCode == 66 && locale.cmdKeyPressed(e)) { 
+								e.preventDefault();
+								e.stopPropagation();
+							}
 							setTimeout(function() {
 								keypress.call(this, e);
 							},0);
@@ -1608,7 +1724,23 @@ function main(){
 			pseudoParent: document.getElementById('section_stylesheets')
 		},
 		preventUpdates = false,
-		documentMeta = JSON.parse(localStorage.getItem('HTML-Studio_meta') || '{"charset":"utf-8"}');
+		documentMeta = JSON.parse(localStorage.getItem('HTML-Studio_meta') || '{"charset":"utf-8"}'),
+		pseudoEvent = {
+			stopPropagation: function(){},
+			preventDefault: function(){},
+			clientX: 0,
+			clientY: 0,
+			__extend__: function(obj) {
+				var event = {};
+				for (var key in this) {
+					event[key] = this[key];
+				}
+				for (key in obj) {
+					event[key] = obj[key];
+				}
+				return event;
+			}
+		};
 
 	// Check if tooltip should be shown
 	document.getElementById('tooltip').style.display = localStorage.getItem('HTML-Studio_tooltipShown') == 0 ? 'none' : '';
@@ -1798,6 +1930,13 @@ function main(){
 		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		updateTooltip();
 	});
+	overlay.addEventListener('dblclick', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		deselect();
+		this.dispatchEvent(new MouseEvent('click'));
+		contextmenus[0].getItem('editText').dispatchEvent(new MouseEvent('click'));
+	});
 	overlay.addEventListener('mousemove', function(e) {
 		this.mousePositions = {x: e.clientX, y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + Math.round(document.getElementById('framecontainer').scrollTop))};
 		updateTooltip();
@@ -1939,6 +2078,13 @@ function main(){
 			contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
 			contextmenus[index].node.originElement = clonednode
 		};
+		var dblclickhandler = function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			deselect();
+			this.dispatchEvent(new MouseEvent('click'));
+			contextmenus[0].getItem('editText').dispatchEvent(new MouseEvent('click'));
+		}
 
 
 		css.forEach(function(stylesheet) {
@@ -1991,6 +2137,8 @@ function main(){
 						clonednode.addEventListener('contextmenu', contextmenuhandler);
 						// On left click pseudo element
 						clonednode.addEventListener('click', clickhandler);
+						// Edit Text on dblclick
+						clonednode.addEventListener('dblclick', dblclickhandler);
 					}
 
 					// Applies stylesheet rules to cloned node as style attribute
@@ -2092,7 +2240,7 @@ function main(){
 	// Array.prototype.forEach
 	function forEach(array, func) {
 		for (var i = 0; i < array.length; i++) {
-			func.call(array[i], array[i], i, array);
+			if (func.call(array[i], array[i], i, array) == 'break') return;
 		}
 	}
 
@@ -2190,7 +2338,8 @@ function main(){
 					// Makes sure the each CSSRule object is from the correct document
 					// Firefox sees no difference between the two, but Chrome does
 					CSSStyleRule = win.document.defaultView.CSSStyleRule,
-					CSSFontFaceRule = win.document.defaultView.CSSFontFaceRule;
+					CSSFontFaceRule = win.document.defaultView.CSSFontFaceRule,
+					CSSKeyframesRule = win.document.defaultView.CSSKeyframesRule;
 				for (var n = 0, l = rules.length; n < l; n++, html += '\n\n') {
 					if (rules[n] instanceof CSSStyleRule) {
 						html += rules[n].selectorText + ' {\n';
@@ -2212,7 +2361,7 @@ function main(){
 						html += '}';
 						fontHtml += '}';
 					} else if (rules[n] instanceof CSSKeyframesRule) {
-						console.log('A CSS @keyframes declaration was ignored for compatibility: ' + rules[n].name);
+						console.info('A CSS @keyframes declaration was ignored for compatibility: ' + rules[n].name);
 					}
 				}
 				stylesheet.innerHTML = html;
@@ -2424,12 +2573,12 @@ function main(){
 
 		var about = document.getElementById('meta_about'), license = document.getElementById('meta_license');
 		about.addEventListener('click', select);
-		about.addEventListener('keypress', keypress);
+		about.addEventListener('keydown', keypress);
 		license.addEventListener('click', select);
-		license.addEventListener('keypress', keypress);
+		license.addEventListener('keydown', keypress);
 	}();
 
-	// File > Download File... > Unchanged
+	// File > Download File... > Minified
 	document.getElementById('idY').addEventListener('click', function() {
 		function toFileName(filename) {
 			filename = filename.trim();
@@ -3000,12 +3149,14 @@ function main(){
 	});
 
 	// Sets document title to match the title on the header
-	document.getElementById('title').addEventListener('keypress', function(e) {
+	document.getElementById('title').addEventListener('keydown', function(e) {
 		if (e.keyCode == 13) return this.blur();
 		setTimeout(function(){
 			if (!this.value) this.style.fontStyle = 'italic';
 			else this.style.fontStyle = '';
 			var width = document.getElementById('titlewidth');
+			width.innerHTML = '&nbsp;<i>Untitled HTML Document</i>&nbsp;';
+			this.style.minWidth = Math.min(innerWidth * .85, Math.max(innerWidth / 5, width.scrollWidth)) + 'px';
 			width.innerText = this.value;
 			document.getElementById('title').style.width = width.scrollWidth + em(.6) + 'px';
 			document.title = (this.value.trim() ? this.value.trim() + ' - ' : '') + 'HTML Studio \xb7 ChristianFigueroa.GitHub.io';
@@ -3020,7 +3171,7 @@ function main(){
 		else this.style.fontStyle = '';
 	});
 
-	document.getElementById('title').dispatchEvent(new Event('keypress'));
+	document.getElementById('title').dispatchEvent(new Event('keydown'));
 	// Event listener for file upload window
 	document.getElementById('open_file_html').addEventListener('change', function(e) {
 		if (!this.files.length) return;
@@ -3509,6 +3660,12 @@ function main(){
 		var oldSelection = selection.slice();
 		overlayUpdate();
 		restoreSelection(oldSelection);
+
+		var width = document.getElementById('titlewidth'),
+			title = document.getElementById('title');
+		width.innerHTML = '&nbsp;<i>Untitled HTML Document</i>&nbsp;';
+		title.style.minWidth = Math.min(innerWidth * .85, Math.max(innerWidth / 5, width.scrollWidth)) + 'px';
+		width.innerText = title.value;
 	});
 	addEventListener('unload', function() {
 		if (!document.getElementById('overwrite_warning').style.display) localStorage.setItem('HTML-Studio_session', '0');
