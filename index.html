@@ -503,6 +503,11 @@
 			width: 0;
 			border: 0;
 		}
+
+		#rectDisplays {
+			display: none;
+			pointer-events: none;
+		}
 	</style>
 </head>
 <body>
@@ -540,6 +545,7 @@
 		<iframe id='frame'></iframe>
 		<div id='frameoverlay'></div>
 		<div id='overlaygrid'></div>
+		<div id='rectDisplays'></div>
 	</div>
 	<div id='tooltip' style='opacity:.5'>
 		<div id='tooltip_icon'></div>
@@ -837,7 +843,7 @@
 	</div>
 	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
-	<iframe id='cssTest'></iframe>
+	<iframe id='cssTest' class='hidden'></iframe>
 	<noscript id='deferred-styles' style="z-index:-1">
 		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
 		<link href='css/ContextMenu.css' rel='stylesheet' type='text/css'>

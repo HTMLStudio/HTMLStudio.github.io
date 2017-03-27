@@ -366,7 +366,7 @@ function main(){
 							str = (str.length < 33 ? str : str.substring(0,15) + '-$-' + str.substring(str.length - 15))
 							var test = document.createElement('span');
 							test.innerText = str;
-							return test.innerHTML.replace(/<br>/g, '<span style="color:#009;font-weight:700">\\n</span>').replace(/-\$-/,'<span style="color:#009;font-weight:700">&#133;</span>').replace(/\$\$/g,'$');
+							return test.innerHTML.replace(/<br>/g, '<span style="color:#009;font-weight:700">&#8629;</span>').replace(/-\$-/,'<span style="color:#009;font-weight:700">&#133;</span>').replace(/\$\$/g,'$');
 						}
 						Array.prototype.forEach.call(element.alias.childNodes, function(child, i) {
 							if (child.nodeType == 1) {
@@ -445,7 +445,7 @@ function main(){
 						}
 						var node = document.querySelector('[data-selected-element=selected]').parentNode;
 						if (!e.shiftKey) deselect();
-						node.setAttribute('data-selected-element','selected');
+						clickhandler.call(node, pseudoEvent.__extend__({set: true}));
 
 						updateTooltip();
 						updateTreeSelections();
@@ -462,15 +462,10 @@ function main(){
 						close();
 						var element = document.querySelector('[data-selected-element=selected]');
 						if (!e.shiftKey) deselect();
-						for (var i = element.children.length - 1; i >= 0; i--) {
-							element.children[i].setAttribute('data-selected-element', 'selected');
-						};
-						if (document.querySelectorAll('[data-selected-element=selected]').length > 1) {
-							document.getElementById('tooltiptext').innerText = document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected';
-						} else {
-							var node = document.querySelector('[data-selected-element=selected]').alias;
-							updateTooltip();
-						};
+						forEach(element.children, function() {
+							clickhandler.call(this, (pseudoEvent.__extend__({set: true})));
+						});
+						updateTooltip();
 						updateTreeSelections();
 						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
@@ -522,7 +517,7 @@ function main(){
 
 						// Runs when the element is blurred
 						function blur() {
-							if (hasBlurred) return;
+							if (hasBlurred || preventEditTextBlurring) return;
 							// Browsers sometimes add an extra <br> to the end of the element for no reason
 							// This deletes that redundant <br>
 							if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName == 'BR') element.alias.removeChild(element.alias.lastChild);
@@ -999,6 +994,32 @@ function main(){
 					separate: true,
 					id: 'delete'
 				},{
+					name: 'Duplicate Element',
+					func: function(_,close) {
+						close();
+						var element = document.querySelector('[data-selected-element=selected]');
+						if (!element) return;
+						var clone = element.alias.cloneNode(true),
+							re = /^Duplicate_\d+_of_/;
+						function changeId(node) {
+							if (node.id) {
+								node.id = node.id.replace(re,'');
+								for (var index = 1; framewindow.document.getElementById('Duplicate_' + index + '_of_' + node.id); index++);
+								node.id = 'Duplicate_' + index + '_of_' + node.id;
+							}
+							forEach(node.children, changeId);
+						}
+						changeId(clone);
+						element.alias.insertAdjacentElement('afterEnd', clone);
+						history.update('Duplicate element');
+						overlayUpdate();
+						deselect();
+						clickhandler.call(clone.alias, pseudoEvent);
+					},
+					title: '(' + locale.cmdKey + ' + Shift  + D) Create a duplicate of the selected element as a sibling',
+					separate: true,
+					id: 'duplicate'
+				},{
 					name: 'Copy Element',
 					func: function(e,close) {
 						close();
@@ -1018,11 +1039,14 @@ function main(){
 						close();
 						prepareCopy(e.shiftKey);
 						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-							contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
+							var cmi = contextmenus[1].getItem('delete');
+							cmi.cut = true;
+							cmi.dispatchEvent(new MouseEvent('click'));
 						} else {
 							backdialog.style.display = 'block';
 							document.getElementById('dialog_pseudo_paste').style.display = 'block';
 						}
+						if (document.activeElement == clipboard) userClipboard = clipboard.value;
 					},
 					title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element and all its descendants',
 					image: 'svg/cut.svg',
@@ -1051,7 +1075,8 @@ function main(){
 							if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
 						}
 						overlayUpdate();
-						history.update('Delete node' + elements.length > 1 ? 's' : '');
+						history.update((this.cut ? 'Cut element' : 'Delete node') + (elements.length > 1 ? 's' : ''));
+						this.cut = false;
 						close();
 						updateTooltip();
 					},
@@ -1063,7 +1088,7 @@ function main(){
 					name: 'Edit Class Names&#133;',
 					func: function(_,close) {
 						close();
-						contextmenus[0].getItem('editClass').dispatchEvent(new Event('click'));
+						contextmenus[0].getItem('editClass').dispatchEvent(new MouseEvent('click'));
 					},
 					title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the elements\' classes',
 					separate: true,
@@ -1084,7 +1109,7 @@ function main(){
 						});
 						if (!e.shiftKey) deselect();
 						nodes.forEach(function(node) {
-							node.setAttribute('data-selected-element','selected');
+							clickhandler.call(node, pseudoEvent.__extend__({set: true}));
 						});
 
 						updateTooltip();
@@ -1101,11 +1126,11 @@ function main(){
 						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						if (!e.shiftKey) deselect();
-						Array.prototype.forEach.call(elements, function(element) {
-							Array.prototype.forEach.call(element.children, function(child) {
-								child.setAttribute('data-selected-element', 'selected');
-							})
-						});
+						forEach(elements, function() {
+							forEach(this.children, function() {
+								clickhandler.call(this, pseudoEvent.__extend__({set: true}));
+							});
+						})
 						updateTooltip();
 						updateTreeSelections();
 						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
@@ -1136,11 +1161,14 @@ function main(){
 						close();
 						prepareCopy(e.shiftKey);
 						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-							contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
+							var cmi = contextmenus[1].getItem('delete');
+							cmi.cut = true;
+							cmi.dispatchEvent(new MouseEvent('click'));
 						} else {
 							backdialog.style.display = 'block';
 							document.getElementById('dialog_pseudo_paste').style.display = 'block';
 						}
+						if (document.activeElement == clipboard) userClipboard = clipboard.value;
 					},
 					title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements and all their descendants',
 					image: 'svg/cut.svg',
@@ -1399,7 +1427,6 @@ function main(){
 					toggle: true,
 					image: 'svg/checkmark.svg',
 					imageoff: 'svg/transparent.svg',
-					separate: true,
 					id: 'htmlTree'
 				},{
 					name: 'Grid',
@@ -1429,6 +1456,19 @@ function main(){
 					image: 'svg/checkmark.svg',
 					imageoff: 'svg/transparent.svg',
 					id: 'tooltip'
+				},{
+					name: 'Bounding Boxes',
+					func: function(_,close) {
+						this.toggled = !this.toggled;
+						close();
+						closeHeaders();
+						document.getElementById('rectDisplays').style.display = this.toggled ? 'block' : '';
+					},
+					title: 'Toggled the bounding box line displays',
+					toggle: true,
+					image: 'svg/checkmark.svg',
+					imageoff: 'svg/transparent.svg',
+					id: 'boundingBox'
 				}],
 				pseudoParent: document.getElementById('section_view')
 			}),
@@ -1449,9 +1489,9 @@ function main(){
 						close();
 						closeHeaders();
 						var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
-						for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
-							elements[i].setAttribute('data-selected-element', 'selected');
-						};
+						forEach(document.querySelectorAll('#frameoverlay, #frameoverlay *'), function() {
+							clickhandler.call(this, pseudoEvent.__extend__({set: true}));
+						});
 						updateTooltip();
 						updateTreeSelections();
 						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
@@ -1560,24 +1600,12 @@ function main(){
 							unique(elements.concat(elements.map(function(elem) {
 								return elem == overlay ? overlay : elem.previousElementSibling || elem.lastElementChild;
 							}))).forEach(function(element) {
-								clickhandler.call(element, {
-									stopPropagation: function(){},
-									clientX: 0,
-									clientY: y,
-									isTrusted: true,
-									shiftKey: true
-								});
+								clickhandler.call(element, pseudoEvent.__extend__({set: true}));
 							});
 						} else {
 							deselect();
 							forEach(elements, function(element) {
-								clickhandler.call(element == overlay ? overlay : element.previousElementSibling || element.parentNode.lastElementChild, {
-									stopPropagation: function(){},
-									clientX: 0,
-									clientY: y,
-									isTrusted: true,
-									shiftKey: true
-								});
+								clickhandler.call(element == overlay ? overlay : element.previousElementSibling || element.parentNode.lastElementChild, pseudoEvent.__extend__({set: true}));
 							});
 						}
 						
@@ -1624,24 +1652,12 @@ function main(){
 							unique(elements.concat(elements.map(function(elem) {
 								return elem == overlay ? overlay : elem.nextElementSibling || elem.firstElementChild;
 							}))).forEach(function(element) {
-								clickhandler.call(element, {
-									stopPropagation: function(){},
-									clientX: 0,
-									clientY: y,
-									isTrusted: true,
-									shiftKey: true
-								});
+								clickhandler.call(element, pseudoEvent.__extend__({set: true}));
 							});
 						} else {
 							deselect();
 							forEach(elements, function(element) {
-								clickhandler.call(element == overlay ? overlay : element.nextElementSibling || element.parentNode.firstElementChild, {
-									stopPropagation: function(){},
-									clientX: 0,
-									clientY: y,
-									isTrusted: true,
-									shiftKey: true
-								});
+								clickhandler.call(element == overlay ? overlay : element.nextElementSibling || element.parentNode.firstElementChild, pseudoEvent.__extend__({set: true}));
 							});
 						}
 						
@@ -1724,12 +1740,14 @@ function main(){
 			pseudoParent: document.getElementById('section_stylesheets')
 		},
 		preventUpdates = false,
+		preventEditTextBlurring = false,
 		documentMeta = JSON.parse(localStorage.getItem('HTML-Studio_meta') || '{"charset":"utf-8"}'),
 		pseudoEvent = {
 			stopPropagation: function(){},
 			preventDefault: function(){},
 			clientX: 0,
 			clientY: 0,
+			isTrusted: true,
 			__extend__: function(obj) {
 				var event = {};
 				for (var key in this) {
@@ -1782,6 +1800,14 @@ function main(){
 			},
 			set: function(v) {
 				return preventUpdates = !!v;
+			}
+		},
+		preventEditTextBlurring: {
+			get: function() {
+				return preventEditTextBlurring;
+			},
+			set: function(v) {
+				return preventEditTextBlurring = !!v;
 			}
 		},
 		history: {
@@ -1884,7 +1910,7 @@ function main(){
 		e.preventDefault();
 		e.stopPropagation();
 		var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
-		if (!index) (document.querySelector('[data-selected-element=selected]') || overlay).dispatchEvent(new Event('click'));
+		if (!index) (document.querySelector('[data-selected-element=selected]') || overlay).dispatchEvent(new MouseEvent('click'));
 		if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
 		if (!index) {
 			var node = document.querySelector('[data-selected-element=selected]') || overlay,
@@ -2052,7 +2078,7 @@ function main(){
 			e.preventDefault();
 			e.stopPropagation();
 			var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
-			if (!index) clonednode.dispatchEvent(new Event('click'));
+			if (!index) clonednode.dispatchEvent(new MouseEvent('click'));
 			if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
 			if (!index) {
 				var node = document.querySelector('[data-selected-element=selected]') || clonednode,
@@ -2228,7 +2254,7 @@ function main(){
 		overlay.style.boxShadow = '';
 		overlay.style.fontFamily = (overlay.style.fontFamily || '') + ', serif';
 
-		document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
+		document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
 
 		restoreSelection();
 		updateTree();
@@ -2239,6 +2265,7 @@ function main(){
 	// Some global functions used in different areas
 	// Array.prototype.forEach
 	function forEach(array, func) {
+		if (!array) return;
 		for (var i = 0; i < array.length; i++) {
 			if (func.call(array[i], array[i], i, array) == 'break') return;
 		}
@@ -2379,8 +2406,11 @@ function main(){
 	// Deselects all elements and set their background back to transparent
 	function deselect () {
 		Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
-			element.setAttribute('data-selected-element','');
+			element.removeAttribute('data-selected-element');
 			element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+			forEach(element.boundRects, function() {
+				if (this.parentNode) this.parentNode.removeChild(this);
+			});
 		});
 		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 	}
@@ -2538,7 +2568,12 @@ function main(){
 		var clonednode = this;
 		e.stopPropagation();
 		if (clonednode.preventClick) return clonednode.preventClick = false;
-		if (e.shiftKey) {
+		if ('set' in e) {
+			clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+			clonednode.setAttribute('data-selected-element', e.set ? 'selected' : '');
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			updateTooltip();
+		} else if (e.shiftKey) {
 			clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
 			clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
 			var nodes = document.querySelectorAll('[data-selected-element=selected]');
@@ -2555,6 +2590,27 @@ function main(){
 		updateTreeSelections();
 		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		updateTooltip();
+		if (this.getAttribute('data-selected-element') == 'selected') {
+			if (this.boundRects && this.boundRects[0].parentNode) return;
+			var rect = this.getBoundingClientRect(),
+				scrollX = framewindow.document.documentElement.scrollLeft || framewindow.document.body.scrollLeft,
+				scrollY = (framewindow.document.documentElement.scrollTop || framewindow.document.body.scrollTop) - document.getElementById('toolbarcontainer').getBoundingClientRect().height;
+			this.boundRects = [document.createElement('div'), document.createElement('div')];
+			this.boundRects[0].className = 'rectX';
+			this.boundRects[1].className = 'rectY';
+			this.boundRects[1].style.left = rect.left + scrollX + 'px';
+			this.boundRects[1].style.width = rect.width + 'px';
+			this.boundRects[0].style.top = rect.top + scrollY + 'px';
+			this.boundRects[0].style.height = rect.height + 'px';
+			forEach(this.boundRects, function() {
+				this.boundNode = clonednode;
+				document.getElementById('rectDisplays').appendChild(this);
+			})
+		} else {
+			forEach(this.boundRects, function() {
+				if (this.parentNode) this.parentNode.removeChild(this);
+			});
+		}
 	};
 
 
@@ -2655,7 +2711,7 @@ function main(){
 			}
 		});
 		element.addEventListener('keydown', function(e) {
-			if (e.keyCode == 13) this.dispatchEvent(new Event('click'));
+			if (e.keyCode == 13) this.dispatchEvent(new MouseEvent('click'));
 		});
 	});
 
@@ -2815,7 +2871,7 @@ function main(){
 			// Register the new stylesheet into the document
 			updateStylesheets();
 			// Give the browser enough time to render styles
-			// getComputedStyles returns old styles until the styles have updated
+			// getComputedStyle returns old styles until the styles have updated
 			setTimeout(overlayUpdate, 500);
 			setTimeout(overlayUpdate, 1000);
 			// Close the current dialog
@@ -2865,7 +2921,7 @@ function main(){
 			localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(array));
 			updateStylesheets();
 			// Gives browser enough time to render styles
-			// getComputedStyles returns old styles until the styles have updated
+			// getComputedStyle returns old styles until the styles have updated
 			setTimeout(overlayUpdate, 500);
 			setTimeout(overlayUpdate, 1000);
 			closeDialogs();
@@ -2879,7 +2935,7 @@ function main(){
 	});
 
 	document.getElementById('idD').addEventListener('click', function() {
-		contextmenus[4].getItem('htmlTree').dispatchEvent(new Event('click'));
+		contextmenus[4].getItem('htmlTree').dispatchEvent(new MouseEvent('click'));
 	});
 
 	// Scrolls iframe depending on #framecontainer's scrollTop
@@ -3487,14 +3543,14 @@ function main(){
 		else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && !dialogOpen() && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
 			e.preventDefault();
 			e.stopPropagation();
-			for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
-				elements[i].setAttribute('data-selected-element', 'selected');
-			};
+			forEach(document.querySelectorAll('#frameoverlay, #frameoverlay *'), function() {
+				clickhandler.call(this, pseudoEvent.__extend__({set: true}));
+			});
 			updateTooltip();
 			updateTreeSelections();
 			selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		// Ctrl + D
-		} else if (e.keyCode == 68 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+		} else if (e.keyCode == 68 && locale.cmdKeyPressed(e) && !e.shiftKey && !dialogOpen()) {
 			e.preventDefault();
 			e.stopPropagation();
 			deselect();
@@ -3555,13 +3611,12 @@ function main(){
 			contextmenus[6].getItem('selectNextSibling').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 		// Ctrl + X
 		} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard && !dialogOpen()) {
-			e.stopPropagation();
-			e.preventDefault();
-			if (e.shiftKey) {
-				prepareCopy(true);
-				if (e.isTrusted && document.queryCommandSupported('copy')) document.execCommand('copy');
-			}
-			contextmenus[1].getItem('delete').dispatchEvent(new MouseEvent('click'));
+			prepareCopy(e.shiftKey);
+			if (e.isTrusted && document.queryCommandSupported('copy')) document.execCommand('copy') && e.stopPropagation() && e.preventDefault();
+			userClipboard = clipboard.value;
+			var cmi = contextmenus[1].getItem('delete');
+			cmi.cut = true;
+			cmi.dispatchEvent(new MouseEvent('click'));
 		// Del or Backspace
 		} else if ((e.keyCode == 46 || e.keyCode == 8) && !dialogOpen() && (target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) {
 			e.stopPropagation();
@@ -3571,18 +3626,23 @@ function main(){
 		} else if (e.keyCode == 51 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			contextmenus[0].getItem('editId').dispatchEvent(new Event('click'));
+			contextmenus[0].getItem('editId').dispatchEvent(new MouseEvent('click'));
 		// Ctrl + .
 		} else if (e.keyCode == 190 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			contextmenus[0].getItem('editClass').dispatchEvent(new Event('click'));
+			contextmenus[0].getItem('editClass').dispatchEvent(new MouseEvent('click'));
 		// Ctrl + H
 		} else if (e.keyCode == 72 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			if (document.querySelectorAll('[data-selected-element="selected"]').length == 1) contextmenus[0].getItem('editHTML').dispatchEvent(new Event('click'));
+			if (document.querySelectorAll('[data-selected-element="selected"]').length == 1) contextmenus[0].getItem('editHTML').dispatchEvent(new MouseEvent('click'));
 			else document.getElementById('htmlNoEdit').className = 'topText active';
+		// Ctrl + Shift + D
+		} else if (e.keyCode == 68 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			contextmenus[0].getItem('duplicate').dispatchEvent(new MouseEvent('click'));
 		}
 
 		// Allows Ctrl + C to be handled natively by the browser
@@ -3606,17 +3666,33 @@ function main(){
 	});
 
 	addEventListener('paste', function(e) {
-		var target = document.activeElement == iframe ? framewindow.document.activeElement : document.activeElement;
+		var target = document.activeElement == iframe ? framewindow.document.activeElement : document.activeElement, re = /^Copy_\d+_of_/;
 		if (!(target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) return;
 		try {
 			var type = Array.prototype.slice.call(e.clipboardData.types);
-			var type = ~type.indexOf('text/html') ? 'text/html' : ~type.indexOf('text/plain') ? 'text/plain' : ~type.indexOf('text') ? 'text' :false;
+			var type = ~type.indexOf('text/html') ? 'text/html' : ~type.indexOf('text/plain') ? 'text/plain' : ~type.indexOf('text') ? 'text' : false;
 			if (!type) return;
 			var markup = e.clipboardData.getData(type), fragment = document.createElement('template');
 			fragment.innerHTML = markup;
+
+			var cache = [], inDoc;
+			function changeId(node) {
+				if (node.id) {
+					node.id = node.id.replace(re, '');
+					for (var index = 1; ~cache.indexOf('Copy_' + index + '_of_' + node.id) || (inDoc = framewindow.document.getElementById('Copy_' + index + '_of_' + node.id)); index++) {
+						if (inDoc) cache.push('Copy_' + index + '_of_' + node.id);
+						inDoc = false;
+					}
+					cache.push(node.id = 'Copy_' + index + '_of_' + node.id);
+				}
+				forEach(node.children, changeId);
+			}
+			changeId(fragment.content);
+
 			var selectedElements = document.querySelectorAll('[data-selected-element=selected]');
 			Array.prototype.forEach.call(selectedElements, function(element) {
 				element.alias.appendChild(fragment.cloneNode(true).content);
+				changeId(fragment.content);
 			});
 			overlayUpdate();
 			history.update('Paste HTML');
@@ -3637,9 +3713,25 @@ function main(){
 			if (userClipboard) {
 				var markup = userClipboard, fragment = document.createElement('template');
 				fragment.innerHTML = markup;
+
+				var cache = [], inDoc;
+				function changeId(node) {
+					if (node.id) {
+						node.id = node.id.replace(re, '');
+						for (var index = 1; ~cache.indexOf('Copy_' + index + '_of_' + node.id) || (inDoc = framewindow.document.getElementById('Copy_' + index + '_of_' + node.id)); index++) {
+							if (inDoc) cache.push('Copy_' + index + '_of_' + node.id);
+							inDoc = false;
+						}
+						cache.push(node.id = 'Copy_' + index + '_of_' + node.id);
+					}
+					forEach(node.children, changeId);
+				}
+				changeId(fragment.content);
+
 				var selectedElements = document.querySelectorAll('[data-selected-element=selected]');
 				Array.prototype.forEach.call(selectedElements, function(element) {
 					element.alias.appendChild(fragment.cloneNode(true).content);
+					changeId(framement.content);
 				});
 				overlayUpdate();
 				history.update('Paste HTML');
@@ -3656,7 +3748,7 @@ function main(){
 		}
 	})
 	addEventListener('resize', function() {
-		document.getElementById('overlaygrid').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
+		document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
 		var oldSelection = selection.slice();
 		overlayUpdate();
 		restoreSelection(oldSelection);
