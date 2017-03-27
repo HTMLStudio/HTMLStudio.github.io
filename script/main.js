@@ -1462,7 +1462,7 @@ function main(){
 						this.toggled = !this.toggled;
 						close();
 						closeHeaders();
-						document.getElementById('rectDisplays').style.display = this.toggled ? 'block' : '';
+						document.getElementById('rectDisplays').style.opacity = this.toggled ? '1' : '';
 					},
 					title: 'Toggled the bounding box line displays',
 					toggle: true,
@@ -2146,6 +2146,9 @@ function main(){
 			function clone (parent, DOM) {
 				var clonednode = this.cloneNode();
 				this.alias = clonednode;
+				forEach(this.boundRects, function() {
+					if (this.parentNode) this.parentNode.removeChild(this);
+				});
 				clonednode.alias = this;
 				clonednode.isOverlay = true;
 				if (clonednode instanceof Element || clonednode.nodeType == 1) {
@@ -2413,6 +2416,9 @@ function main(){
 			});
 		});
 		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+		forEach(document.querySelectorAll('.rectX, .rectY, .rectXT, .rectYT'), function() {
+			if (this.parentNode) this.parentNode.removeChild(this);
+		});;
 	}
 	// Closes header context menus and sets the buttons to the correct background color
 	function closeHeaders() {
@@ -2595,17 +2601,27 @@ function main(){
 			var rect = this.getBoundingClientRect(),
 				scrollX = framewindow.document.documentElement.scrollLeft || framewindow.document.body.scrollLeft,
 				scrollY = (framewindow.document.documentElement.scrollTop || framewindow.document.body.scrollTop) - document.getElementById('toolbarcontainer').getBoundingClientRect().height;
-			this.boundRects = [document.createElement('div'), document.createElement('div')];
+			this.boundRects = [document.createElement('div'), document.createElement('div'), document.createElement('span'), document.createElement('span')];
 			this.boundRects[0].className = 'rectX';
 			this.boundRects[1].className = 'rectY';
-			this.boundRects[1].style.left = rect.left + scrollX + 'px';
-			this.boundRects[1].style.width = rect.width + 'px';
+			this.boundRects[2].className = 'rectXT';
+			this.boundRects[3].className = 'rectYT';
 			this.boundRects[0].style.top = rect.top + scrollY + 'px';
 			this.boundRects[0].style.height = rect.height + 'px';
+			this.boundRects[1].style.left = rect.left + scrollX + 'px';
+			this.boundRects[1].style.width = rect.width + 'px';
+			this.boundRects[2].innerText = Math.round(rect.width).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' px';
+			this.boundRects[3].innerText = Math.round(rect.height).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' px';
 			forEach(this.boundRects, function() {
 				this.boundNode = clonednode;
 				document.getElementById('rectDisplays').appendChild(this);
-			})
+			});
+			var rect2 = this.boundRects[2].getBoundingClientRect(),
+				rect3 = this.boundRects[3].getBoundingClientRect();
+			this.boundRects[2].style.top = rect.top + scrollY + rect.height + 'px';
+			this.boundRects[2].style.left = Math.max(rect.left + scrollX + rect2.width / 2, rect.left + scrollX + rect.width / 2) + 'px';
+			this.boundRects[3].style.top = Math.min(rect.top + scrollY + rect.height - rect3.width / 2 - rect3.height / 2, rect.top + scrollY + rect.height / 2 - rect3.width / 2) + 'px';
+			this.boundRects[3].style.left = rect.left + scrollX - rect3.height / 2 - rect3.width / 2 + 'px';
 		} else {
 			forEach(this.boundRects, function() {
 				if (this.parentNode) this.parentNode.removeChild(this);

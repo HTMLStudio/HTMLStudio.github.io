@@ -356,3 +356,22 @@ html-element-replacer {
 	height: 100%;
 	padding: 2px 0;
 }
+
+.rectXT, .rectYT {
+	position: absolute;
+	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+	background: #FFF;
+	box-shadow: 0 0 3px 1px #AAA;
+	padding: 0 3px;
+	z-index: 1;
+}
+
+.rectXT {
+	transform: translate(-50%, 1px);
+	margin-top: 2px;
+}
+
+.rectYT {
+	transform: rotate(270deg);
+	margin-left: -2px;
+}
