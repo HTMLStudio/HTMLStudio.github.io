@@ -977,6 +977,7 @@ function main(){
 						});
 					},
 					title: 'Replaces the element with all its child nodes',
+					disabledtitle: 'This element cannot be unwrapped',
 					separate: true,
 					id: 'unwrap'
 				},{
@@ -1462,7 +1463,39 @@ function main(){
 						this.toggled = !this.toggled;
 						close();
 						closeHeaders();
-						document.getElementById('rectDisplays').style.opacity = this.toggled ? '1' : '';
+						document.getElementById('rectDisplays').style.display = this.toggled ? 'block' : 'none';
+
+						if (this.toggled) {
+							var scrollX = framewindow.document.documentElement.scrollLeft || framewindow.document.body.scrollLeft,
+								scrollY = (framewindow.document.documentElement.scrollTop || framewindow.document.body.scrollTop) - document.getElementById('toolbarcontainer').getBoundingClientRect().height;
+							forEach(document.getElementsByClassName('rectX'), function() {
+								var rect = this.boundNode.getBoundingClientRect();
+								this.boundNode.boundRects[2].innerHTML = Math.round(rect.width).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' <span class="rectTU">px</span>';
+								this.boundNode.boundRects[3].innerHTML = Math.round(rect.height).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' <span class="rectTU">px</span>';
+								var rect2 = this.boundNode.boundRects[2].getBoundingClientRect(),
+									rect3 = this.boundNode.boundRects[3].getBoundingClientRect();
+								forEach(this.boundNode.boundRects, function(_,i) {
+									switch (i) {
+										case 0:
+											this.style.top = rect.top + scrollY + 'px';
+											this.style.height = rect.height + 'px';
+											break;
+										case 1:
+											this.style.left = rect.left + scrollX + 'px';
+											this.style.width = rect.width + 'px';
+											break;
+										case 2:
+											this.style.top = rect.top + scrollY + rect.height + 'px';
+											this.style.left = Math.max(rect.left + scrollX + rect2.width / 2, rect.left + scrollX + rect.width / 2) + 'px';
+											break;
+										case 3:
+											this.style.top = Math.min(rect.top + scrollY + rect.height - rect3.width / 2 - rect3.height / 2, rect.top + scrollY + rect.height / 2 - rect3.width / 2) + 'px';
+											this.style.left = rect.left + scrollX - rect3.height / 2 - rect3.width / 2 + 'px';
+											break;
+									}
+								});
+							});
+						}
 					},
 					title: 'Toggled the bounding box line displays',
 					toggle: true,
@@ -1598,7 +1631,7 @@ function main(){
 							deselect();
 							
 							unique(elements.concat(elements.map(function(elem) {
-								return elem == overlay ? overlay : elem.previousElementSibling || elem.lastElementChild;
+								return elem == overlay ? overlay : elem.previousElementSibling || elem.parentNode.lastElementChild;
 							}))).forEach(function(element) {
 								clickhandler.call(element, pseudoEvent.__extend__({set: true}));
 							});
@@ -1619,7 +1652,7 @@ function main(){
 					func: function(e,close) {
 						close();
 						closeHeaders();
-						var elements = document.querySelectorAll('[data-selected-element="selected"]');
+						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						var y = Math.round(em(4.45));
 						if (e.shiftKey) {
@@ -1650,7 +1683,7 @@ function main(){
 							deselect();
 							
 							unique(elements.concat(elements.map(function(elem) {
-								return elem == overlay ? overlay : elem.nextElementSibling || elem.firstElementChild;
+								return elem == overlay ? overlay : elem.nextElementSibling || elem.parentNode.firstElementChild;
 							}))).forEach(function(element) {
 								clickhandler.call(element, pseudoEvent.__extend__({set: true}));
 							});
@@ -1921,6 +1954,7 @@ function main(){
 			contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
 			contextmenus[0].getItem('editText').disabled = node instanceof SVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName);
 			contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
+			contextmenus[0].getItem('unwrap').disabled = node.alias == framewindow.document.body;
 		} else {
 			contextmenus[1].getItem('selectChildren').disabled = (function() {
 				for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
@@ -2089,6 +2123,7 @@ function main(){
 				contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
 				contextmenus[0].getItem('editText').disabled = node instanceof SVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName);
 				contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
+				contextmenus[0].getItem('unwrap').disabled = node.alias == framewindow.document.body;
 			} else {
 				contextmenus[1].getItem('selectChildren').disabled = (function() {
 					for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
@@ -2596,26 +2631,34 @@ function main(){
 		updateTreeSelections();
 		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		updateTooltip();
+
+		// Create bounding box lines
 		if (this.getAttribute('data-selected-element') == 'selected') {
 			if (this.boundRects && this.boundRects[0].parentNode) return;
-			var rect = this.getBoundingClientRect(),
-				scrollX = framewindow.document.documentElement.scrollLeft || framewindow.document.body.scrollLeft,
-				scrollY = (framewindow.document.documentElement.scrollTop || framewindow.document.body.scrollTop) - document.getElementById('toolbarcontainer').getBoundingClientRect().height;
 			this.boundRects = [document.createElement('div'), document.createElement('div'), document.createElement('span'), document.createElement('span')];
 			this.boundRects[0].className = 'rectX';
 			this.boundRects[1].className = 'rectY';
 			this.boundRects[2].className = 'rectXT';
 			this.boundRects[3].className = 'rectYT';
-			this.boundRects[0].style.top = rect.top + scrollY + 'px';
-			this.boundRects[0].style.height = rect.height + 'px';
-			this.boundRects[1].style.left = rect.left + scrollX + 'px';
-			this.boundRects[1].style.width = rect.width + 'px';
-			this.boundRects[2].innerText = Math.round(rect.width).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' px';
-			this.boundRects[3].innerText = Math.round(rect.height).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' px';
+			// Append them to the document
 			forEach(this.boundRects, function() {
 				this.boundNode = clonednode;
 				document.getElementById('rectDisplays').appendChild(this);
 			});
+
+			// If they are hidden, don't continue
+			if (!contextmenus[4].getItem('boundingBox').toggled) return;
+
+			var rect = this.getBoundingClientRect();
+			// Set the dimension <span>s text
+			this.boundRects[2].innerHTML = Math.round(rect.width).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' <span class="rectTU">px</span>';
+			this.boundRects[3].innerHTML = Math.round(rect.height).toString().match(/^..?(?=(...)*$)|.../g).join(',') + ' <span class="rectTU">px</span>';
+			var scrollX = framewindow.document.documentElement.scrollLeft || framewindow.document.body.scrollLeft,
+				scrollY = (framewindow.document.documentElement.scrollTop || framewindow.document.body.scrollTop) - document.getElementById('toolbarcontainer').getBoundingClientRect().height;
+			this.boundRects[0].style.top = rect.top + scrollY + 'px';
+			this.boundRects[0].style.height = rect.height + 'px';
+			this.boundRects[1].style.left = rect.left + scrollX + 'px';
+			this.boundRects[1].style.width = rect.width + 'px';
 			var rect2 = this.boundRects[2].getBoundingClientRect(),
 				rect3 = this.boundRects[3].getBoundingClientRect();
 			this.boundRects[2].style.top = rect.top + scrollY + rect.height + 'px';

@@ -360,18 +360,27 @@ html-element-replacer {
 .rectXT, .rectYT {
 	position: absolute;
 	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
-	background: #FFF;
-	box-shadow: 0 0 3px 1px #AAA;
-	padding: 0 3px;
+	background: #234;
+	color: #DDD;
+	font-size: 85%;
+	box-shadow: 0 0 3px 1px rgba(0,0,0,.7);
+	padding: 2px 6px;
 	z-index: 1;
+	border-radius: 3px;
 }
 
 .rectXT {
+	-webkit-transform: translate(-50%, 1px);
 	transform: translate(-50%, 1px);
 	margin-top: 2px;
 }
 
 .rectYT {
+	-webkit-transform: rotate(270deg);
 	transform: rotate(270deg);
 	margin-left: -2px;
+}
+
+.rectTU {
+	color: #F55;
 }

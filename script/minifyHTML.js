@@ -1,4 +1,4 @@
-(window.HTMLStudio=window.HTMLStudio||{}).minifyHTML=function(css){
+(window.HTMLStudio=window.HTMLStudio||{}).minifyHTML=function(){
 	"use strict";
 	var win = document.getElementById('frame').contentWindow,
 		html = win.document.documentElement,
