@@ -7,6 +7,8 @@
 		this.list = new HTMLStudio.CSSEditor.CSSRuleList(this);
 		this.originalStylesheet = null;
 		this.onQuerySelector = function(){};
+		CSSStyleSheet = (arguments[2] || document).defaultView.CSSStyleSheet;
+		CSSStyleRule = (arguments[2] || document).defaultView.CSSStyleRule;
 		if (!arguments.length || !(arguments[0] instanceof CSSStyleSheet)) {
 			root.appendChild(this.list.newRule(true).node);
 		} else {

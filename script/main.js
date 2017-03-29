@@ -41,7 +41,7 @@ function main(){
 		 - Import style sheets
 		 - Node duplicator
 		 - Fix <a> Edit Text auto-blur
-		 - Fix CSS precedence
+		 - HTML Prettifier
 		 - Fix Edit Text bottom scrolling bug
 	*/
 
@@ -669,11 +669,14 @@ function main(){
 							clone.alias = node;
 							node.alias = clone;
 							if (clone.nodeType == 1 && node.nodeType == 1) {
+								clone.stylePrecedence = {};
 								css.forEach(function(stylesheet) {
 									stylesheet[1].forEach(function(query) {
 										if (node.matches(query[0])) {
 											query[1].forEach(function(rule) {
+												if (query[2] < clone.stylePrecedence[rule[0]]) return;
 												clone.style[rule[0]] = node.style[rule[0]] || rule[1];
+												clone.stylePrecedence[rule[0]] = query[2];
 											})
 										}
 									})
@@ -1369,6 +1372,62 @@ function main(){
 								disabled: true,
 								disabledtitle: 'Work in Progress',
 								id: 'nodeSelectionColor'
+							},{
+								name: 'Grid',
+								title: 'Edit the grid properties',
+								disabled: true,
+								disabledtitle: 'Work in Progress',
+								id: 'grid'
+							},{
+								name: 'CSS Units',
+								title: 'Change the CSS unit for measurements',
+								id: 'cssUnits',
+								subcontext: {
+									items: [
+										{
+											name: 'Pixels (px)',
+											toggle: true,
+											toggled: true,
+											disabled: true,
+											image: 'svg/checkmark.svg',
+											imageoff: 'svg/transparent.svg',
+											disabledtitle: 'Work in Progress',
+											id: 'px'
+										},{
+											name: 'Points (pt)',
+											toggle: true,
+											disabled: true,
+											image: 'svg/checkmark.svg',
+											imageoff: 'svg/transparent.svg',
+											disabledtitle: 'Work in Progress',
+											id: 'pt'
+										},{
+											name: 'Inches (in)',
+											toggle: true,
+											disabled: true,
+											image: 'svg/checkmark.svg',
+											imageoff: 'svg/transparent.svg',
+											disabledtitle: 'Work in Progress',
+											id: 'in'
+										},{
+											name: 'Centimeters (cm)',
+											toggle: true,
+											disabled: true,
+											image: 'svg/checkmark.svg',
+											imageoff: 'svg/transparent.svg',
+											disabledtitle: 'Work in Progress',
+											id: 'cm'
+										},{
+											name: 'Viewport Units (vh / vw)',
+											toggle: 'true',
+											disabled: true,
+											image: 'svg/checkmark.svg',
+											imageoff: 'svg/transparent.svg',
+											disabledtitle: 'Work in Progress',
+											id: 'vhvw'
+										}
+									]
+								}
 							}
 						]
 					},
@@ -2148,11 +2207,14 @@ function main(){
 		}
 
 
+		overlay.stylePrecedence = {};
 		css.forEach(function(stylesheet) {
 			stylesheet[1].forEach(function(query) {
 				if (body.matches(query[0])) {
 					query[1].forEach(function(rule) {
+						if (query[2] < overlay.stylePrecedence[rule[0]]) return;
 						overlay.style[rule[0]] = rule[1];
+						overlay.stylePrecedence[rule[0]] = query[2];
 					})
 				}
 			})
@@ -2186,6 +2248,7 @@ function main(){
 				});
 				clonednode.alias = this;
 				clonednode.isOverlay = true;
+				clonednode.stylePrecedence = {};
 				if (clonednode instanceof Element || clonednode.nodeType == 1) {
 					var DOMNodeObject = {
 						name: clonednode.alias.nodeName,
@@ -2210,7 +2273,9 @@ function main(){
 						stylesheet[1].forEach(function(query) {
 							if (this.matches(query[0])) {
 								query[1].forEach(function(rule) {
+									if (query[2] < clonednode.stylePrecedence[rule[0]]) return;
 									clonednode.style[rule[0]] = this.style[rule[0]] || rule[1];
+									clonednode.stylePrecedence[rule[0]] = query[2];
 								}.bind(this));
 							}
 						}.bind(this))
@@ -2408,11 +2473,16 @@ function main(){
 				for (var n = 0, l = rules.length; n < l; n++, html += '\n\n') {
 					if (rules[n] instanceof CSSStyleRule) {
 						html += rules[n].selectorText + ' {\n';
-						css[css.length - 1][1].push([rules[n].selectorText,[]]);
-						rules[n].cssText.replace(/(?:{\s*|;\s*)([a-z-]+)\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)+)/g, function($0,$1,$2) {
-							html += '\t' + $1 + ': ' + $2 + ';\n';
-							css[css.length - 1][1][css[css.length - 1][1].length - 1][1].push([$1,$2]);
-							return $0;
+						var precedence = HTMLStudio.parseSelector(rules[n].selectorText);
+						forEach(precedence, function(_,i,p) {
+							if (!i) {
+								rules[n].cssText.replace(/(?:{\s*|;\s*)([a-z-]+)\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)+)/g, function($0,$1,$2) {
+									html += '\t' + $1 + ': ' + $2 + ';\n';
+									(p.styles = p.styles || []).push([$1, $2]);
+									return $0;
+								});
+							}
+							css[css.length - 1][1].push([this.selector,p.styles,this]);
 						});
 						html += '}'
 					} else if (rules[n] instanceof CSSFontFaceRule) {
@@ -3039,7 +3109,7 @@ function main(){
 								items: [{
 									name: 'Edit&#133;',
 									func: function(_,close) {
-										var editor = new HTMLStudio.CSSEditor(this.root.parentNode.stylesheet.sheet, true);
+										var editor = new HTMLStudio.CSSEditor(this.root.parentNode.stylesheet.sheet, true, framewindow.document);
 										editor.onQuerySelector = function(query) {
 											deselect();
 											var y = Math.round(em(4.45));
@@ -3156,7 +3226,7 @@ function main(){
 							items: [{
 								name: 'Edit&#133;',
 								func: function(_,close) {
-									var editor = new HTMLStudio.CSSEditor(this.root.parentNode.stylesheet.sheet, true);
+									var editor = new HTMLStudio.CSSEditor(this.root.parentNode.stylesheet.sheet, true, framewindow.document);
 									editor.onQuerySelector = function(query) {
 										deselect();
 										var y = Math.round(em(4.45));
