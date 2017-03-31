@@ -34,7 +34,7 @@ Modernizr.addTest("csspositionsticky",function(){var e="position:",n="sticky",s=
 function main(){
 	/*
 		TODO:
-		 - CSSEditor <textarea> on comma + enter
+		 - Resizable dialogs
 		 - Edit prefs dialog
 		 - Better grid
 		 - Toggleable toolbar
@@ -1808,9 +1808,38 @@ function main(){
 						if (e.target.nodeName == 'INPUT' && e.charCode) this.modified = true;
 					});
 					editor.node.modified = true;
-					idH.innerHTML = '<h3>Create CSS rules below, give your new style sheet a name to remember it by, and save it.</h3><br><input type="text" id="idK" placeholder="Style Sheet Name">';
+					idH.innerHTML = '<h3>Create CSS rules below, give your new style sheet a name to remember it by, and save it.</h3><br><input type="checkbox" checked id="cssSyntaxHighlighter"><label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idK" placeholder="Style Sheet Name">';
 					idH.appendChild(editor.node);
 					document.getElementById('dialog_new_stylesheet').style.display = 'block';
+					function prevent(e) {
+						e.stopPropagation();
+						e.preventDefault();
+					};
+					forEach(document.querySelectorAll('#cssSyntaxHighlighter, #cssSyntaxHighlighter + label'), function() {
+						this.addEventListener('touchstart', function(e) {
+							setTimeout(function() {
+								this.checked = !this.checked;
+								var focusedNode = document.querySelector('input:checked ~ .cssEditContainer .cssRule > input:focus');
+								if (focusedNode) focusedNode.dispatchEvent(new Event('keydown'));
+							}.bind(this.nodeName == 'LABEL' ? document.getElementById('cssSyntaxHighlighter') : this), 0);
+							e.stopPropagation();
+							e.preventDefault();
+						});
+						this.addEventListener('click', function(e) {
+							setTimeout(function() {
+								this.checked = !this.checked;
+								var focusedNode = document.querySelector('input:checked ~ .cssEditContainer .cssRule > input:focus');
+								if (focusedNode) focusedNode.dispatchEvent(new Event('keydown'));
+							}.bind(this.nodeName == 'LABEL' ? document.getElementById('cssSyntaxHighlighter') : this), 0);
+							e.stopPropagation();
+							e.preventDefault();
+						});
+						this.addEventListener('mousedown', prevent);
+						this.addEventListener('mouseup', prevent);
+						this.addEventListener('dblclick', prevent);
+						this.addEventListener('touchend', prevent);
+						this.addEventListener('touchcancel', prevent);
+					});
 					close();
 					closeHeaders();
 				},
@@ -3112,18 +3141,12 @@ function main(){
 										var editor = new HTMLStudio.CSSEditor(this.root.parentNode.stylesheet.sheet, true, framewindow.document);
 										editor.onQuerySelector = function(query) {
 											deselect();
-											var y = Math.round(em(4.45));
-											Array.prototype.forEach.call(framewindow.document.querySelectorAll(query), function(element) {
-												if (!element.alias) return;
-												clickhandler.call(element.alias, {
-													stopPropagation: function(){},
-													clientX: 0,
-													clientY: y,
-													isTrusted: true,
-													shiftKey: true
-												});
+											forEach(framewindow.document.querySelectorAll(query), function() {
+												if (!this.alias) return;
+												clickhandler.call(this.alias, pseudoEvent.__extend__({set: true}));
 											});
 											closeDialogs();
+											updateTooltip();
 										};
 										backdialog.style.display = 'block';
 										var idL = document.getElementById('idL');
@@ -3132,10 +3155,39 @@ function main(){
 											if (e.target.nodeName == 'INPUT' && e.charCode) this.modified = true;
 										});
 										editor.node.modified = true;
-										idL.innerHTML = '<h3>Edit the style sheet styles below or select a <img class="cld" src="svg/select_from_selector.svg"> to select all elements matching the corresponding CSS selector.</h3><br><input type="text" id="idM" placeholder="Style Sheet Name">';
+										idL.innerHTML = '<h3>Edit the style sheet styles below or click a <img class="cld" src="svg/select_from_selector.svg" style="cursor:initial"> to select all elements matching the corresponding CSS selector.</h3><br><input type="checkbox" checked id="cssSyntaxHighlighter"> <label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idM" placeholder="Style Sheet Name">';
 										idL.appendChild(editor.node);
 										document.getElementById('dialog_edit_stylesheet').style.display = 'block';
 										document.getElementById('idM').value = this.root.parentNode.stylesheet.getAttribute('data-name') || '';
+										function prevent(e) {
+											e.stopPropagation();
+											e.preventDefault();
+										};
+										forEach(document.querySelectorAll('#cssSyntaxHighlighter, #cssSyntaxHighlighter + label'), function() {
+											this.addEventListener('touchstart', function(e) {
+												setTimeout(function() {
+													this.checked = !this.checked;
+													var focusedNode = document.querySelector('input:checked ~ .cssEditContainer .cssRule > input:focus');
+													if (focusedNode) focusedNode.dispatchEvent(new Event('keydown'));
+												}.bind(this.nodeName == 'LABEL' ? document.getElementById('cssSyntaxHighlighter') : this), 0);
+												e.stopPropagation();
+												e.preventDefault();
+											});
+											this.addEventListener('click', function(e) {
+												setTimeout(function() {
+													this.checked = !this.checked;
+													var focusedNode = document.querySelector('input:checked ~ .cssEditContainer .cssRule > input:focus');
+													if (focusedNode) focusedNode.dispatchEvent(new Event('keydown'));
+												}.bind(this.nodeName == 'LABEL' ? document.getElementById('cssSyntaxHighlighter') : this), 0);
+												e.stopPropagation();
+												e.preventDefault();
+											});
+											this.addEventListener('mousedown', prevent);
+											this.addEventListener('mouseup', prevent);
+											this.addEventListener('dblclick', prevent);
+											this.addEventListener('touchend', prevent);
+											this.addEventListener('touchcancel', prevent);
+										});
 										close();
 										closeHeaders();
 									},
@@ -3249,10 +3301,39 @@ function main(){
 										if (e.target.nodeName == 'INPUT' && e.charCode) this.modified = true;
 									});
 									editor.node.modified = true;
-									idL.innerHTML = '<h3>Edit the style sheet styles below or select a <img class="cld" src="svg/select_from_selector.svg"> to select all elements matching the corresponding CSS selector.</h3><br><input type="text" id="idM" placeholder="Style Sheet Name">';
+									idL.innerHTML = '<h3>Edit the style sheet styles below or click a <img class="cld" src="svg/select_from_selector.svg" style="cursor:initial"> to select all elements matching the corresponding CSS selector.</h3><br><input type="checkbox" checked id="cssSyntaxHighlighter"> <label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idM" placeholder="Style Sheet Name">';
 									idL.appendChild(editor.node);
 									document.getElementById('dialog_edit_stylesheet').style.display = 'block';
 									document.getElementById('idM').value = this.root.parentNode.stylesheet.getAttribute('data-name') || '';
+									function prevent(e) {
+											e.stopPropagation();
+											e.preventDefault();
+										};
+									forEach(document.querySelectorAll('#cssSyntaxHighlighter, #cssSyntaxHighlighter + label'), function() {
+										this.addEventListener('touchstart', function(e) {
+											setTimeout(function() {
+												this.checked = !this.checked;
+												var focusedNode = document.querySelector('input:checked ~ .cssEditContainer .cssRule > input:focus');
+												if (focusedNode) focusedNode.dispatchEvent(new Event('keydown'));
+											}.bind(this.nodeName == 'LABEL' ? document.getElementById('cssSyntaxHighlighter') : this), 0);
+											e.stopPropagation();
+											e.preventDefault();
+										});
+										this.addEventListener('click', function(e) {
+											setTimeout(function() {
+												this.checked = !this.checked;
+												var focusedNode = document.querySelector('input:checked ~ .cssEditContainer .cssRule > input:focus');
+												if (focusedNode) focusedNode.dispatchEvent(new Event('keydown'));
+											}.bind(this.nodeName == 'LABEL' ? document.getElementById('cssSyntaxHighlighter') : this), 0);
+											e.stopPropagation();
+											e.preventDefault();
+										});
+										this.addEventListener('mousedown', prevent);
+										this.addEventListener('mouseup', prevent);
+										this.addEventListener('dblclick', prevent);
+										this.addEventListener('touchend', prevent);
+										this.addEventListener('touchcancel', prevent);
+									});
 									close();
 									closeHeaders();
 								},

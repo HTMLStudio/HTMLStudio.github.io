@@ -13,24 +13,26 @@
 		parsedStr = '',
 		match,
 		failIndex = selector.match(/^\s*/)[0].length,
-		whitespace = [selector.match(/^\s*/)[0], selector.match(/\s*$/)[0]],
+		whitespace = [selector.match(/^\s*/)[0], selector.match(/(?:\\\s|)(\s*$|$)/)[1]],
 		initWS = failIndex,
+		first = true,
 		regex = {
 			elemName: /^(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d-_]|\\.)*/i,
 			class: /^\.(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d-_]|\\.)*/i,
 			id: /^#(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d-_]|\\.)*/i,
-			relation: /^\s*(>>|[\s+~>])\s*(?!,|$)/,
+			relation: /^\s*(>>|[\s+~>])\s*(?!\s*,|$)/,
 			attr: /^\[\s*(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d-_]|\\.)*(?:(|~|\||\^|\$|\*)=(?:"(?:[^\\"]|\\.)*"(?:\s*i)?|'(?:[^\\']|\\.)*'(?:\s*i)?|(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d-_]|\\.)*(?:\s+i)?))?\s*]/i,
-			pseudoElement: /^::?(?:after|before|first-letter|first-line|selection|backdrop|placeholder|marker|spelling-error|grammar-error)/i,
-			pseudoClass: /^:(?:active|any-link|checked|default|dir\((?:ltr|trl)\)|disabled|empty|enabled|first(?:-child|-of-type)?|fullscreen|focus(?:-within)?|hover|indeterminate|in-range|invalid|lang\((?:(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d_-]|\\.)*)\)|last-(?:child|of-type)|left|link|nth-(?:last-)?(?:child|of-type)\(\s*(-?\d*n(?:\s*\+\s*\d+)?|-?\d+|even|odd)\s*\)|only-(?:child|of-type)|optional|out-of-range|placeholder-shown|read-(?:write|only)|required|right|root|scope|target|valid|visited)/i,
+			pseudoElement: /^:(?::?(?:-webkit-|-moz-|-ms-|-o-)?(?:after|before|first-letter|first-line|selection|backdrop|placeholder|marker|spelling-error|grammar-error)|:(?:-webkit-|-moz-|-ms-|-o-)[a-z-]+)/i,
+			pseudoClass: /^:(?:(?:-webkit-|-moz-|-ms-|-o-)?(?:active|any-link|checked|default|dir\((?:ltr|rtl)\)|disabled|empty|enabled|first(?:-child|-of-type)?|fullscreen|focus(?:-within)?|hover|indeterminate|in-range|invalid|lang\((?:(?:[a-z_]|-(?!\d)|\\.)(?:[a-z\d_-]|\\.)*)\)|last-(?:child|of-type)|left|link|nth-(?:last-)?(?:child|of-type)\(\s*(-?\d*n(?:\s*\+\s*\d+)?|-?\d+|even|odd)\s*\)|only-(?:child|of-type)|optional|out-of-range|placeholder-shown|read-(?:write|only)|required|right|root|scope|target|valid|visited)|(?:-webkit-|-moz-|-ms-|-o-)[a-z-]+)/i,
 			pseudoClassAny: /^:any\(/i,
 			pseudoClassNot: /^:not\(/i,
 			universal: /^\*/,
-			new: /^\s*,\s*/
+			new: /^\s*,\s*(?!$)/
 		};
 	array.invalid = false;
 
-	selector = selector.trim();
+
+	selector = selector.substring(whitespace[0].length, selector.length - whitespace[1].length);
 	while (selector) {
 		var before = selector;
 
@@ -112,19 +114,21 @@
 			precedence[1]++;
 			selector = selector.substring(match[0].length);
 			parsedStr += match[0];
+			parsedComponents[parsedComponents.length - 1].nextFiller = selector.match(/^\s*/)[0];
 
 			var failed = false,
 				innerSelector = HTMLStudio.parseSelector(selector);
-			innerSelector.forEach(function(selector) {
+			innerSelector.forEach(function(selector, i, a) {
 				selector.components.forEach(function(component) {
 					component.precedence = 0;
-				})
+				});
 				if (!selector.invalid) {
 					parsedComponents.push.apply(parsedComponents, selector.components);
 				} else {
 					parsedComponents.push.apply(parsedComponents, selector.components);
 					if (selector.selector.substring(selector.failedAtIndex)[0] != ')' || selector.selector == ')') failed = true;
 				}
+				if (a[i + .5]) parsedComponents[parsedComponents.length - 1].nextFiller = a[i + .5];
 			});
 
 			if (innerSelector.length == 0) failed = true;
@@ -134,7 +138,7 @@
 
 			if (failed || !innerSelector.invalid) {
 				array.push({
-					selector: whitespace[0] + parsedStr + selector + whitespace[1] || '',
+					selector: (first ? whitespace[0] : '') + parsedStr + selector + whitespace[1] || '',
 					components: parsedComponents,
 					precedence: precedence,
 					invalid: true,
@@ -184,7 +188,7 @@
 
 			if (failed) {
 				array.push({
-					selector: whitespace[0] + parsedStr + selector + whitespace[1] || '',
+					selector: (first ? whitespace[0] : '') + parsedStr + selector + whitespace[1] || '',
 					components: parsedComponents,
 					precedence: precedence,
 					invalid: true,
@@ -211,13 +215,15 @@
 			selector = selector.substring(match[0].length);
 			parsedStr += match[0];
 		// Split up selector into multiple parts
-		} else if (match = selector.match(regex.new)) {
+		} else if ((match = selector.match(regex.new)) && parsedStr) {
 			selector = selector.substring(match[0].length);
 			failIndex += parsedStr.length + match[0].length;
-			obj.selector = parsedStr || null;
+			obj.selector = (first ? whitespace[0] : '') + parsedStr || null;
 			obj.components = parsedComponents;
 			obj.precedence = precedence;
+			first = false;
 			array.push(obj);
+			array[array.length - 1 + .5] = match[0];
 			obj = {
 				invalid: false
 			};
@@ -230,7 +236,7 @@
 
 		if (selector == before) {
 			array.push({
-				selector: whitespace[0] + parsedStr + selector + whitespace[1] || '',
+				selector: (first ? whitespace[0] : '') + parsedStr + selector + whitespace[1] || '',
 				components: parsedComponents,
 				precedence: precedence,
 				invalid: true,
@@ -242,12 +248,12 @@
 		}
 	}
 	if (!(array[array.length - 1] || {}).invalid) {
-		obj.selector = whitespace[0] + parsedStr + whitespace[1] || '';
+		obj.selector = (first ? whitespace[0] : '') + parsedStr + whitespace[1] || '';
 		obj.components = parsedComponents;
 		obj.precedence = precedence;
 		array.push(obj);
 	}
-	if (!array[0].selector.trim()) {
+	if (!array[0].selector || !array[0].selector.trim()) {
 		array.length = [];
 		array.invalid = true;
 		array.failedAtIndex = 0;

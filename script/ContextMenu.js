@@ -108,6 +108,7 @@
 		}
 		textcontainer.style.width = 'auto';
 		textcontainer.style.textOverflow = 'ellipsis';
+		textcontainer.style.hyphens = 'auto';
 		textcontainer.style.overflowX = 'hidden';
 		textcontainer.style.pointerEvents = 'none';
 		textcontainer.root = this.node;

@@ -7,16 +7,14 @@
 		this.list = new HTMLStudio.CSSEditor.CSSRuleList(this);
 		this.originalStylesheet = null;
 		this.onQuerySelector = function(){};
-		CSSStyleSheet = (arguments[2] || document).defaultView.CSSStyleSheet;
-		CSSStyleRule = (arguments[2] || document).defaultView.CSSStyleRule;
-		if (!arguments.length || !(arguments[0] instanceof CSSStyleSheet)) {
+		if (!arguments.length || arguments[0].constructor.name != 'CSSStyleSheet') {
 			root.appendChild(this.list.newRule(true).node);
 		} else {
 			var stylesheet = arguments[0];
 			this.originalStylesheet = stylesheet;
 			if (arguments[1]) includeSelectors = true;
 			for (var rules = stylesheet.cssRules, i = 0; i < rules.length; i++) {
-				if (!(rules[i] instanceof CSSStyleRule)) continue;
+				if (rules[i].constructor.name != 'CSSStyleRule') continue;
 				var rule = this.list.newRule(rules[i].selectorText);
 				root.appendChild(rule.node);
 				rules[i].cssText.replace(/(?:{\s*|;\s*)([a-z-]+)\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)+)/g, function($0, $1, $2) {
@@ -108,14 +106,29 @@
 		selector.addEventListener('keyup', function() {
 			self.selector = this.value;
 		});
-		selector.addEventListener('keydown', selectorKeypress);
+		selector.addEventListener('keydown', selectorInputKeypress);
+		selector.addEventListener('focus', selectorInputKeypress);
+		selector.addEventListener('scroll', sync);
+		selector.addEventListener('wheel', sync);
+		selector.addEventListener('mousewheel', sync);
 		selector.value = this.selector;
 		selector.placeholder = 'CSS selector';
+		selector.autocomplete = selector.autocorrect = selector.autocapitalize = 'off';
+		selector.spellcheck = false;
 		selector.CSSRuleObject = this;
 		rule.appendChild(selector);
+		// Create syntax highlighter
+		var display = this.selectorDisplay = document.createElement('div');
+		display.className = 'cssSelectorDisplay';
+		display.CSSRuleObject = this;
+		rule.appendChild(display);
 		if (includeSelectors) {
+			rule.appendChild(document.createTextNode(' '));
 			this.docSelector = document.createElement('img');
 			this.docSelector.addEventListener('click', selectorClick);
+			this.docSelector.tabIndex = 0;
+			this.docSelector.addEventListener('keydown', selectorKeypress);
+			this.docSelector.title = 'Find elements with this selector'
 			this.docSelector.CSSRuleObject = this;
 			this.docSelector.src = 'svg/select_from_selector.svg';
 			this.docSelector.className = 'cld';
@@ -193,11 +206,11 @@
 		var colon = document.createElement('span');
 		colon.className = 'cssStyleColon';
 		container.appendChild(colon);
-		this.valueNode = document.createElement('input');
+		this.valueNode = document.createElement('textarea');
 		this.valueNode.className = 'cssStyleValue';
-		this.valueNode.type = 'text';
 		container.appendChild(this.valueNode);
 		this.valueNode.addEventListener('keydown', valueKeypress);
+		this.valueNode.addEventListener('keyup', valueKeyup);
 		this.valueNode.addEventListener('blur', blur);
 		this.valueNode.addEventListener('keyup', function() {
 			self.value = this.value.trim();
@@ -214,19 +227,22 @@
 
 
 	function nameKeyPress(e) {
-		if ((e.keyCode == 59 && e.shiftKey) || e.keyCode == 61 || e.keyCode == 13) {
+		if (((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61 || e.keyCode == 13) {
 			e.preventDefault();
-			this.CSSStyleObject.valueNode.focus();
+			this.CSSStyleObject.valueNode.select();
 		}
 	}
 
 	function valueKeypress(e) {
-		if (e.keyCode == 59 || e.keyCode == 13 || (e.keyCode == 9 && !e.shiftKey)) {
+		setTimeout(function() {
+			this.style.height = this.value.match(/\n|$/g).length * 1.25 + 'em';
+		}.bind(this), 0);
+		if (e.keyCode == 59 || e.keyCode == 186 || e.keyCode == 13 || (e.keyCode == 9 && !e.shiftKey)) {
 			var obj = this.CSSStyleObject;
-			if (e.keyCode == 59) {
+			if (e.keyCode == 59 || e.keyCode == 186) {
 				var position = 0;
 				if (document.selection) {
-					this.focus();
+					this.select();
 					var range = document.selection.createRange();
 					range.moveStart('character', -this.value.length);
 					position = range.text.length;
@@ -237,7 +253,26 @@
 					var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
 					if (!match || match[0].length != context.length) return;
 				}
-			}
+			} else if (e.keyCode == 13) {
+				testForComma: { 
+					if (!e.shiftKey) {
+						var position = 0;
+						if (document.selection) {
+							this.select();
+							var range = document.selection.createRange();
+							range.moveStart('character', -this.value.length);
+							position = range.text.length;
+						} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+						var context = this.value.substring(0, position);
+						if (context) {
+							var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
+							if (!match || match[0].length != context.length || context.trim()[context.trim().length - 1] != ',') break testForComma;
+						}
+					}
+					return;
+				}
+			} 
 
 			if (!this.parentNode.nextElementSibling && (this.value || obj.nameNode.value)) {
 				e.preventDefault();
@@ -247,11 +282,16 @@
 			} else if (this.parentNode.nextElementSibling) {
 				e.preventDefault();
 				this.parentNode.nextElementSibling.CSSStyleObject.nameNode.focus();
+				this.parentNode.nextElementSibling.CSSStyleObject.nameNode.select();
 			} else if (!(this.value || obj.nameNode.value)) {
 				e.preventDefault();
 				obj.parentList.rule.add.focus();
 			}
 		}
+	}
+
+	function valueKeyup() {
+		this.style.height = this.value.match(/\n|$/g).length * 1.25 + 'em';
 	}
 
 	function onEnter(e) {
@@ -260,10 +300,57 @@
 		}
 	}
 
-	function selectorKeypress(e) {
+	function selectorInputKeypress(e) {
+		setTimeout(function() {
+			var div = this.CSSRuleObject.selectorDisplay,
+				val = this.value;
+			div.className = 'cssSelectorDisplay ' + this.dir;
+			div.innerHTML = '';
+			var span = document.createElement('span');
+			span.className = 'cssSelectorSyntaxComma';
+			span.innerText = val.match(/^\s*/)[0];
+			if (span.innerText) div.appendChild(span);
+			HTMLStudio.parseSelector(val).forEach(function(selector, i, a) {
+				selector.components.forEach(function(component) {
+					var span = document.createElement('span');
+					span.className = 'cssSelectorSyntax' + component.type ;
+					span.innerText = component.str;
+					div.appendChild(span);
+					if (component.nextFiller) {
+						span = document.createElement('span');
+						span.className = 'cssSelectorSyntaxComma';
+						span.innerText = component.nextFiller;
+						div.appendChild(span);
+					}
+				});
+
+
+				if (selector.invalid) {
+					var span = document.createElement('span');
+					span.className = 'cssSelectorSyntaxInvalid';
+					span.innerText = selector.selector.substring(selector.failedAtIndex);
+					div.appendChild(span);
+				} else if (a[i + 1]) {
+					var span = document.createElement('span');
+					span.className = 'cssSelectorSyntaxComma';
+					val = val.substring(selector.selector.length);
+					span.innerText = a[i + .5];
+					val = val.replace(span.innerText, '');
+					div.appendChild(span);
+				} else if (val.match(/(?:\\\s|)(\s*$|$)/)[1]) {
+					var span = document.createElement('span');
+					span.className = 'cssSelectorSyntaxComma';
+					span.innerText = val.match(/(?:\\\s|)(\s*$|$)/)[1];
+					div.appendChild(span);
+				}
+			});
+			if (!div.innerText) div.innerHTML = '<span class="cssSelectorSyntaxEmpty">' + this.placeholder + '</span>';
+			div.scrollLeft = this.scrollLeft;
+			div.scrollTop = this.scrollTop;
+		}.bind(this), 0);
 		if (e.keyCode == 13 || (e.keyCode == 9 && !e.shiftKey)) {
 			e.preventDefault();
-			this.CSSRuleObject.list.styles[0].nameNode.focus();
+			this.CSSRuleObject.docSelector ? this.CSSRuleObject.docSelector.focus() : this.CSSRuleObject.list.styles[0].nameNode.select();
 		}
 	}
 
@@ -273,12 +360,26 @@
 	}
 
 	function styleClick(e) {
-		if (e.target.nodeType == 1 && e.target.nodeName == 'INPUT') return;
-		this.CSSStyleObject.nameNode.focus();
+		if (e.target.nodeType == 1 && (e.target.nodeName == 'INPUT' || e.target.nodeName == 'TEXTAREA')) return;
+		this.CSSStyleObject.nameNode.select();
 	}
 
 	function selectorClick() {
 		this.CSSRuleObject.root.onQuerySelector(this.CSSRuleObject.selectorNode.value.trim());
+	}
+
+	function selectorKeypress(e) {
+		if (e.keyCode == 13) selectorClick.call(this);
+		else if (e.keyCode == 9 && !e.shiftKey) {
+			e.preventDefault();
+			this.CSSRuleObject.list.styles[0].nameNode.select();
+		}
+	}
+
+	function sync() {
+		var disp = this.CSSRuleObject.selectorDisplay;
+		disp.scrollLeft = this.scrollLeft;
+		disp.scrollTop = this.scrollTop;
 	}
 
 	function blur() {

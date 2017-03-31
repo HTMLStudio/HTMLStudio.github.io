@@ -16,14 +16,23 @@
 	background: #F8F8F8;
 }
 
+.cssRule:focus-within {
+	background: #F8F8F8;
+}
+
 .cssRule:hover > .clb, .cssRule:focus > .clb, .cssRule:active > .clb,
 .cssStyle:hover .clb, .cssStyle:focus .clb, .cssStyle:active .clb,
-.cssRule:hover > .clc, .cssRule:focus .clc, .cssRule:hover .clc{
+.cssRule:hover > .clc, .cssRule:focus .clc, .cssRule:hover .clc {
 	opacity: 1;
 	pointer-events: initial;
 }
 
-.cssRule input {
+.cssRule:focus-within > .clb, .cssStyle:focus-within > .clb, .cssRule:focus-within > .clc {
+	opacity: 1;
+	pointer-events: initial;
+}
+
+.cssRule input, .cssRule textarea {
 	background: transparent;
 }
 
@@ -32,6 +41,25 @@
 	border: 0;
 	border-bottom: 2px solid rgba(0,172,193,.3);
 	color: #00acc1;
+	width: 21.5ch;
+	position: absolute;
+	top: 0;
+	left: 1.75em;
+	direction: ltr;
+}
+
+input:checked ~ .cssEditContainer .cssRule > input:focus {
+	color: #000;
+	border-bottom: 0 solid transparent;
+	outline: 0;
+	background: rgba(0,0,0,.04);
+	box-shadow: 0 0 0 1px #CCC;
+}
+
+input:checked ~ .cssEditContainer .cssRule > input:focus + .cssSelectorDisplay {
+	opacity: 1;
+	border-bottom: 0;
+	height: initial;
 }
 
 .cssRule > input:focus, .cssRule > input:hover {
@@ -39,15 +67,22 @@
 }
 
 .cssStyle {
-	padding-left: 2.75rem;
-	margin-left: -1.75rem;
+	padding: 0 1.75rem 0 2.75rem;
+	margin: 0 -1.75rem;
 	font-size: 0;
 	position: relative;
 	margin-right: -1.75rem;
 	cursor: pointer;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
 }
 
 .cssStyle:hover, .cssStyle:focus, .cssStyle:active {
+	background: #F0F0F0;
+}
+
+.cssStyle:focus-within {
 	background: #F0F0F0;
 }
 
@@ -56,6 +91,8 @@
 	font-size: initial;
 	border: 0;
 	border-bottom: 2px solid rgba(132, 188, 20, .3);
+	width: 21.5ch;
+	flex-grow: 1;
 }
 
 .cssStyleName:focus, .cssStyleName:hover {
@@ -66,6 +103,7 @@
 	color: grey;
 	content: ": ";
 	font-size: initial;
+	white-space: pre;
 }
 
 .cssStyleValue {
@@ -73,16 +111,32 @@
 	font-size: initial;
 	border: 0;
 	border-bottom: 2px solid rgba(34,51,68,.3);
+	overflow: hidden;
+	resize: none;
+	white-space: pre;
+	height: 1.2em;
+	min-width: 21.5ch;
+	flex-grow: 9999;
 }
 
 .cssStyleValue:focus, .cssStyleValue:hover {
 	border-bottom: 2px solid #234;
 }
 
+.cssStyleName, .cssStyleValue {
+	padding: 1px;
+}
+
 .cssStyleSemicolon:after {
 	color: grey;
 	content: ";";
 	font-size: initial;
+}
+
+.cssStyleSemicolon {
+	align-self: flex-end;
+	position: relative;
+	top: -2.5px;
 }
 
 .clb, .clc {
@@ -132,7 +186,7 @@
 	background: #FFE1E1;
 }
 
-input.invalid, input.invalid:hover, input.invalid:focus, input.invalid:active {
+input.invalid.invalid, textarea.invalid.invalid {
 	border-bottom: 2px solid red;
 }
 
@@ -140,7 +194,9 @@ input.invalid, input.invalid:hover, input.invalid:focus, input.invalid:active {
 	background: #FFE1E1;
 	margin: 0 -1.75em 1.2em;
 	font-size: 1.05em;
-	padding: 0 1.75em;
+	padding: .3em 1.75em;
+	border: 1px solid #FAA;
+	border-width: 1px 0;
 }
 
 #idK, #idM {
@@ -165,4 +221,63 @@ input.invalid, input.invalid:hover, input.invalid:focus, input.invalid:active {
 	height: 1em;
 	vertical-align: sub;
 	cursor: pointer;
+}
+
+.cssSelectorDisplay {
+	height: 1.2em;
+	font-size: 1rem;
+	border-bottom: 2px solid transparent;
+	pointer-events: none;
+	top: 0;
+	width: 21.5ch;
+	display: inline-block;
+	vertical-align: text-bottom;
+	white-space: nowrap;
+	overflow-x: hidden;
+	opacity: 0;
+}
+
+.cssSelectorDisplay :last-child {
+	display: inline-block;
+	padding-right: .2ch;
+}
+
+.cssSelectorDisplay * {
+	white-space: pre;
+	display: inline-block;
+	height: 1.2em;
+	border-bottom: 2px solid transparent;
+	color: transparent;
+}
+
+.cssSelectorSyntaxComma, .cssSelectorSyntaxrelationship {
+	border-color: #DDD;
+}
+
+.cssSelectorSyntaxInvalid {
+	border-color: red;
+}
+
+.cssSelectorSyntaxelemName, .cssSelectorSyntaxuniversal {
+	border-color: #00acc1;
+}
+
+.cssSelectorSyntaxid {
+	border-color: #06E35F;
+}
+
+.cssSelectorSyntaxclass {
+	border-color: #F075B4;
+}
+
+.cssSelectorSyntaxpseudo-class, .cssSelectorSyntaxpseudo-element {
+	border-color: #5001E1;
+}
+
+.cssSelectorSyntaxattribute {
+	border-color: #FBC02D;
+}
+
+.cssSelectorSyntaxEmpty {
+	border-color: #CCC;
 }

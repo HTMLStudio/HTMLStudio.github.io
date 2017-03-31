@@ -384,3 +384,7 @@ html-element-replacer {
 .rectTU {
 	color: #F55;
 }
+
+label, label input[type=checkbox] {
+	cursor: pointer;
+}
