@@ -534,7 +534,7 @@
 			</table>
 			<div id='logoDivider'></div>
 			<div id='logoContextHolder'>
-				<a id='meta_about' tabindex='0'><div class='pseudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
+				<a href='#' id='meta_about' tabindex='0'><div class='pseudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
 				<a href='help' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
 				<a href='https://github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
 				<a href='documentation' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/documentation.svg'><span>Documentation</span></div></a>
@@ -701,7 +701,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.3.1.5</h3></td>
+						<td><h3>Version 1.3.1.6</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -710,7 +710,7 @@
 						<td><h3><a href='dependencies' target='_blank'>Dependencies</a></h3></td>
 					</tr>
 					<tr>
-						<td><h3><a id='meta_license' tabindex='0'>License</a></h3></td>
+						<td><h3><a href='#' id='meta_license' tabindex='0'>License</a></h3></td>
 					</tr>
 					<tr>
 						<td><h3><a href='https://github.com/ChristianFigueroa/HTML-Studio/issues' target='_blank'>Report an Issue</a></h3></td>
@@ -814,6 +814,28 @@
 				<div class='option exit' tabindex='0'>Close</div>
 			</div>
 		</div>
+		<div id='dialog_pref_selected_elem_color' class='dialog'>
+			<span>Edit Selected Element Color</span>
+			<div class='content' id='Idc'>
+				<h3>Change the selected element color.</h3>
+				<div id='Ide'>
+					<div tabindex='0'>Color #1</div>
+					<div tabindex='0'>Color #2</div>
+				</div>
+				<div id='Idd'></div>
+				<br>
+				<h3>Live Preview</h3>
+				<div class='cli'>
+					<span id='Idg'>This is what a selected element will look like.</span>
+				</div>
+			</div>
+			<div class='exit' tabindex='0'></div>
+			<div class='optioncontainer'>
+				<div class='option' id='Idf' tabindex='0'>Save</div>
+				<div class='option' id='Idh' tabindex='0'>Restore Default</div>
+				<div class='option exit' tabindex='0'>Cancel</div>
+			</div>
+		</div>
 	</div>
 	<div id='html_editor_display'>
 		<span id='ids'>HTML Tree<div id='idD'></div></span>
@@ -852,6 +874,7 @@
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
 		<link href='css/topText.css' rel='stylesheet' type='text/css'>
+		<link href='css/ColorSelector.css' rel='stylesheet' type='text/css'>
 	</noscript>
 	<script type="text/javascript">
 		!function() {
@@ -877,6 +900,7 @@
 	<script type="text/javascript" src='script/saveAs.js' defer></script>
 	<script type="text/javascript" src='script/minifyHTML.js' defer></script>
 	<script type="text/javascript" src='script/parseSelector.js' defer></script>
+	<script type="text/javascript" src='script/ColorSelector.js' defer></script>
 	<script type="text/javascript" src='script/main.js' defer></script>
 </body>
 </html>

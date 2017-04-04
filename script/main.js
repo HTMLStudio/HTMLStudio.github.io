@@ -28,6 +28,20 @@ Modernizr[f[0]][f[1]]=o),l.push((o?"":"no-")+f.join("-"))}}function a(e){var n=c
 arguments)}var l=[],r=[],f={_version:"3.3.1",_config:{classPrefix:"",enableClasses:!0,enableJSClass:!0,usePrefixes:!0},_q:[],on:function(e,n){var s=this;setTimeout(function(){n(s[e])},0)},addTest:function(e,n,s){r.push({name:e,fn:n,options:s})},addAsyncTest:function(e){r.push({name:null,fn:e})}},Modernizr=function(){};Modernizr.prototype=f,Modernizr=new Modernizr;var c=n.documentElement,u="svg"===c.nodeName.toLowerCase(),p=f._config.usePrefixes?" -webkit- -moz- -o- -ms- ".split(" "):["",""];f._prefixes=p,
 Modernizr.addTest("csspositionsticky",function(){var e="position:",n="sticky",s=i("a"),t=s.style;return t.cssText=e+p.join(n+";"+e).slice(0,-e.length),-1!==t.position.indexOf(n)}),o(),a(l),delete f.addTest,delete f.addAsyncTest;for(var m=0;m<Modernizr._q.length;m++)Modernizr._q[m]();e.Modernizr=Modernizr}(window,document);
 
+var storage = {
+	set: function(str, val) {
+		try {
+			localStorage.setItem('HTML-Studio_' + str, JSON.stringify(val));
+			return true;
+		} catch (e) {
+			return false;
+		}
+	},
+	get: function(str) {
+		return JSON.parse(localStorage.getItem('HTML-Studio_' + str));
+	}
+};
+
 
 (window.HTMLStudio = window.HTMLStudio || {}).initiated = false;
 
@@ -39,7 +53,6 @@ function main(){
 		 - Better grid
 		 - Toggleable toolbar
 		 - Import style sheets
-		 - Node duplicator
 		 - Fix <a> Edit Text auto-blur
 		 - HTML Prettifier
 		 - Fix Edit Text bottom scrolling bug
@@ -60,16 +73,16 @@ function main(){
 
 
 	// Run on page load
-	if (+localStorage.getItem('HTML-Studio_session')) alreadyActive();
+	if (storage.get('session')) alreadyActive();
 	// Tests if user on mobile
 	if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(navigator.userAgent||navigator.vendor||window.opera)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test((navigator.userAgent||navigator.vendor||window.opera).substr(0,4))) userOnMobileDevice();
-	localStorage.setItem('HTML-Studio_session', '1');
+	storage.set('session', 1);
 	var iframe = document.getElementById('frame'),
 		framewindow = iframe.contentWindow,
 		overlay = document.getElementById('frameoverlay'),
 		backdialog = document.getElementById('dialogcover'),
 		history = {
-			entries: JSON.parse(localStorage.getItem('HTML-Studio_documentHistoryEntries')) || [],
+			entries: storage.get('documentHistoryEntries') || [],
 			update: function(action) {
 				var stylesheethtml = [],
 					testStyle;
@@ -88,10 +101,10 @@ function main(){
 
 				this.currentEntry++;
 				this.entries[this.currentEntry] = obj;
-				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml))
+				storage.set('stylesheets', stylesheethtml);
 				this.entries = this.entries.slice(0,this.currentEntry + 1);
-				localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify(this.entries.slice().splice(Math.max(this.currentEntry - 10, 0), 16)));
-				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', Math.min(this.currentEntry, 10));
+				storage.set('documentHistoryEntries', this.entries.slice().splice(Math.max(this.currentEntry - 10, 0), 16));
+				storage.set('documentHistoryCurrentEntry', Math.min(this.currentEntry, 10));
 				contextmenus[3].getItem('undo').disabled = !this.currentEntry;
 				contextmenus[3].getItem('redo').disabled = this.currentEntry == this.entries.length - 1;
 				contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
@@ -1205,7 +1218,7 @@ function main(){
 							[useSrc, './presets/2.html', 'Picture Strips'],
 							[useSrc, './presets/3.html', 'Image w/ Content']
 						];
-						presets.push.apply(presets, JSON.parse(localStorage.getItem('HTML-Studio_presets') || '[]'));
+						presets.push.apply(presets, storage.get('presets') || []);
 						presets.forEach(function(preset, index) {
 							var tr = index % 2 ? document.querySelector('#idm tr:last-child') : document.createElement('tr'), td = document.createElement('td'), h4 = document.createElement('h4'), frame = document.createElement('iframe');
 							frame.className = 'cl5';
@@ -1223,9 +1236,9 @@ function main(){
 								div.className = 'cl9';
 								div.setAttribute('tabindex', '0');
 								div.addEventListener('click', function() {
-									var array = JSON.parse(localStorage.getItem('HTML-Studio_presets'));
+									var array = storage.get('presets');
 									array.splice(index - 3,1);
-									localStorage.setItem('HTML-Studio_presets', JSON.stringify(array));
+									storage.set('presets', array);
 									var scroll = document.getElementById('idm').parentNode.scrollTop;
 									newFile(_,close);
 									document.getElementById('idm').parentNode.scrollTop = scroll;
@@ -1367,10 +1380,28 @@ function main(){
 					subcontext: {
 						items: [
 							{
-								name: 'Node Selection Color&#183;',
+								name: 'Selected Element Color&#183;',
+								func: function(_,close) {
+									close();
+									closeHeaders();
+									backdialog.style.display = 'block';
+									document.getElementById('dialog_pref_selected_elem_color').style.display = 'block';
+									var Idc = document.getElementById('Idc');
+									if (Idc.colorSelector) Idc.colorSelector.clearColorChangeListeners();
+									Idc.colorSelector = new HTMLStudio.ColorSelector();
+									var Idd = document.getElementById('Idd');
+									if (Idd.firstElementChild) Idd.removeChild(Idd.firstElementChild);
+									Idd.appendChild(Idc.colorSelector.node);
+									forEach(document.querySelectorAll('#Ide div'), function(_,i) {
+										this.className = i ? '' : 'active';
+										this.userColor = null;
+									});
+									Idc.colorSelector.goTo(userPrefs.nodeSelectionColor[0]);
+									Idc.colorSelector.addColorChangeListener(function(e) {
+										document.querySelector('#Ide div.active').userColor = this.parse(e.color || this.trueColor);
+									});
+								},
 								title: 'Edit the color of a selected node',
-								disabled: true,
-								disabledtitle: 'Work in Progress',
 								id: 'nodeSelectionColor'
 							},{
 								name: 'Grid',
@@ -1508,7 +1539,7 @@ function main(){
 						close();
 						closeHeaders();
 						document.getElementById('tooltip').style.display = this.toggled ? '' : 'none';
-						localStorage.setItem('HTML-Studio_tooltipShown', this.toggled ? 1 : 0);
+						storage.set('tooltipShown', this.toggled ? 1 : 0);
 					},
 					title: 'Toggles the tooltip at the bottom of the screen',
 					toggle: true,
@@ -1862,7 +1893,7 @@ function main(){
 		},
 		preventUpdates = false,
 		preventEditTextBlurring = false,
-		documentMeta = JSON.parse(localStorage.getItem('HTML-Studio_meta') || '{"charset":"utf-8"}'),
+		documentMeta = storage.get('meta') || {charset: "utf-8"},
 		pseudoEvent = {
 			stopPropagation: function(){},
 			preventDefault: function(){},
@@ -1879,11 +1910,72 @@ function main(){
 				}
 				return event;
 			}
-		};
+		},
+		userPrefs = (function(prefs) {
+			var obj = {},
+				arr = [];
+			// Converts number stored in localStorage to boolean array
+			// Basically creates an array from the bytes of the number
+			// This saves room in the localStorage object
+			while (prefs.n) {
+				arr.push(!!(prefs.n & 1));
+				prefs.n = prefs.n >> 1;
+			};
+			obj.toolbar = arr[0] || false;
+			obj.fullscreen = arr[1] || false;
+			obj.tree = arr[2] || false;
+			obj.grid = arr[3] || false;
+			obj.tooltip = arr[4] || false;
+			obj.bounds = arr[5] || false;
+
+			// Reads color values by storing them as a four character string
+			// Each letter's charCode is the value corresponding to "rgba"
+			obj.nodeSelectionColor = [
+				[prefs.c.charCodeAt(0) - 300, prefs.c.charCodeAt(1) - 300, prefs.c.charCodeAt(2) - 300, (prefs.c.charCodeAt(3) - 300) / 100],
+				[prefs.c.charCodeAt(4) - 300, prefs.c.charCodeAt(5) - 300, prefs.c.charCodeAt(6) - 300, (prefs.c.charCodeAt(7) - 300) / 100]
+			];
+			obj.replacerColor = [
+				[prefs.c.charCodeAt(8) - 300, prefs.c.charCodeAt(9) - 300, prefs.c.charCodeAt(10) - 300, prefs.c.charCodeAt(11) - 300],
+				[prefs.c.charCodeAt(12) - 300, prefs.c.charCodeAt(13) - 300, prefs.c.charCodeAt(14) - 300, prefs.c.charCodeAt(15) - 300]
+			];
+
+			obj.units = ['px','pt','in','cm','vh / vw'][prefs.u] || 'px';
+
+			obj.set = function(key, val) {
+				obj[key] = val;
+				this.store();
+			}
+
+			obj.store = function() {
+				var n = 0,
+					c = '',
+					u = 0,
+					temp = {};
+				if (this.toolbar) n++;
+				if (this.fullscreen) n+=2;
+				if (this.tree) n+=4;
+				if (this.grid) n+=8;
+				if (this.tooltip) n+=16;
+				if (this.bounds) n+=32;
+				temp.n = n;
+				forEach([this.nodeSelectionColor], function() {
+					forEach(this, function() {
+						forEach(this, function(_,i) {
+							c += String.fromCharCode((i == 3 ? this * 100 : this) + 300);
+						});
+					});
+				});
+				temp.c = c;
+				temp.u = ['px','pt','in','cm','vh / vw'].indexOf(this.units);
+				storage.set('prefs', temp);
+			}
+
+			return obj;
+		})(storage.get('prefs') || {n: 17, c: '\u012c\u01d8\u01ed\u013b\u012c\u01d8\u01ed\u015e\u012c\u01d8\u01ed\u0145\u012c\u01d8\u01ed\u0190', u: 0});
 
 	// Check if tooltip should be shown
-	document.getElementById('tooltip').style.display = localStorage.getItem('HTML-Studio_tooltipShown') == 0 ? 'none' : '';
-	contextmenus[4].getItem('tooltip').toggled = localStorage.getItem('HTML-Studio_tooltipShown') != 0;
+	document.getElementById('tooltip').style.display = storage.get('tooltipShown') == 0 ? 'none' : '';
+	contextmenus[4].getItem('tooltip').toggled = storage.get('tooltipShown') != 0;
 
 	// Add some debugging options for developers
 	(window.HTMLStudio = window.HTMLStudio || {}).debug = {};
@@ -1969,25 +2061,33 @@ function main(){
 	Object.defineProperties(HTMLStudio.debug.localStorage, {
 		styleSheets: {
 			get: function() {
-				return JSON.parse(localStorage.getItem('HTML-Studio_stylesheets'));
+				return storage.get('stylesheets');
 			}
 		},
 		history: {
 			get: function() {
 				return {
-					entries: JSON.parse(localStorage.getItem('HTML-Studio_documentHistoryEntries')),
-					currentEntry: +localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry')
+					entries: torage.get('HTML-Studio_documentHistoryEntries'),
+					currentEntry: storage.get('documentHistoryCurrentEntry')
 				}
 			}
 		},
 		tooltipShown: {
 			get: function() {
-				return localStorage.getItem('HTML-Studio_tooltipShown') != 0;
+				return storage.get('tooltipShown') != 0;
+			}
+		},
+		preferences: {
+			get: function() {
+				return userPrefs;
+			},
+			set: function(v) {
+				return userPrefs = v;
 			}
 		}
 	});
 	// Load document from localStorage or create a new one
-	history.currentEntry = +(localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') || history.entries.length - 1);
+	history.currentEntry = storage.get('documentHistoryCurrentEntry') || history.entries.length - 1;
 
 	if (history.entries.length) {
 		framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
@@ -2475,14 +2575,14 @@ function main(){
 
 	// Update document CSS stylesheets
 	function updateStylesheets() {
-		localStorage.setItem('HTML-Studio_stylesheets', localStorage.getItem('HTML-Studio_stylesheets') || '[]');
+		storage.set('stylesheets', storage.get('stylesheets') || []);
 		css = [];
 		Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet) {
 			stylesheet.parentNode.removeChild(stylesheet);
 		});
 		!function() {
 			var iframe = document.getElementById('cssTest'), allstylesheets = [], win = iframe.contentWindow;
-			for (var stylesheets = JSON.parse(localStorage.getItem('HTML-Studio_stylesheets')), i = stylesheets.length - 1; i >= 0; i--) {
+			for (var stylesheets = storage.get('stylesheets'), i = stylesheets.length - 1; i >= 0; i--) {
 				win.document.head.innerHTML = stylesheets[i];
 				var style = win.document.querySelector('style'),
 					ref = style.getAttribute('data-name') || '',
@@ -2537,7 +2637,7 @@ function main(){
 				fontstylesheet.id = 'user-font-stylesheet';
 				document.head.appendChild(fontstylesheet);
 			}
-			localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(allstylesheets.reverse()));
+			storage.set('stylesheets', allstylesheets.reverse());
 		}();
 	}
 	// Deselects all elements and set their background back to transparent
@@ -2774,7 +2874,7 @@ function main(){
 
 
 	// A bunch of event listeners for elements
-	// Shows dialogs when the user clicks certain empty <a> tags
+	// Shows dialogs when the user clicks certain no-href <a> tags
 	!function() {
 		function select() {
 			closeDialogs();
@@ -2791,6 +2891,32 @@ function main(){
 		license.addEventListener('click', select);
 		license.addEventListener('keydown', keypress);
 	}();
+
+	// Save button for Edit > Preferences > Selected Element Color
+	document.getElementById('Idf').addEventListener('click', function() {
+		userPrefs.set('nodeSelectionColor', [document.querySelector('#Ide div:first-child').userColor || userPrefs.nodeSelectionColor[0], document.querySelector('#Ide div:last-child').userColor || userPrefs.nodeSelectionColor[1]]);
+		document.getElementById('dialog_pref_selected_elem_color').style.display = '';
+		backdialog.style.display = '';
+	});
+
+	// Restore default button for Edit > Preferences > Selected Element Color
+	document.getElementById('Idh').addEventListener('click', function() {
+		userPrefs.set('nodeSelectionColor', [[0,172,193,.15],[0,172,193,.5]]);
+		document.getElementById('dialog_pref_selected_elem_color').style.display = '';
+		backdialog.style.display = '';
+	});
+
+	// On click for Edit > Preferences > Node Selection Color > Color #1 and Color #2
+	forEach(document.querySelectorAll('#Ide div'), function(_,i) {
+		this.addEventListener('click', function() {
+			this.className = 'active';
+			(this.previousElementSibling || this.nextElementSibling).className = '';
+			document.getElementById('Idc').colorSelector.goTo(this.userColor || userPrefs.nodeSelectionColor[i]);
+		});
+		this.addEventListener('keydown', function(e) {
+			if (e.keyCode == 13) this.dispatchEvent(new MouseEvent('click'));
+		})
+	});
 
 	// File > Download File... > Minified
 	document.getElementById('idY').addEventListener('click', function() {
@@ -3021,11 +3147,11 @@ function main(){
 			testStyle.innerHTML = stylesheet.innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'');
 			var html = testStyle.outerHTML;
 			// Get current stylesheets
-			var array = JSON.parse(localStorage.getItem('HTML-Studio_stylesheets') || '[]');
+			var array = storage.get('stylesheets') || [];
 			// Add new stylesheet
 			array.push(html);
 			// Set the new set of stylesheets in localStorage
-			localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(array));
+			storage.set('stylesheets', array);
 			// Register the new stylesheet into the document
 			updateStylesheets();
 			// Give the browser enough time to render styles
@@ -3076,7 +3202,7 @@ function main(){
 				array.push(testStyle.outerHTML);
 			}
 
-			localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(array));
+			storage.set('stylesheets', array);
 			updateStylesheets();
 			// Gives browser enough time to render styles
 			// getComputedStyle returns old styles until the styles have updated
@@ -3089,7 +3215,7 @@ function main(){
 
 	//Prevents #no_paste dialog from being shown if checkbox is clicked
 	document.getElementById('idB').addEventListener('change', function() {
-		localStorage.setItem('HTML-Studio_blockNoPaste', this.checked ? '1' : '0');
+		storage.set('blockNoPaste', this.checked ? '1' : '0');
 	});
 
 	document.getElementById('idD').addEventListener('click', function() {
@@ -3204,7 +3330,7 @@ function main(){
 											testStyle.innerHTML = stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'');
 											array.push(testStyle.outerHTML);
 										}
-										localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(array));
+										storage.set('stylesheets', array);
 										close();
 										closeHeaders();
 										updateStylesheets();
@@ -3350,7 +3476,7 @@ function main(){
 										testStyle.innerHTML = stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'');
 										array.push(testStyle.outerHTML);
 									}
-									localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(array));
+									storage.set('stylesheets', array);
 									close();
 									closeHeaders();
 									updateStylesheets();
@@ -3487,14 +3613,14 @@ function main(){
 					testStyle.innerHTML = stylesheets[i].innerHTML.replace(/(^|;|\{|\}|:)\s+/g,'$1').replace(/\s+(?=\{)|;(?=})/g,'');
 					stylesheethtml.push(testStyle.outerHTML);
 				}
-				localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify([{
+				storage.set('documentHistoryEntries', [{
 					html: (body).outerHTML,
 					title: (doc.getElementsByTagName('title') ? doc.getElementsByTagName('title')[0] : {innerText:''}).innerText,
 					action: undefined,
 					stylesheets: stylesheethtml
-				}]));
-				localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
-				localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', 0);
+				}]);
+				storage.set('stylesheets', stylesheethtml);
+				storage.set('documentHistoryCurrentEntry', 0);
 				closeDialogs();
 				location.reload();
 			} catch(_) {
@@ -3563,10 +3689,10 @@ function main(){
 	});
 	// Create New Preset button for File > New... > Create New Preset...
 	document.getElementById('idz').addEventListener('click', function() {
-		var presets = JSON.parse(localStorage.getItem('HTML-Studio_presets') || '[]');
+		var presets = storage.get('presets') || [];
 		document.getElementById('idy').contentWindow.document.body.style.fontSize = document.getElementById('idy').bodyDefaultFontSize;
 		presets.push([document.getElementById('idy').contentWindow.document.documentElement.innerHTML, document.getElementById('idA').value]);
-		localStorage.setItem('HTML-Studio_presets', JSON.stringify(presets));
+		storage.set('presets', presets);
 		closeDialogs();
 	})
 	// Open New File button for File > New...
@@ -3581,14 +3707,14 @@ function main(){
 		}
 		closeDialogs();
 		element.children[0].contentWindow.document.body.style.fontSize = element.bodyDefaultFontSize;
-		localStorage.setItem('HTML-Studio_documentHistoryEntries', JSON.stringify([{
+		storage.set('documentHistoryEntries', [{
 			html: element.children[0].contentWindow.document.body.outerHTML,
 			title: element.children[0].contentWindow.document.querySelector('title').innerText,
 			action: undefined,
 			stylesheets: stylesheethtml
-		}]));
-		localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(stylesheethtml));
-		localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', 0);
+		}]);
+		storage.set('stylesheets', stylesheethtml);
+		storage.set('documentHistoryCurrentEntry', 0);
 		location.reload();
 	});
 	document.getElementById('idr').addEventListener('wheel', function(e) {
@@ -3653,10 +3779,10 @@ function main(){
 		var width = document.getElementById('titlewidth');
 		width.innerText = title.value;
 		title.style.width = width.scrollWidth + em(.6) + 'px';
-		localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(history.entries[history.currentEntry].stylesheets || []));
+		storage.set('stylesheets', history.entries[history.currentEntry].stylesheets || []);
 		updateStylesheets();
 		overlayUpdate();
-		localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', Math.max(+localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') - 1, 0));
+		storage.set('documentHistoryCurrentEntry', Math.max(storage.get('HTML-Studio_documentHistoryCurrentEntry') - 1, 0));
 		contextmenus[3].getItem('undo').disabled = !history.currentEntry;
 		contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
 		contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
@@ -3674,10 +3800,10 @@ function main(){
 		var width = document.getElementById('titlewidth');
 		width.innerText = title.value;
 		title.style.width = width.scrollWidth + em(.6) + 'px';
-		localStorage.setItem('HTML-Studio_stylesheets', JSON.stringify(history.entries[history.currentEntry].stylesheets || []));
+		storage.set('stylesheets', history.entries[history.currentEntry].stylesheets || []);
 		updateStylesheets();
 		overlayUpdate();
-		localStorage.setItem('HTML-Studio_documentHistoryCurrentEntry', Math.min(+localStorage.getItem('HTML-Studio_documentHistoryCurrentEntry') + 1, 10));
+		storage.set('documentHistoryCurrentEntry', Math.min(storage.get('documentHistoryCurrentEntry') + 1, 10));
 		contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
 		contextmenus[3].getItem('undo').disabled = !history.currentEntry;
 		contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
@@ -3916,7 +4042,7 @@ function main(){
 				});
 			});
 		} catch (e) {
-			if (localStorage.getItem('HTML-Studio_blockNoPaste') != '1') {
+			if (storage.get('blockNoPaste') != 1) {
 				backdialog.style.display = 'block';
 				document.getElementById('dialog_no_paste').style.display = 'block';
 			}
@@ -3970,7 +4096,7 @@ function main(){
 		width.innerText = title.value;
 	});
 	addEventListener('unload', function() {
-		if (!document.getElementById('overwrite_warning').style.display) localStorage.setItem('HTML-Studio_session', '0');
+		if (!document.getElementById('overwrite_warning').style.display) storage.set('session', 0);
 	});
 
 
@@ -3983,16 +4109,47 @@ function main(){
 	var currentFrame = 0;
 	setInterval(function() {
 		currentFrame = (currentFrame + 1) % 50;
-		var opacity = -Math.abs(currentFrame - 25) + 25, bgcolor = 'rgb(' + opacity * 2 + ',' + Math.round(opacity * 2 + 172) + ',' + Math.round(opacity * 2 + 193) +')', tcolor = 'rgb(' + Math.round((-opacity + 25) * 2.55 + 191) + ',' + Math.round((-opacity + 25) * 2.55 + 191) + ',' + Math.round((-opacity + 25) * 2.55 + 191) +')';
+		var progress = (-Math.abs(currentFrame - 25) + 25) / 25;
+
+		// Creates a gradient using the two [R,G,B,A] arguments and returns a single color along the gradient based on `progress`
+		// This algorithm tries to mimic the CSS linear-gradient function by not just interpolating over the RGBA values
+		// See http://stackoverflow.com/a/41495284/6212261 to see how the CSS linear-gradient algorithm is better than RGBA interpolation
+		// I don't think it's the exact same, but it looks pretty close
+		function gradient(c1, c2) {
+			// Just a reversed `progress`
+			var iprogress = 1 - progress;
+
+			if (c1[3] > c2[3]) {
+				var start = c2[3] / c1[3];
+				if (progress < 1 - start) return [c1[0], c1[1], c1[2], c1[3] * iprogress + c2[3] * progress];
+				var pseudoOpacity = (progress - (1 - start)) / start;
+				iprogress = 1 - pseudoOpacity;
+				return [~~(c1[0] * iprogress + c2[0] * pseudoOpacity), ~~(c1[1] * iprogress + c2[1] * pseudoOpacity), ~~(c1[2] * iprogress + c2[2] * pseudoOpacity), c1[3] * (1 - progress) + c2[3] * progress];
+			} else if (c1[3] < c2[3]) {
+				var start = 1 - c1[3] / c2[3];
+				if (1 - progress < start) return [c2[0], c2[1], c2[2], c1[3] * iprogress + c2[3] * progress];
+				var pseudoOpacity = (progress - start) / (1 - start);
+				iprogress = 1 - pseudoOpacity;
+				return [~~(c1[0] * iprogress + c2[0] * pseudoOpacity), ~~(c1[1] * iprogress + c2[1] * pseudoOpacity), ~~(c1[2] * iprogress + c2[2] * pseudoOpacity), c1[3] * (1 - progress) + c2[3] * progress];
+			} else {
+				return [~~(c1[0] * iprogress + c2[0] * progress), ~~(c1[1] * iprogress + c2[1] * progress), ~~(c1[2] * iprogress + c2[2] * progress), c1[3]];
+			}
+		}
+
+		var selectionColor = gradient(userPrefs.nodeSelectionColor[0], userPrefs.nodeSelectionColor[1]),
+			replacerColor = gradient(userPrefs.replacerColor[0], userPrefs.replacerColor[1]),
+			tempColor = gradient(document.querySelector('#Ide div:first-child').userColor || userPrefs.nodeSelectionColor[0], document.querySelector('#Ide div:last-child').userColor || userPrefs.nodeSelectionColor[1]);
+
+		document.getElementById('Idg').style.background = 'rgba(' + tempColor[0] + ',' + tempColor[1] + ',' + tempColor[2] + ',' + tempColor[3] + ')';
 		Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
-			element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,172,193,'+(.008*opacity+.15)+')';
+			element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')';
 		});
 		Array.prototype.forEach.call(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
-			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(0,172,193,' + (1 - currentFrame / 50) + ')';
+			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')';
 		});
 		Array.prototype.forEach.call(document.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
-			element.style.color = 'rgba(0,172,193,'+(.02*opacity+.5)+')';
-			element.style.textShadow = '0 0 1px rgba(0,172,193,' + (.03 * opacity + .25) + ')'
+			element.style.color = 'rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
+			element.style.textShadow = '0 0 1px rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 		});
 
 	if (!currentFrame) document.documentElement.scrollTop = document.body.scrollTop = window.scrollY = 0;
@@ -4043,7 +4200,7 @@ function main(){
 
 
 (function waitUntilLoaded() {
-	if (window.HTMLStudio && HTMLStudio.CSSEditor && HTMLStudio.ContextMenu && HTMLStudio.saveAs && window.DraggableElement && window.Blob && !HTMLStudio.initiated) {
+	if (window.HTMLStudio && HTMLStudio.CSSEditor && HTMLStudio.ContextMenu && HTMLStudio.saveAs && HTMLStudio.ColorSelector && window.DraggableElement && window.Blob && !HTMLStudio.initiated) {
 		main();
 		HTMLStudio.initiated = true;
 	} else if (!HTMLStudio.initiated) setTimeout(waitUntilLoaded, 50);

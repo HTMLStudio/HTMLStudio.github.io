@@ -236,6 +236,42 @@
 	margin: 0 auto 1.2em;
 }
 
+#Ide {
+	margin: .5em -1px 2em;
+	display: flex;
+	background: #F5F5F5;
+	color: #456;
+	border-radius: .3em;
+	border: 1px solid #AAA;
+	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
+	padding: .3em;
+}
+
+#Ide div {
+	flex-grow: 1;
+	padding: .3em;
+	border-radius: .3em;
+	cursor: pointer;
+}
+
+#Ide div.active {
+	background: #00acc1;
+	color: #fff;
+	pointer-events: none;
+}
+
+#Ide div:hover, #ide div:focus {
+	background: #E5E5E5;
+}
+
+#Ide div:first-child {
+	margin-right: .3em;
+}
+
+#Idg {
+	padding: .3em;
+}
+
 .cl9 {
 	position: absolute;
 	right: .2em;
@@ -321,6 +357,22 @@
 
 .clh {
 	background: #F5F5F5;
+}
+
+.cli {
+	height: 3.5em;
+	width: 100%;
+	background: url("../svg/transparency_back.svg") 0px 0px / auto 50%;
+	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80.8);
+	border: 1px solid #AAA;
+	margin: .5em -1px 0;
+	border-radius: 3px;
+	display: table;
+}
+
+.cli > * {
+	display: table-cell;
+	vertical-align: middle;
 }
 
 html-entity-replacer,
