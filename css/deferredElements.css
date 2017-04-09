@@ -134,9 +134,14 @@
 }
 
 #idy {
-	width: calc(40vw - 3.6em);
-	height: calc(calc(40vw - 3.6em) * 0.5622262558930485);
-	margin-top: 2em;
+	width: 100vw;
+	height: 100vh;
+	-webkit-transform: scale(.4);
+	transform: scale(.4);
+	-webkit-transform-origin: bottom center;
+	transform-origin: bottom center;
+	margin: -60vh -30vw 0;
+	border: 0;
 }
 
 #idA, #Ida {
@@ -238,6 +243,8 @@
 
 #Ide {
 	margin: .5em -1px 2em;
+	display: -webkit-box;
+	display: -ms-flexbox;
 	display: flex;
 	background: #F5F5F5;
 	color: #456;
@@ -248,6 +255,8 @@
 }
 
 #Ide div {
+	-webkit-box-flex: 1;
+	-ms-flex-positive: 1;
 	flex-grow: 1;
 	padding: .3em;
 	border-radius: .3em;
@@ -270,6 +279,13 @@
 
 #Idg {
 	padding: .3em;
+}
+
+#Idi {
+	border: 1px solid #000;
+	display: inline-block;
+	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
+	margin-top: 2em;
 }
 
 .cl9 {
@@ -316,11 +332,21 @@
 }
 
 .cl5 {
-	height: 9.0754vw;
-	width: 16.1419vw;
-	border: 1px solid #000;
+	display: inline-block;
+	border: 1px solid black;
+	line-height: 0;
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
-	margin: -1px;
+}
+
+.cl5 iframe {
+	height: 100vh;
+	width: 100vw;
+	-webkit-transform: scale(.161419);
+	transform: scale(.161419);
+	margin: -83.8581vh calc(-41.92905vw + 1px) 0 -41.92905vw;
+	border: 0;
+	-webkit-transform-origin: bottom center;
+	transform-origin: bottom center;
 }
 
 .cl6 {
@@ -398,15 +424,19 @@ html-element-replacer {
 }
 
 .rectX {
-	width: 100%;
+	width: calc(100% - 4px);
 	height: 0;
 	padding: 0 2px;
+	border-left: 0;
+	border-right: 0;
 }
 
 .rectY {
 	width: 0;
-	height: 100%;
+	height: calc(100% - 4px);
 	padding: 2px 0;
+	border-top: 0;
+	border-bottom: 0;
 }
 
 .rectXT, .rectYT {
@@ -439,4 +469,27 @@ html-element-replacer {
 
 label, label input[type=checkbox] {
 	cursor: pointer;
+}
+
+.dialog_resizer_left, .dialog_resizer_right {
+	top: -1px;
+	position: absolute;
+	height: 100%;
+	width: .5em;
+	cursor: ew-resize;
+	border: 1px solid transparent;
+}
+
+.dialog_resizer_left {
+	left: -1px;
+	border-bottom-left-radius: .6em;
+	border-top-left-radius: .6em;
+	border-right-width: 0;
+}
+
+.dialog_resizer_right {
+	left: calc(50vw - .5em);
+	border-bottom-right-radius: .6em;
+	border-top-right-radius: .6em;
+	border-left-width: 0;
 }

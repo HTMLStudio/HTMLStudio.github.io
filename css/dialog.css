@@ -11,7 +11,7 @@
 
 .dialog { 
 	width: 50%;
-	min-width: 50%;
+	min-width: 50vw;
 	max-height: 75vh;
 	background: #F0F0F0;
 	text-align: center;
@@ -81,14 +81,17 @@
 	position: static;
 	width: initial;
 	float: left;
+	-webkit-transition: all .15s linear;
 	transition: all .15s linear;
 }
 
 .dialog .option:hover, .dialog>.option:focus {
+	background: -webkit-linear-gradient(top, #EEE 0%,#CCC 100%);
 	background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
 }
 
 .dialog .option:active {
+	background: -webkit-linear-gradient(top, #BBB 0%,#DDD 100%);
 	background: linear-gradient(to bottom, #BBB 0%,#DDD 100%);
 	box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
 }
