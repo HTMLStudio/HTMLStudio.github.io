@@ -537,38 +537,70 @@
 		#toolbarcontainer.inactive ~ #toolbargrabber {
 			height: 2.5vw;
 			box-shadow: 0 0 5px 3px rgba(0,0,0,.18);
-			border-color: #AAA;
+			border: 1px solid #AAA;
 			width: 10%;
 			margin-left: calc(45% - 1px);
+			font-size: 1.7vw;
 		}
 
-		#toolbargrabber, div#toolbargrabber#toolbargrabber.inactive {
+		#toolbarcontainer.inactive ~ #toolbargrabber #tbgleft {
+			width: 0;
+			border-left: 1vw solid transparent;
+			border-top: 2.5vw solid #F0F0F0;
+			position: absolute;
+			left: calc(1px - .964238345443vw); /* Pre-calculated value to make the triangle "blend in" with the border-radius on #tooltipgrabber */
+			top: -.185695338177vw; /* cosine & sine of perpendicular angle of tangential line of border-radius quarter circle */
+		}
+
+		#toolbarcontainer.inactive ~ #toolbargrabber #tbgright {
+			width: 0;
+			border-right: 1vw solid transparent;
+			border-top: 2.5vw solid #F0F0F0;
+			position: absolute;
+			right: calc(1px - .964238345443vw);
+			top: -.185695338177vw;
+		}
+
+		#toolbarcontainer.inactive ~ #toolbargrabber span,
+		#toolbarcontainer.inactive ~ #toolbargrabber #tbgleft,
+		#toolbarcontainer.inactive ~ #toolbargrabber #tbgright {
+			top: 0;
+			-webkit-transition: top .3s ease-out;
+			transition: top .3s ease-out;
+		}
+
+		#toolbargrabber, div#toolbargrabber#toolbargrabber.inactive:not([data-draggable-element-being-dragged="1"]) {
 			height: 0;
 			box-shadow: initial;
 			border: 0;
 			text-align: center;
 			width: 40%;
-			margin-left: calc(30% - 1px);
-			border-left: 1px solid transparent;
+			margin-left: 30%;
 			position: absolute;
 			z-index: 9999995;
 			background: #F0F0F0;
 			border-bottom-left-radius: .5vw;
 			border-bottom-right-radius: .5vw;
-			-webkit-transition: height .3s ease-out,
-				box-shadow .3s ease-out,
-				border-width .3s ease-out,
-				width .3s ease-out,
-				margin-left .3s ease-out;
-			transition: height .3s ease-out,
-				box-shadow .3s ease-out,
-				border-width .3s ease-out,
-				width .3s ease-out,
-				margin-left .3s ease-out;
+			-webkit-transition: all .3s ease-out;
+			transition: all .3s ease-out;
 			top: -1px;
 			color: #00acc1;
-			cursor: pointer;
-			overflow: hidden;
+			cursor: -webkit-grab;
+			cursor: grab;
+		}
+
+		#toolbargrabber #tgbleft, div#toolbargrabber#toolbargrabber.inactive:not([data-draggable-element-being-dragged="1"]) #tbgleft,
+		#toolbargrabber #tgbright, div#toolbargrabber#toolbargrabber.inactive:not([data-draggable-element-being-dragged="1"]) #tbgright {
+			-webkit-transition: top .3s ease-out;
+			transition: top .3s ease-out;
+			top: -2.5vw;
+		}
+
+		#toolbargrabber span, div#toolbargrabber#toolbargrabber.inactive:not([data-draggable-element-being-dragged="1"]) span {
+			-webkit-transition: top .3s ease-out;
+			transition: top .3s ease-out;
+			top: -2.5vw;
+			position: relative;
 		}
 	</style>
 </head>
@@ -587,7 +619,7 @@
 			<div class='headersection loading' id='section_edit' tabindex='0'>Edit</div>
 			<div class='headersection loading' id='section_view' tabindex='0'>View</div>
 			<div class='headersection loading' id='section_stylesheets' tabindex='0'>Style Sheets</div>
-			<div class='headersection loading' id='section_selection' tabindex='0'>Selection</div>
+			<div class='headersection loading' id='section_selection' tabindex='0'>Select</div>
 		</div>
 		<div id='logo'>
 			<table>
@@ -602,7 +634,24 @@
 			</div>
 		</div>
 	</div>
-	<div id='toolbargrabber'>&#11167; &#11167; &#11167;</div>
+	<div id='edittextbar'>
+		<div class='edittextopt localeTitle' id='etopt_bold' title='({localeCmdKey} + B) Embolden text'></div>
+		<div class='edittextopt localeTitle' id='etopt_italic' title='({localeCmdKey} + I) Italicize text'></div>
+		<div class='edittextopt localeTitle' id='etopt_underline' title='({localeCmdKey} + U) Underline text'></div>
+		<div class='edittextopt localeTitle' id='etopt_increase_font' title='({localeCmdKey} + Shift + >) Increase font size'></div>
+		<div class='edittextopt localeTitle' id='etopt_decrease_font' title='({localeCmdKey} + Shift + <) Decrease font size'></div>
+		<div class='edittextopt localeTitle' id='etopt_superscript' title='({localeCmdKey} + Shift + =) Superscript text'></div>
+		<div class='edittextopt localeTitle' id='etopt_subscript' title='({localeCmdKey} + =) Subscript text'></div>
+		<div class='edittextopt localeTitle' id='etopt_justify_left' title='({localeCmdKey} + Shift + L) Align text left'></div>
+		<div class='edittextopt localeTitle' id='etopt_justify_center' title='({localeCmdKey} + Shift + E) Align text center'></div>
+		<div class='edittextopt localeTitle' id='etopt_justify_right' title='({localeCmdKey} + Shift + R) Align text right'></div>
+		<div class='edittextopt localeTitle' id='etopt_justify_full' title='({localeCmdKey} + Shift + J) Justify text'></div>
+	</div>
+	<div id='toolbargrabber' class='cursorgrab'>
+		<div id='tbgleft'></div>
+		<span>&#11167; &#11167; &#11167;</span>
+		<div id='tbgright'></div>
+	</div>
 	<div id='framecontainer'>
 		<div id='frameback'></div>
 		<iframe id='frame'></iframe>
@@ -782,7 +831,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.3.1.7</h3></td>
+						<td><h3>Version 1.4.1</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -919,7 +968,8 @@
 				<br>
 				<h3>Live Preview</h3>
 				<div class='cli'>
-					<span id='Idg'>This is what a selected element will look like.</span>
+					<span>This is what a selected element will look like.</span>
+					<div id='Idg'></div>
 				</div>
 			</div>
 			<div class='exit' tabindex='0'></div>
@@ -936,7 +986,7 @@
 		<span id='ids'>HTML Tree<div id='idD'></div></span>
 		<div id='idp'>
 			<svg id='idq' viewBox='0 0 180 120'></svg>
-			<div id='idr' title='Drag to move &#183; Scroll to zoom &#183; Click to select node'></div>
+			<div id='idr' title='Drag to move &#183; Scroll to zoom &#183; Click to select node' class='cursorgrab'></div>
 		</div>
 	</div>
 	<div id='querySelector' class='topText'>
@@ -944,7 +994,7 @@
 		<div class='cle'></div>
 	</div>
 	<div id='classEditor' class='topText'>
-		<input type='text' placeholder='Edit Class Name' id='idQ'>
+		<input type='text' placeholder='Edit Classes' id='idQ'>
 		<div class='cle'></div>
 	</div>
 	<div id='idEditor' class='topText'>
@@ -963,10 +1013,11 @@
 	<textarea id='clipboard' class='hidden'></textarea>
 	<iframe id='cssTest' class='hidden'></iframe>
 	<noscript id='deferred-styles' style="z-index:-1">
-		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
 		<link href='css/ContextMenu.css' rel='stylesheet' type='text/css'>
+		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
+		<link href='css/editTextBar.css' rel='stylesheet' type='text/css'>
 		<link href='css/deferredElements.css' rel='stylesheet' type='text/css'>
-		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic' rel='stylesheet' type='text/css'>
+		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
 		<link href='css/topText.css' rel='stylesheet' type='text/css'>
 		<link href='css/ColorSelector.css' rel='stylesheet' type='text/css'>
@@ -996,6 +1047,7 @@
 	<script type="text/javascript" src='script/minifyHTML.js' defer></script>
 	<script type="text/javascript" src='script/parseSelector.js' defer></script>
 	<script type="text/javascript" src='script/ColorSelector.js' defer></script>
+	<script type="text/javascript" src='script/rangy.js' defer></script>
 	<script type="text/javascript" src='script/main.js' defer></script>
 </body>
 </html>

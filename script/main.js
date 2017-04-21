@@ -42,6 +42,70 @@ var storage = {
 	}
 };
 
+// Given a reference text node, returns the next text node in the DOM
+// Uses the text node passed as an argument, or the text node set as `this`
+Text.prototype.nextTextNode = function(arg) {
+	function check(node) {
+		for (var returnedCheck; node; node = node.nextSibling) {
+			if (node.nodeType == 1 && (returnedCheck = check(node.firstChild))) return returnedCheck;
+			if (node.nodeType == 3) return node;
+		}
+	}
+	if (!arg && !this) return null;
+	var node = (function get(node) {
+		if (node.nextSibling) return node.nextSibling;
+		if (node.parentNode) return get(node.parentNode);
+	})(arg || this);
+	if (!node) return null;
+	for (var value; node && !(value = check(node)) && node.parentNode; node = node.parentNode.nextSibling);
+	return value;
+};
+
+Text.prototype.previousTextNode = function(arg) {
+	function check(node) {
+		for (var returnedCheck; node; node = node.previousSibling) {
+			if (node.nodeType == 1 && (returnedCheck = check(node.firstChild))) return returnedCheck;
+			if (node.nodeType == 3) return node;
+		}
+	}
+	if (!arg && !this) return null;
+	var node = (function get(node) {
+		if (node.previousSibling) return node.previousSibling;
+		if (node.parentNode) return get(node.parentNode);
+	})(arg || this);
+	if (!node) return null;
+	for (var value; node && !(value = check(node)) && node.parentNode; node = node.parentNode.previousSibling);
+	return value;
+};
+
+Text.firstChild = function(arg) {
+	if (!arg) return null;
+	function check(node) {
+		if (node.nodeType == 3) return node;
+		if (node.nodeType == 1) {
+			for (var i = 0, returnedCheck; i < node.childNodes.length; i++) {
+				if (returnedCheck = check(node.childNodes[i])) return returnedCheck;
+			}
+		}
+		return null;
+	}
+	return check(arg);
+};
+
+Text.lastChild = function(arg) {
+	if (!arg) return null;
+	function check(node) {
+		if (node.nodeType == 3) return node;
+		if (node.nodeType == 1) {
+			for (var i = node.childNodes.length - 1, returnedCheck; i >= 0; i--) {
+				if (returnedCheck = check(node.childNodes[i])) return returnedCheck;
+			}
+		}
+		return null;
+	}
+	return check(arg);
+};
+
 
 (window.HTMLStudio = window.HTMLStudio || {}).initiated = false;
 
@@ -81,6 +145,7 @@ function main(){
 		framewindow = iframe.contentWindow,
 		overlay = document.getElementById('frameoverlay'),
 		backdialog = document.getElementById('dialogcover'),
+		pseudoEmptyNodes = [],
 		history = {
 			entries: storage.get('documentHistoryEntries') || [],
 			update: function(action) {
@@ -99,7 +164,7 @@ function main(){
 				};
 				if (obj.html == (this.entries[this.currentEntry] || {html: ''}).html && obj.title == (this.entries[this.currentEntry] || {title: ''} ).title && JSON.stringify(obj.stylesheets) == JSON.stringify((this.entries[this.currentEntry] || {stylesheets: '[]'}).stylesheets)) return;
 
-				this.currentEntry++;
+				this.currentEntry = this.currentEntry == null ? 0 : this.currentEntry + 1;
 				this.entries[this.currentEntry] = obj;
 				storage.set('stylesheets', stylesheethtml);
 				this.entries = this.entries.slice(0,this.currentEntry + 1);
@@ -129,360 +194,69 @@ function main(){
 					separate: true,
 					id: 'info'
 				},{
-					name: 'Edit Styles&#133;',
-					func: function(_,close) {
-						close();
-						openDialog('edit_styles');
-						var html = '<table id="idu">',
-							selectedElement = document.querySelector('[data-selected-element=selected]'),
-							style = selectedElement.alias.getAttribute('style') || '';
-						style.replace(/(?:^\s*|;\s*)([a-z-]+)?\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)*)/g, function($0,$1,$2) {
-							if (!$1 && !$2) return $0;
-							html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape($1) + '" placeholder="style name" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape($2) + '" placeholder="style value" class="cl2 cl3"></td></td>';
-							return $0; 
-						});
-						html += '<tr class="cl4"><td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td></tr><tr class="cl4" id="idw"><td><input type="text" placeholder="style name" class="cl1 cl3" id="idx"></td><td><input type="text" tabindex="-1" placeholder="style value" class="cl2 cl3"></td></tr></table>';
-						document.getElementById('idv').innerHTML = html;
-						document.getElementById('idu').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
-						var finaltr = document.getElementById('idw').previousElementSibling;
-						document.getElementById('idx').addEventListener('focus', function() {
-							var tr = document.createElement('tr');
-							tr.className = 'cl4';
-							tr.innerHTML = '<td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td>';
-							this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
-							finaltr = tr;
-							tr.children[0].children[0].focus();
-							[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
-								element.addEventListener('blur', function() {
-									setTimeout(function() {
-										var tr = element.parentNode.parentNode;
-										tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
-										element.active = false;
-										if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
-											tr.parentNode.removeChild(tr);
-										};
-									},0);
-								});
-								element.addEventListener('focus', function() {
-									element.active = true;
-								});
-								element.addEventListener('keydown', function(e) {
-									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || ((e.keyCode == 59 || e.keyCode == 186) && element.parentNode.previousElementSibling)) {
-										if (e.keyCode == 59 || e.keyCode == 186) {
-											var position = 0;
-											if (document.selection) {
-												element.focus();
-												var range = document.selection.createRange();
-												range.moveStart('character', -element.value.length);
-												position = range.text.length;
-											} else if (typeof element.selectionStart == 'number') position = element.selectionStart;
-
-											var context = this.value.substring(0, position);
-											if (context) {
-												var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
-												if (!match || match[0].length != context.length) return;
-											}
-										}
-										e.preventDefault();
-										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
-									}
-								});
-							});
-						});
-						Array.prototype.forEach.call(document.querySelectorAll('#idv input:not(#idx)'), function(element) {
-							element.addEventListener('blur', function(e) {
-								setTimeout(function() {
-									var tr = element.parentNode.parentNode;
-									tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
-									element.active = false;
-									if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
-										tr.parentNode.removeChild(tr);
-									};
-								},0);
-							});
-							element.addEventListener('focus', function(e) {
-								element.active = true;
-							});
-							element.addEventListener('keydown', function(e) {
-								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || ((e.keyCode == 59 || e.keyCode == 186) && element.parentNode.previousElementSibling)) {
-									if (e.keyCode == 59 || e.keyCode == 186) {
-										var position = 0;
-										if (document.selection) {
-											element.focus();
-											var range = document.selection.createRange();
-											range.moveStart('character', -element.value.length);
-											position = range.text.length;
-										} else if (typeof element.selectionStart == 'number') position = element.selectionStart;
-
-										var context = this.value.substring(0, position);
-										if (context) {
-											var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
-											if (!match || match[0].length != context.length) return;
-										}
-									}
-									e.preventDefault();
-									(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
-								}
-							});
-						});
-						document.querySelector('#idv tr:first-child input').focus();
-					},
-					image: 'svg/edit_styles.svg',
-					title: 'Allows you to edit the element\'s CSS',
-					id: 'editStyle'
-				},{
-					name: 'Edit Attributes&#133;',
-					func: function(_,close) {
-						close();
-						openDialog('edit_attributes');
-						var html = '<table id="idi">';
-						Array.prototype.forEach.call(document.querySelector('[data-selected-element=selected]').alias.attributes, function(attribute) {
-							html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(attribute.name) + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(attribute.value) + '" placeholder="value" class="cl2 cl3"></td></td>';
-						});
-						html += '<tr class="cl4"><td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td></tr><tr class="cl4" id="idk"><td><input type="text" placeholder="attribute" class="cl1 cl3" id="idj"></td><td><input type="text" tabindex="-1" placeholder="value" class="cl2 cl3"></td></tr></table>';
-						document.getElementById('idg').innerHTML = html;
-						document.getElementById('idi').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
-						var finaltr = document.getElementById('idk').previousElementSibling;
-						document.getElementById('idj').addEventListener('focus', function() {
-							var tr = document.createElement('tr');
-							tr.className = 'cl4';
-							tr.innerHTML = '<td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td>';
-							this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
-							finaltr = tr;
-							tr.children[0].children[0].focus();
-							[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
-								element.addEventListener('blur', function() {
-									setTimeout(function() {
-										var tr = element.parentNode.parentNode;
-										tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
-										element.active = false;
-										if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
-											tr.parentNode.removeChild(tr);
-										};
-									},0);
-								});
-								element.addEventListener('focus', function() {
-									element.active = true;
-								});
-								element.addEventListener('keydown', function(e) {
-									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
-										e.preventDefault();
-										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
-									};
-								});
-							});
-						});
-						Array.prototype.forEach.call(document.querySelectorAll('#idg input:not(#idj)'), function(element) {
-							element.addEventListener('blur', function(e) {
-								setTimeout(function() {
-									var tr = element.parentNode.parentNode;
-									tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
-									element.active = false;
-									if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
-										tr.parentNode.removeChild(tr);
-									};
-								},0);
-							});
-							element.addEventListener('focus', function(e) {
-								element.active = true;
-							});
-							element.addEventListener('keydown', function(e) {
-								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 58 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
-									e.preventDefault();
-									(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
-								};
-							});
-						});
-						document.querySelector('#idg tr:first-child input').focus();
-					},
-					title: 'Allows you to edit the element\'s attributes',
-					image: 'svg/edit_attributes.svg',
-					separate: true,
-					id: 'editAttributes'
-				},{
-					name: 'Edit Class Name&#133;',
-					func: function(_,close) {
-						close();
-						var editor = document.getElementById('classEditor'), idQ = document.getElementById('idQ'), elements = document.querySelectorAll('[data-selected-element=selected]');
-						if (!elements.length) return;
-						closeTopTexts();
-						editor.className = 'topText active';
-						if (elements.length > 1) {
-							var classes = elements[0].alias.className.baseVal ? elements[0].alias.className.baseVal : typeof elements[0].alias.className == 'string' ? elements[0].alias.className : '';
-							for (var i = elements.length - 1; classes && i >= 0; i--) {
-								if ((elements[i].alias.className.baseVal ? elements[i].alias.className.baseVal : typeof elements[i].alias.className == 'string' ? elements[i].alias.className : '') != classes) classes = false;
-							}
-
-							idQ.elements = Array.prototype.slice.call(elements);
-							if (classes) {
-								idQ.method = 'replace';
-								idQ.value = classes;
-							} else {
-								idQ.method = 'append';
-								idQ.value = '';
-								idQ.origClass = idQ.elements.map(function(element) {
-									return element.alias.className.baseVal ? element.alias.className.baseVal.trim() : typeof element.alias.className == 'string' ? element.alias.className.trim() : '';
-								});
-							}
-						} else {
-							var element = elements[0]
-							idQ.value = element.alias.className ? element.alias.className.baseVal ? element.alias.className.baseVal : element.alias.className : '';
-							idQ.method = 'replace';
-							idQ.elements = [element];
-						}
-						idQ.focus();
-					},
-					title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the element\'s classes',
-					image: 'svg/edit_class.svg',
-					id: 'editClass'
-				},{
-					name: 'Edit ID&#133;',
-					func: function(_,close) {
-						close();
-						var editor = document.getElementById('idEditor'), idR = document.getElementById('idR'), elements = document.querySelectorAll('[data-selected-element=selected]');
-						if (!elements.length) return;
-						closeTopTexts();
-						if (elements.length > 1) {
-							document.getElementById('idNoEdit').className = 'topText active';
-						} else {
-							editor.className = 'topText active';
-							idR.element = elements[0].alias;
-							idR.value = elements[0].alias.id;
-							idR.focus();
-						}
-					},
-					title: '(' + locale.cmdKey + ' + Shift + 3) Allows you to quickly edit the element\'s ID',
-					separate: true,
-					image: 'svg/edit_id.svg',
-					id: 'editId'
-				},{
-					name: 'Insert Child&#133;',
-					func: function(_,close) {
-						close();
-						var element = document.querySelector('[data-selected-element="selected"]');
-						if (!element) return;
-						openDialog('new_child');
-						Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
-							element.className = 'clf';
-						});
-						var obj;
-						document.getElementById('ida').insertChild = obj = {textNode: Symbol(), element: element.alias, children: null};
-						var idc = document.getElementById('idc');
-						idc.value = '';
-						idc.focus();
-						var hasChildren = false;
-						function esc(str) {
-							str = str.replace(/^\s+|\s+$/g,' ').replace(/\$/g,'$$');
-							str = (str.length < 33 ? str : str.substring(0,15) + '-$-' + str.substring(str.length - 15))
-							var test = document.createElement('span');
-							test.innerText = str;
-							return test.innerHTML.replace(/<br>/g, '<span style="color:#009;font-weight:700">&#8629;</span>').replace(/-\$-/,'<span style="color:#009;font-weight:700">&#133;</span>').replace(/\$\$/g,'$');
-						}
-						Array.prototype.forEach.call(element.alias.childNodes, function(child, i) {
-							if (child.nodeType == 1) {
-								hasChildren = true;
-								var format = formatElementInfo(child);
-								(obj.children = obj.children || []).push({str: '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="font-weight:700">&lt;</span>' + format.name + format.id + format.class + '<span style="font-weight:700">&gt;</span></span>', i: i, n: child});
-							} else if (child.nodeType == 3 && child.textContent.trim()) {
-								hasChildren = true;
-								(obj.children = obj.children || []).push({str: '<span style="color:#F44;font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace" title="#text &quot;' + quoteEscape(child.textContent) + '&quot;">#text "<span style="color:#33F;white-space:pre-wrap">' + esc(child.textContent) + '</span>"</span>', i: i, n: child});
-							}
-						});
-						document.getElementById('idT').style.display = hasChildren ? '' : 'none';
-						if (hasChildren) {
-							var html = '';
-							for (var i = obj.children.length - 1; i >= 0; i--) {
-								html = '<div class="clh" tabindex="0" data-index="' + obj.children[i].i + '">' + obj.children[i].str + '</div>' + html;
-							}
-							var idU = document.getElementById('idU');
-							idU.innerHTML = '<div id="idV" tabindex="0">Your Node</div>' + html;
-
-							var index = obj.children[0].i,
-								clicked = false,
-								replace = function(e) {
-									var attr = this.getAttribute('data-index');
-									if (index < attr || this.previousElementSibling == idV) {
-										idU.insertBefore(idV, this.nextElementSibling);
-									} else {
-										idU.insertBefore(idV, this);
-									}
-									index = +this.getAttribute('data-index');
-									obj.index = Array.prototype.indexOf.call(idU.children, idV);
-									if (e.type == 'focus' || e.type == 'keydown') idV.focus();
-								},
-								clickEvent = function(e) {
-									if (!clicked) Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
-										element.removeEventListener('mouseenter', replace);
-										element.removeEventListener('focus', replace);
-										element.addEventListener('click', replace);
-										element.addEventListener('keydown', function(e) {
-											if (e.keyCode == 13) replace.call(this,e);
-										});
-									});
-									clicked = true;
-								};
-
-							// On hover for [Right Click] > Insert Child... > [Node Position <div>s]
-							Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
-								element.addEventListener('mouseenter', replace);
-								element.addEventListener('focus', replace);
-							});
-							idV.addEventListener('click', clickEvent);
-							idV.addEventListener('keydown', function(e) {
-								if (e.keyCode == 13) clickEvent.call(this);
-							})
-						}
-					},
-					title: 'Inserts a child node into the selected node',
-					image: 'svg/insert_child.svg',
-					separate: true,
-					id: 'insertChild'
-				},{
-					name: 'Select Parent',
-					image: 'svg/select_parent.svg',
-					disabledimage: 'svg/select_parent_disabled.svg',
+					name: 'Copy Element',
 					func: function(e,close) {
 						close();
-						if (document.querySelector('[data-selected-element=selected]') == overlay) {
-							clickhandler.call(overlay, {
-								stopPropagation: function(){},
-								clientX: 0,
-								clientY: Math.round(em(4.45)),
-								isTrusted: true
-							});
-							updateTooltip();
-							return this.disabled = true;
-						}
-						var node = document.querySelector('[data-selected-element=selected]').parentNode;
-						if (!e.shiftKey) deselect();
-						clickhandler.call(node, pseudoEvent.__extend__({set: true}));
-
-						updateTooltip();
-						updateTreeSelections();
-						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+						prepareCopy(e.shiftKey);
+						if (document.queryCommandSupported('copy')) document.execCommand('copy');
+						else openDialog('pseudo_paste');
 					},
-					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
-					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected',
-					id: 'selectParent'
+					title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
+					image: 'svg/copy.svg',
+					id: 'copy'
 				},{
-					name: 'Select Children',
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
+					name: 'Cut Element',
 					func: function(e,close) {
+						close();
+						prepareCopy(e.shiftKey);
+						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
+							var cmi = contextmenus[1].getItem('delete');
+							cmi.cut = true;
+							cmi.dispatchEvent(new MouseEvent('click'));
+						} else openDialog('pseudo_paste');
+						if (document.activeElement == clipboard) userClipboard = clipboard.value;
+					},
+					title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element and all its descendants',
+					image: 'svg/cut.svg',
+					id: 'cut'
+				},{
+					name: 'Paste into Element',
+					func: function(e,close) {
+						close();
+						if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
+						} else openDialog('pseudo_paste');
+					},
+					title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected node',
+					image: 'svg/paste.svg',
+					separate: true,
+					id: 'paste'
+				},{
+					name: 'Duplicate Element',
+					func: function(_,close) {
 						close();
 						var element = document.querySelector('[data-selected-element=selected]');
-						if (!e.shiftKey) deselect();
-						forEach(element.children, function() {
-							clickhandler.call(this, (pseudoEvent.__extend__({set: true})));
-						});
-						updateTooltip();
-						updateTreeSelections();
-						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+						if (!element) return;
+						var clone = element.alias.cloneNode(true),
+							re = /^Duplicate_\d+_of_/;
+						function changeId(node) {
+							if (node.id) {
+								node.id = node.id.replace(re,'');
+								for (var index = 1; framewindow.document.getElementById('Duplicate_' + index + '_of_' + node.id); index++);
+								node.id = 'Duplicate_' + index + '_of_' + node.id;
+							}
+							forEach(node.children, changeId);
+						}
+						changeId(clone);
+						element.alias.insertAdjacentElement('afterEnd', clone);
+						history.update('Duplicate element');
+						overlayUpdate();
+						deselect();
+						clickhandler.call(clone.alias, pseudoEvent);
 					},
-					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
-					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
+					title: '(' + locale.cmdKey + ' + Shift  + D) Create a duplicate of the selected element as a sibling',
+					image: 'svg/duplicate.svg',
 					separate: true,
-					id: 'selectChildren'
+					id: 'duplicate'
 				},{
 					name: 'Edit Text',
 					image: 'svg/edit_text.svg',
@@ -490,7 +264,9 @@ function main(){
 						close();
 						var element = document.querySelector('[data-selected-element=selected]');
 						if (!element) return;
-						var boxshadow = element.alias.style.boxShadow, pendingUpdate = false, contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false, hasBlurred = false;
+						var boxshadow = element.alias.style.boxShadow, pendingUpdate = false,
+							contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false, hasBlurred = false,
+							originalScrollTop = document.getElementById('framecontainer').scrollTop;
 						// Makes element contenteditable
 						element.alias.setAttribute('contenteditable','');
 						// Prevent the user from interacting with the overlay
@@ -506,24 +282,25 @@ function main(){
 						element.alias.htmlStudioTextBeingEdited = true;
 						// Used for keeping track of how many child elements are in the editable element
 						var elemcount = element.alias.children.length,
-						// Used for HTML entity replacers
-						regex = {
-							pre: /(?=(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$))))/g,
-							post: /(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$)))/g,
-							entity: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$))/,
-							tag: /<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>/,
-							tag_name: /<([a-zA-Z][a-zA-Z\d_-]*)/,
-							attrs: /<[a-zA-Z][a-zA-Z\d_-]*((?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*)>/,
-							getAttr: /\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*/g,
-							divide: /\[([a-zA-Z][a-zA-Z\d_-]*)(?:=("(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]/
-						},
-						// Used for testing if the entity actually translates into something
-						testElement = document.createElement('span'),
-						// Used for styling later
-						opacity = -Math.abs(currentFrame - 25) + 25,
-						vh = framewindow.innerHeight / 100,
-						vw = framewindow.innerWidth / 100,
-						scrollTop = document.getElementById('framecontainer').scrollTop;
+							// Used for HTML entity replacers
+							regex = {
+								pre: /(?=(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$))))/g,
+								post: /(?:<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>|&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$)))/g,
+								entity: /&(?:(?:[A-Za-z]+|#\d+|#x[A-Fa-f\d]+)(?:;|(?=\s)|$))/,
+								tag: /<[a-zA-Z][a-zA-Z\d_-]*(?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*>/,
+								tag_name: /<([a-zA-Z][a-zA-Z\d_-]*)/,
+								attrs: /<[a-zA-Z][a-zA-Z\d_-]*((?:\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*)*)>/,
+								getAttr: /\[[a-zA-Z][a-zA-Z\d_-]*(?:=(?:"(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]|\.[a-zA-Z_][a-zA-Z\d_-]*|#[a-zA-Z][a-zA-Z:\d_-]*/g,
+								divide: /\[([a-zA-Z][a-zA-Z\d_-]*)(?:=("(?:[^\\"]|\\.)*"|'(?:[^\\']|\\.)*'|[a-zA-Z\d_:;/,().#-]+))?]/
+							},
+							// Used for testing if the entity actually translates into something
+							testElement = document.createElement('span'),
+							// Used for styling later
+							opacity = -Math.abs(currentFrame - 25) + 25,
+							vh = framewindow.innerHeight / 100,
+							vw = framewindow.innerWidth / 100,
+							scrollTop = document.getElementById('framecontainer').scrollTop;
+						pseudoEmptyNodes = [];
 
 						// Runs when the element is blurred
 						function blur() {
@@ -532,6 +309,9 @@ function main(){
 							// This deletes that redundant <br>
 							if (element.alias.childNodes.length > element.alias.alias.childNodes.length && element.alias.lastChild.nodeName == 'BR') element.alias.removeChild(element.alias.lastChild);
 							element.alias.blurred = true;
+
+							// Makes #edittextbar disappear
+							document.getElementById('edittextbar').className = '';
 
 							// Restores the element's original contenteditable attribute
 							if (contenteditable === false) element.alias.removeAttribute('contenteditable');
@@ -631,7 +411,7 @@ function main(){
 									if (!framewindow.document.execCommand('insertHTML', null, '[' + frag.firstElementChild.outerHTML + ']')) return replace.call(this,true);
 									// Select the new element
 									if (document.getSelection && document.createRange) {
-										var selection = framewindow.document.getSelection();
+										var selection = framewindow.getSelection();
 										var range = framewindow.document.createRange(),
 											newElement = selection.anchorNode.previousElementSibling;
 										if (newElement.nodeName.toLowerCase() != this.tag_name.toLowerCase() || newElement.innerText != 'Inserted Element') return;
@@ -669,6 +449,7 @@ function main(){
 						// The other elements don't need to be updated
 						// Finds any HTML entities, edits them, and gives all nodes an alias to refer to (even text nodes)
 						function createReplacers(clone, node) {
+							if (!node) return;
 							if (clone.nodeType == 3 && clone.nextSibling && clone.nextSibling.nodeType == 3 && node.nodeType == 3 && node.nextSibling && node.nextSibling.nodeType == 3) {
 								clone.textContent += clone.nextSibling.textContent;
 								node.textContent += node.nextSibling.textContent;
@@ -867,6 +648,7 @@ function main(){
 								element.innerHTML = element.alias.innerHTML;
 								createReplacers(element, element.alias);
 							} else {
+								if (!element.parentNode) return;
 								var clone = element.cloneNode(true);
 								fragment.appendChild(clone);
 								// Runs a more efficient overlayUpdate() for the element being edited only
@@ -880,6 +662,8 @@ function main(){
 								element.parentNode.replaceChild(clone, element);
 								element = clone;
 							}
+
+							onClick.call(this);
 
 							// User pressed tab
 							// Try to auto-click a replacer if the caret is inside one
@@ -895,7 +679,7 @@ function main(){
 									range = selection.getRangeAt(0);
 
 								// If the user has characters selected, don't continue
-								if (!selection.isCollapsed) return document.getElementById('framecontainer').scrollTop = scrollTop;
+								if (!selection.isCollapsed && selection.anchorNode != selection.focusNode) return document.getElementById('framecontainer').scrollTop = scrollTop;
 
 								// Used to find the caret's position relative to the text node's parent
 								while (temp = temp.previousSibling) {
@@ -912,33 +696,95 @@ function main(){
 
 								// If the node is a <html-(entity|element)-replacer>, simulate a click
 								focusedNode.nodeName.toLowerCase() == 'html-entity-replacer' && onClickEntityReplacer.call(focusedNode, pseudoEvent) || focusedNode.nodeName.toLowerCase() == 'html-element-replacer' && onClickTagReplacer.call(focusedNode, pseudoEvent);
+							// Ctrl + I
 							} else if (e.type == 'keydown' && e.keyCode == 73 && locale.cmdKeyPressed(e)) {
 								if (framewindow.document.queryCommandSupported('italic')) framewindow.document.execCommand('italic');
+							// Ctrl + B
 							} else if (e.type == 'keydown' && e.keyCode == 66 && locale.cmdKeyPressed(e)) {
 								if (framewindow.document.queryCommandSupported('bold')) framewindow.document.execCommand('bold');
+							// Ctrl + U
+							} else if (e.type == 'keydown' && e.keyCode == 85 && locale.cmdKeyPressed(e)) {
+								if (framewindow.document.queryCommandSupported('underline')) framewindow.document.execCommand('underline');
+							// Ctrl + =
+							} else if (e.type == 'keydown' && e.keyCode == 187 && locale.cmdKeyPressed(e) && e.shiftKey) {
+								if (framewindow.document.queryCommandSupported('superscript')) framewindow.document.execCommand('superscript');
+							// Ctrl + Shift + =
+							} else if (e.type == 'keydown' && e.keyCode == 187 && locale.cmdKeyPressed(e)) {
+								if (framewindow.document.queryCommandSupported('subscript')) framewindow.document.execCommand('subscript');
+							// Ctrl + Shift + L
+							} else if (e.type == 'keydown' && e.keyCode == 76 && locale.cmdKeyPressed(e) && e.shiftKey) {
+								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
+								node.style.textAlign = 'left';
+								node.alias.style.textAlign = 'left';
+							// Ctrl + Shift + E
+							} else if (e.type == 'keydown' && e.keyCode == 69 && locale.cmdKeyPressed(e) && e.shiftKey) {
+								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
+								node.style.textAlign = 'center';
+								node.alias.style.textAlign = 'center';
+							// Ctrl + Shift + R
+							} else if (e.type == 'keydown' && e.keyCode == 82 && locale.cmdKeyPressed(e) && e.shiftKey) {
+								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
+								node.style.textAlign = 'right';
+								node.alias.style.textAlign = 'right';
+							// Ctrl + Shift + J
+							} else if (e.type == 'keydown' && e.keyCode == 74 && locale.cmdKeyPressed(e) && e.shiftKey) {
+								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
+								node.style.textAlign = 'justify';
+								node.alias.style.textAlign = 'justify';
+							// Ctrl + Shift + >
+							} else if (e.type == 'keydown' && e.keyCode == 190 && e.shiftKey) {
+								document.getElementById('etopt_increase_font').dispatchEvent(new MouseEvent('click'));
+							// Ctrl + Shift + <
+							} else if (e.type == 'keydown' && e.keyCode == 188 && e.shiftKey) {
+								document.getElementById('etopt_decrease_font').dispatchEvent(new MouseEvent('click'));
 							}
 							document.getElementById('framecontainer').scrollTop = scrollTop;
+						}
+
+						function keyPressWrapper(e) {
+							scrollTop = document.getElementById('framecontainer').scrollTop;
+							if (e.keyCode == 9 && !e.shiftKey || e.keyCode == 73 && locale.cmdKeyPressed(e) || e.keyCode == 66 && locale.cmdKeyPressed(e) || e.keyCode == 74 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 82 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 187 && locale.cmdKeyPressed(e) || e.keyCode == 85 && locale.cmdKeyPressed(e)) { 
+								e.preventDefault();
+								e.stopPropagation();
+							}
+
+							setTimeout(function() {
+								keypress.call(this, e);
+							}.bind(this),0);
+						}
+
+						function onClick() {
+							setTimeout(function() {
+								document.getElementById('etopt_bold').className = framewindow.document.queryCommandState('bold') ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_italic').className = framewindow.document.queryCommandState('italic') ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_underline').className = framewindow.document.queryCommandState('underline') ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_superscript').className = framewindow.document.queryCommandState('superscript') ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_subscript').className = framewindow.document.queryCommandState('subscript') ? 'edittextopt active' : 'edittextopt';
+								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
+								var alignment = node.style.textAlign || getComputedStyle(node).textAlign;
+								document.getElementById('etopt_justify_left').className = alignment == 'left' ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_justify_center').className = alignment == 'center' ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_justify_right').className = alignment == 'right' ? 'edittextopt active' : 'edittextopt';
+								document.getElementById('etopt_justify_full').className = alignment == 'justify' ? 'edittextopt active' : 'edittextopt';
+							}.bind(this), 0);
 						}
 
 						// Add some events for blurring the element
 						element.alias.addEventListener('blur', blur);
 						element.alias.addEventListener('dblclick', blur);
 						// Adds the events for keypress and keyup
-						element.alias.addEventListener('keydown', function(e) {
-							scrollTop = document.getElementById('framecontainer').scrollTop;
-							if (e.keyCode == 9 && !e.shiftKey || e.keyCode == 73 && locale.cmdKeyPressed(e) || e.keyCode == 66 && locale.cmdKeyPressed(e)) { 
-								e.preventDefault();
-								e.stopPropagation();
-							}
-							setTimeout(function() {
-								keypress.call(this, e);
-							},0);
-						});
+						element.alias.addEventListener('keydown', keyPressWrapper);
+						element.alias.addEventListener('mousedown', onClick);
+						element.alias.addEventListener('touchstart', onClick);
+
 						element.alias.addEventListener('keyup', keypress);
 
 						// Fires a key event to look for any HTML entities as soon as the user focuses the element
 						// instead of waiting for the user to press a key
 						keypress.call(element.alias, {});
+						// Makes #edittextbar appear
+						document.getElementById('edittextbar').className = 'active';
+						document.getElementById('framecontainer').scrollTop = originalScrollTop;
 					},
 					title: 'Allows you to edit the element\'s textual content',
 					disabledtitle: 'This element cannot contain textual content',
@@ -954,9 +800,364 @@ function main(){
 						document.getElementById('idf').value = element.alias[(element.alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
 						document.getElementById('idf').linkedElement = element.alias;
 					},
-					title: 'Allows you to edit the node\'s HTML',
+					title: '(' + locale.cmdKey + ' + H) Allows you to edit the node\'s HTML',
 					separate: true,
 					id: 'editHTML'
+				},{
+					name: 'Edit Attributes&#133;',
+					func: function(_,close) {
+						close();
+						openDialog('edit_attributes');
+						var html = '<table id="idi">';
+						Array.prototype.forEach.call(document.querySelector('[data-selected-element=selected]').alias.attributes, function(attribute) {
+							html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(attribute.name) + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(attribute.value) + '" placeholder="value" class="cl2 cl3"></td></td>';
+						});
+						html += '<tr class="cl4"><td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td></tr><tr class="cl4" id="idk"><td><input type="text" placeholder="attribute" class="cl1 cl3" id="idj"></td><td><input type="text" tabindex="-1" placeholder="value" class="cl2 cl3"></td></tr></table>';
+						document.getElementById('idg').innerHTML = html;
+						document.getElementById('idi').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
+						var finaltr = document.getElementById('idk').previousElementSibling;
+						document.getElementById('idj').addEventListener('focus', function() {
+							var tr = document.createElement('tr');
+							tr.className = 'cl4';
+							tr.innerHTML = '<td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td>';
+							this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
+							finaltr = tr;
+							tr.children[0].children[0].focus();
+							[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
+								element.addEventListener('blur', function() {
+									setTimeout(function() {
+										var tr = element.parentNode.parentNode;
+										tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
+										element.active = false;
+										if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
+											tr.parentNode.removeChild(tr);
+										};
+									},0);
+								});
+								element.addEventListener('focus', function() {
+									element.active = true;
+								});
+								element.addEventListener('keydown', function(e) {
+									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
+										e.preventDefault();
+										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
+									};
+								});
+							});
+						});
+						Array.prototype.forEach.call(document.querySelectorAll('#idg input:not(#idj)'), function(element) {
+							element.addEventListener('blur', function(e) {
+								setTimeout(function() {
+									var tr = element.parentNode.parentNode;
+									tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
+									element.active = false;
+									if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
+										tr.parentNode.removeChild(tr);
+									};
+								},0);
+							});
+							element.addEventListener('focus', function(e) {
+								element.active = true;
+							});
+							element.addEventListener('keydown', function(e) {
+								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 58 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
+									e.preventDefault();
+									(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
+								};
+							});
+						});
+						document.querySelector('#idg tr:first-child input').focus();
+					},
+					title: 'Allows you to edit the element\'s attributes',
+					image: 'svg/edit_attributes.svg',
+					id: 'editAttributes'
+				},{
+					name: 'Edit Styles&#133;',
+					func: function(_,close) {
+						close();
+						openDialog('edit_styles');
+						var html = '<table id="idu">',
+							selectedElement = document.querySelector('[data-selected-element=selected]'),
+							style = selectedElement.alias.getAttribute('style') || '';
+						style.replace(/(?:^\s*|;\s*)([a-z-]+)?\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)*)/g, function($0,$1,$2) {
+							if (!$1 && !$2) return $0;
+							html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape($1) + '" placeholder="style name" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape($2) + '" placeholder="style value" class="cl2 cl3"></td></td>';
+							return $0; 
+						});
+						html += '<tr class="cl4"><td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td></tr><tr class="cl4" id="idw"><td><input type="text" placeholder="style name" class="cl1 cl3" id="idx"></td><td><input type="text" tabindex="-1" placeholder="style value" class="cl2 cl3"></td></tr></table>';
+						document.getElementById('idv').innerHTML = html;
+						document.getElementById('idu').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
+						var finaltr = document.getElementById('idw').previousElementSibling;
+						document.getElementById('idx').addEventListener('focus', function() {
+							var tr = document.createElement('tr');
+							tr.className = 'cl4';
+							tr.innerHTML = '<td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td>';
+							this.parentNode.parentNode.parentNode.insertBefore(tr, this.parentNode.parentNode);
+							finaltr = tr;
+							tr.children[0].children[0].focus();
+							[tr.children[0].children[0], tr.children[1].children[0]].forEach(function(element) {
+								element.addEventListener('blur', function() {
+									setTimeout(function() {
+										var tr = element.parentNode.parentNode;
+										tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
+										element.active = false;
+										if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
+											tr.parentNode.removeChild(tr);
+										};
+									},0);
+								});
+								element.addEventListener('focus', function() {
+									element.active = true;
+								});
+								element.addEventListener('keydown', function(e) {
+									if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || ((e.keyCode == 59 || e.keyCode == 186) && element.parentNode.previousElementSibling)) {
+										if (e.keyCode == 59 || e.keyCode == 186) {
+											var position = 0;
+											if (document.selection) {
+												element.focus();
+												var range = document.selection.createRange();
+												range.moveStart('character', -element.value.length);
+												position = range.text.length;
+											} else if (typeof element.selectionStart == 'number') position = element.selectionStart;
+
+											var context = this.value.substring(0, position);
+											if (context) {
+												var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
+												if (!match || match[0].length != context.length) return;
+											}
+										}
+										e.preventDefault();
+										(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
+									}
+								});
+							});
+						});
+						Array.prototype.forEach.call(document.querySelectorAll('#idv input:not(#idx)'), function(element) {
+							element.addEventListener('blur', function(e) {
+								setTimeout(function() {
+									var tr = element.parentNode.parentNode;
+									tr.inputs = [tr.children[0].children[0], tr.children[1].children[0]];
+									element.active = false;
+									if (!tr.inputs[0].value && !tr.inputs[1].value && !tr.inputs[0].active && !tr.inputs[1].active && tr != tr.parentNode.firstElementChild) {
+										tr.parentNode.removeChild(tr);
+									};
+								},0);
+							});
+							element.addEventListener('focus', function(e) {
+								element.active = true;
+							});
+							element.addEventListener('keydown', function(e) {
+								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || ((((e.keyCode == 59 || e.keyCode == 186) && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling) || ((e.keyCode == 59 || e.keyCode == 186) && element.parentNode.previousElementSibling)) {
+									if (e.keyCode == 59 || e.keyCode == 186) {
+										var position = 0;
+										if (document.selection) {
+											element.focus();
+											var range = document.selection.createRange();
+											range.moveStart('character', -element.value.length);
+											position = range.text.length;
+										} else if (typeof element.selectionStart == 'number') position = element.selectionStart;
+
+										var context = this.value.substring(0, position);
+										if (context) {
+											var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
+											if (!match || match[0].length != context.length) return;
+										}
+									}
+									e.preventDefault();
+									(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
+								}
+							});
+						});
+						document.querySelector('#idv tr:first-child input').focus();
+					},
+					image: 'svg/edit_styles.svg',
+					title: 'Allows you to edit the element\'s CSS',
+					separate: true,
+					id: 'editStyle'
+				},{
+					name: 'Edit Classes&#133;',
+					func: function(_,close) {
+						close();
+						var editor = document.getElementById('classEditor'), idQ = document.getElementById('idQ'), elements = document.querySelectorAll('[data-selected-element=selected]');
+						if (!elements.length) return;
+						closeTopTexts();
+						editor.className = 'topText active';
+						if (elements.length > 1) {
+							var classes = elements[0].alias.className.baseVal ? elements[0].alias.className.baseVal : typeof elements[0].alias.className == 'string' ? elements[0].alias.className : '';
+							for (var i = elements.length - 1; classes && i >= 0; i--) {
+								if ((elements[i].alias.className.baseVal ? elements[i].alias.className.baseVal : typeof elements[i].alias.className == 'string' ? elements[i].alias.className : '') != classes) classes = false;
+							}
+
+							idQ.elements = Array.prototype.slice.call(elements);
+							if (classes) {
+								idQ.method = 'replace';
+								idQ.value = classes;
+							} else {
+								idQ.method = 'append';
+								idQ.value = '';
+								idQ.origClass = idQ.elements.map(function(element) {
+									return element.alias.className.baseVal ? element.alias.className.baseVal.trim() : typeof element.alias.className == 'string' ? element.alias.className.trim() : '';
+								});
+							}
+						} else {
+							var element = elements[0]
+							idQ.value = element.alias.className ? element.alias.className.baseVal ? element.alias.className.baseVal : element.alias.className : '';
+							idQ.method = 'replace';
+							idQ.elements = [element];
+						}
+						idQ.focus();
+					},
+					title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the element\'s classes',
+					image: 'svg/edit_class.svg',
+					id: 'editClass'
+				},{
+					name: 'Edit ID&#133;',
+					func: function(_,close) {
+						close();
+						var editor = document.getElementById('idEditor'), idR = document.getElementById('idR'), elements = document.querySelectorAll('[data-selected-element=selected]');
+						if (!elements.length) return;
+						closeTopTexts();
+						if (elements.length > 1) {
+							document.getElementById('idNoEdit').className = 'topText active';
+						} else {
+							editor.className = 'topText active';
+							idR.element = elements[0].alias;
+							idR.value = elements[0].alias.id;
+							idR.focus();
+						}
+					},
+					title: '(' + locale.cmdKey + ' + Shift + 3) Allows you to quickly edit the element\'s ID',
+					separate: true,
+					image: 'svg/edit_id.svg',
+					id: 'editId'
+				},{
+					name: 'Select Parent',
+					image: 'svg/select_parent.svg',
+					disabledimage: 'svg/select_parent_disabled.svg',
+					func: function(e,close) {
+						close();
+						if (document.querySelector('[data-selected-element=selected]') == overlay) {
+							clickhandler.call(overlay, {
+								stopPropagation: function(){},
+								clientX: 0,
+								clientY: Math.round(em(4.45)),
+								isTrusted: true
+							});
+							updateTooltip();
+							return this.disabled = true;
+						}
+						var node = document.querySelector('[data-selected-element=selected]').parentNode;
+						if (!e.shiftKey) deselect();
+						clickhandler.call(node, pseudoEvent.__extend__({set: true}));
+
+						updateTooltip();
+						updateTreeSelections();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+					},
+					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
+					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected',
+					id: 'selectParent'
+				},{
+					name: 'Select Children',
+					image: 'svg/select_children.svg',
+					disabledimage: 'svg/select_children_disabled.svg',
+					func: function(e,close) {
+						close();
+						var element = document.querySelector('[data-selected-element=selected]');
+						if (!e.shiftKey) deselect();
+						forEach(element.children, function() {
+							clickhandler.call(this, (pseudoEvent.__extend__({set: true})));
+						});
+						updateTooltip();
+						updateTreeSelections();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
+					},
+					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
+					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
+					separate: true,
+					id: 'selectChildren'
+				},{
+					name: 'Insert Child&#133;',
+					func: function(_,close) {
+						close();
+						var element = document.querySelector('[data-selected-element="selected"]');
+						if (!element) return;
+						openDialog('new_child');
+						Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
+							element.className = 'clf';
+						});
+						var obj;
+						document.getElementById('ida').insertChild = obj = {textNode: Symbol(), element: element.alias, children: null};
+						var idc = document.getElementById('idc');
+						idc.value = '';
+						idc.focus();
+						var hasChildren = false;
+						function esc(str) {
+							str = str.replace(/^\s+|\s+$/g,' ').replace(/\$/g,'$$');
+							str = (str.length < 33 ? str : str.substring(0,15) + '-$-' + str.substring(str.length - 15))
+							var test = document.createElement('span');
+							test.innerText = str;
+							return test.innerHTML.replace(/<br>/g, '<span style="color:#009;font-weight:700">&#8629;</span>').replace(/-\$-/,'<span style="color:#009;font-weight:700">&#133;</span>').replace(/\$\$/g,'$');
+						}
+						Array.prototype.forEach.call(element.alias.childNodes, function(child, i) {
+							if (child.nodeType == 1) {
+								hasChildren = true;
+								var format = formatElementInfo(child);
+								(obj.children = obj.children || []).push({str: '<span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="font-weight:700">&lt;</span>' + format.name + format.id + format.class + '<span style="font-weight:700">&gt;</span></span>', i: i, n: child});
+							} else if (child.nodeType == 3 && child.textContent.trim()) {
+								hasChildren = true;
+								(obj.children = obj.children || []).push({str: '<span style="color:#F44;font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace" title="#text &quot;' + quoteEscape(child.textContent) + '&quot;">#text "<span style="color:#33F;white-space:pre-wrap">' + esc(child.textContent) + '</span>"</span>', i: i, n: child});
+							}
+						});
+						document.getElementById('idT').style.display = hasChildren ? '' : 'none';
+						if (hasChildren) {
+							var html = '';
+							for (var i = obj.children.length - 1; i >= 0; i--) {
+								html = '<div class="clh" tabindex="0" data-index="' + obj.children[i].i + '">' + obj.children[i].str + '</div>' + html;
+							}
+							var idU = document.getElementById('idU');
+							idU.innerHTML = '<div id="idV" tabindex="0">Your Node</div>' + html;
+
+							var index = obj.children[0].i,
+								clicked = false,
+								replace = function(e) {
+									var attr = this.getAttribute('data-index');
+									if (index < attr || this.previousElementSibling == idV) {
+										idU.insertBefore(idV, this.nextElementSibling);
+									} else {
+										idU.insertBefore(idV, this);
+									}
+									index = +this.getAttribute('data-index');
+									obj.index = Array.prototype.indexOf.call(idU.children, idV);
+									if (e.type == 'focus' || e.type == 'keydown') idV.focus();
+								},
+								clickEvent = function(e) {
+									if (!clicked) Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
+										element.removeEventListener('mouseenter', replace);
+										element.removeEventListener('focus', replace);
+										element.addEventListener('click', replace);
+										element.addEventListener('keydown', function(e) {
+											if (e.keyCode == 13) replace.call(this,e);
+										});
+									});
+									clicked = true;
+								};
+
+							// On hover for [Right Click] > Insert Child... > [Node Position <div>s]
+							Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
+								element.addEventListener('mouseenter', replace);
+								element.addEventListener('focus', replace);
+							});
+							idV.addEventListener('click', clickEvent);
+							idV.addEventListener('keydown', function(e) {
+								if (e.keyCode == 13) clickEvent.call(this);
+							})
+						}
+					},
+					title: 'Inserts a child node into the selected node',
+					image: 'svg/insert_child.svg',
+					separate: true,
+					id: 'insertChild'
 				},{
 					name: 'Unwrap Element',
 					image: 'svg/transparent.svg',
@@ -993,103 +1194,40 @@ function main(){
 					separate: true,
 					id: 'unwrap'
 				},{
-					name: 'Delete Node',
+					name: 'Delete Element',
 					func: function(_,close) {
 						document.querySelector('[data-selected-element=selected]').alias.parentNode.removeChild(document.querySelector('[data-selected-element=selected]').alias);
 						overlayUpdate();
-						history.update('Delete node');
+						history.update('Delete element');
 						close();
 					},
-					title: 'Removes node from the document',
+					title: 'Removes the element from the document',
 					disabledtitle: 'This node cannot be removed from the document',
 					image: 'svg/delete.svg',
 					disabledimage: 'svg/delete_disabled.svg',
-					separate: true,
 					id: 'delete'
-				},{
-					name: 'Duplicate Element',
-					func: function(_,close) {
-						close();
-						var element = document.querySelector('[data-selected-element=selected]');
-						if (!element) return;
-						var clone = element.alias.cloneNode(true),
-							re = /^Duplicate_\d+_of_/;
-						function changeId(node) {
-							if (node.id) {
-								node.id = node.id.replace(re,'');
-								for (var index = 1; framewindow.document.getElementById('Duplicate_' + index + '_of_' + node.id); index++);
-								node.id = 'Duplicate_' + index + '_of_' + node.id;
-							}
-							forEach(node.children, changeId);
-						}
-						changeId(clone);
-						element.alias.insertAdjacentElement('afterEnd', clone);
-						history.update('Duplicate element');
-						overlayUpdate();
-						deselect();
-						clickhandler.call(clone.alias, pseudoEvent);
-					},
-					title: '(' + locale.cmdKey + ' + Shift  + D) Create a duplicate of the selected element as a sibling',
-					separate: true,
-					id: 'duplicate'
-				},{
-					name: 'Copy Element',
-					func: function(e,close) {
-						close();
-						prepareCopy(e.shiftKey);
-						if (document.queryCommandSupported('copy')) document.execCommand('copy');
-						else openDialog('pseudo_paste');
-					},
-					title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
-					image: 'svg/copy.svg',
-					id: 'copy'
-				},{
-					name: 'Cut Element',
-					func: function(e,close) {
-						close();
-						prepareCopy(e.shiftKey);
-						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-							var cmi = contextmenus[1].getItem('delete');
-							cmi.cut = true;
-							cmi.dispatchEvent(new MouseEvent('click'));
-						} else openDialog('pseudo_paste');
-						if (document.activeElement == clipboard) userClipboard = clipboard.value;
-					},
-					title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element and all its descendants',
-					image: 'svg/cut.svg',
-					id: 'cut'
-				},{
-					name: 'Paste in Element',
-					func: function(e,close) {
-						close();
-						if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
-						} else openDialog('pseudo_paste');
-					},
-					title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected node',
-					image: 'svg/paste.svg',
-					id: 'paste'
 				}]
 			}),
 			new HTMLStudio.ContextMenu({
 				items: [{
-					name: 'Delete Nodes',
+					name: 'Delete Elements',
 					func: function(_,close) {
 						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						for (var i = elements.length - 1; i >= 0; i--) {
 							if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
 						}
 						overlayUpdate();
-						history.update((this.cut ? 'Cut element' : 'Delete node') + (elements.length > 1 ? 's' : ''));
+						history.update((this.cut ? 'Cut element' : 'Delete element') + (elements.length > 1 ? 's' : ''));
 						this.cut = false;
 						close();
 						updateTooltip();
 					},
 					image: 'svg/delete.svg',
 					separate: true,
-					title: 'Removes nodes from the document',
+					title: 'Removes the nodes from the document',
 					id: 'delete'
 				},{
-					name: 'Edit Class Names&#133;',
+					name: 'Edit Classes&#133;',
 					func: function(_,close) {
 						close();
 						contextmenus[0].getItem('editClass').dispatchEvent(new MouseEvent('click'));
@@ -1172,7 +1310,7 @@ function main(){
 					image: 'svg/cut.svg',
 					id: 'cut'
 				},{
-					name: 'Paste in Elements',
+					name: 'Paste into Elements',
 					func: function(e,close) {
 						close();
 						if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
@@ -1603,7 +1741,7 @@ function main(){
 				items: [{
 					name: 'Oops! Something went wrong!',
 					disabled: true,
-					disabledtitle: 'Looks like something went wrong in the code and this context menu couldn\'t be displayed.',
+					disabledtitle: 'Looks like something went wrong in the code and this context menu couldn\'t be displayed',
 					id: 'cssPlaceholder'
 				}],
 				pseudoParent: document.getElementById('section_stylesheets')
@@ -1737,8 +1875,10 @@ function main(){
 						
 						updateTooltip();
 					},
-					title: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) Selects the elements\' previous sibling.',
-					disabledtitle: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) No nodes are selected.',
+					title: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) Selects the elements\' previous siblings',
+					image: 'svg/select_previous.svg',
+					disabledimage: 'svg/select_previous_disabled.svg',
+					disabledtitle: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) No nodes are selected',
 					id: 'selectPreviousSibling'
 				},{
 					name: 'Select Next Sibling(s)',
@@ -1789,8 +1929,10 @@ function main(){
 						
 						updateTooltip();
 					},
-					title: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) Selects the elements\' next sibling.',
-					disabledtitle: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) No nodes are selected.',
+					title: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) Selects the elements\' next sibling',
+					image: 'svg/select_next.svg',
+					disabledimage: 'svg/select_next_disabled.svg',
+					disabledtitle: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) No nodes are selected',
 					id: 'selectNextSibling'
 				},{
 					name: 'Select Children',
@@ -1988,112 +2130,123 @@ function main(){
 			return obj;
 		})(storage.get('prefs') || {n: 9, c: '\u012c\u01d8\u01ed\u013b\u012c\u01d8\u01ed\u015e\u012c\u01d8\u01ed\u0145\u012c\u01d8\u01ed\u0190', u: 0});
 
-	// Add some debugging options for developers
-	(window.HTMLStudio = window.HTMLStudio || {}).debug = {};
-	HTMLStudio.debug.localStorage = {};
-	Object.defineProperties(HTMLStudio.debug, {
-		selection: {
-			get: function() {
-				return selection;
+	!function() {
+		// Add some debugging options for developers
+		(window.HTMLStudio = window.HTMLStudio || {}).debug = {};
+
+		var localStorageObject = {};
+
+		Object.defineProperties(localStorageObject, {
+			styleSheets: {
+				get: function() {
+					return storage.get('stylesheets');
+				}
 			},
-			set: function(v) {
-				return selection = v;
-			}
-		},
-		updateOverlay: {
-			get: function() {
-				return overlayUpdate;
-			}
-		},
-		updateStylesheets: {
-			get: function() {
-				return updateStylesheets;
-			}
-		},
-		DOM: {
-			get: function() {
-				return DOM;
+			history: {
+				get: function() {
+					return {
+						entries: storage.get('documentHistoryEntries'),
+						currentEntry: storage.get('documentHistoryCurrentEntry')
+					}
+				}
 			},
-			set: function(v) {
-				return DOM = v;
-			}
-		},
-		preventUpdates: {
-			get: function() {
-				return preventUpdates;
-			},
-			set: function(v) {
-				return preventUpdates = !!v;
-			}
-		},
-		preventEditTextBlurring: {
-			get: function() {
-				return preventEditTextBlurring;
-			},
-			set: function(v) {
-				return preventEditTextBlurring = !!v;
-			}
-		},
-		history: {
-			get: function() {
-				return history;
-			},
-			set: function(v) {
-				return history = v;
-			}
-		},
-		styleSheets: {
-			get: function() {
-				return css;
-			},
-			set: function(v) {
-				return css = v;
-			}
-		},
-		generations: {
-			get: function() {
-				return generations;
-			},
-			set: function(v) {
-				return generations = v;
-			}
-		},
-		contextMenus: {
-			get: function() {
-				return contextmenus;
-			}
-		},
-		fullReset: {
-			get: function() {
-				return console.warn('Calling this function will destroy all your saved work and force HTML Studio to reload thinking that it\'s your first time on this page. All your current work is stored in localStorage, which will be wiped clean if you continue. This is only for debugging purposes. Place two pairs of parentheses to reset HTML Studio (i.e. window.HTMLStudio.debug.fullReset()(); )'),function ReadTheWarningFirst(){return function DidYouReadTheWarning(){['blockNoPaste','stylesheets','documentHistoryEntries','documentHistoryCurrentEntry','presets','session','prefs'].forEach(function(a){localStorage.removeItem('HTML-Studio_'+a)});location.reload()}}
-			}
-		}
-	});
-	Object.defineProperties(HTMLStudio.debug.localStorage, {
-		styleSheets: {
-			get: function() {
-				return storage.get('stylesheets');
-			}
-		},
-		history: {
-			get: function() {
-				return {
-					entries: torage.get('HTML-Studio_documentHistoryEntries'),
-					currentEntry: storage.get('documentHistoryCurrentEntry')
+			preferences: {
+				get: function() {
+					return userPrefs;
+				},
+				set: function(v) {
+					return userPrefs = v;
 				}
 			}
-		},
-		preferences: {
-			get: function() {
-				return userPrefs;
+		});
+
+		Object.defineProperties(HTMLStudio.debug, {
+			selection: {
+				get: function() {
+					return selection;
+				},
+				set: function(v) {
+					return selection = v;
+				}
 			},
-			set: function(v) {
-				return userPrefs = v;
+			updateOverlay: {
+				get: function() {
+					return overlayUpdate;
+				}
+			},
+			updateStylesheets: {
+				get: function() {
+					return updateStylesheets;
+				}
+			},
+			DOM: {
+				get: function() {
+					return DOM;
+				},
+				set: function(v) {
+					return DOM = v;
+				}
+			},
+			preventUpdates: {
+				get: function() {
+					return preventUpdates;
+				},
+				set: function(v) {
+					return preventUpdates = !!v;
+				}
+			},
+			preventEditTextBlurring: {
+				get: function() {
+					return preventEditTextBlurring;
+				},
+				set: function(v) {
+					return preventEditTextBlurring = !!v;
+				}
+			},
+			history: {
+				get: function() {
+					return history;
+				},
+				set: function(v) {
+					return history = v;
+				}
+			},
+			styleSheets: {
+				get: function() {
+					return css;
+				},
+				set: function(v) {
+					return css = v;
+				}
+			},
+			generations: {
+				get: function() {
+					return generations;
+				},
+				set: function(v) {
+					return generations = v;
+				}
+			},
+			contextMenus: {
+				get: function() {
+					return contextmenus;
+				}
+			},
+			fullReset: {
+				get: function() {
+					return console.warn('Calling this function will destroy all your saved work and force HTML Studio to reload thinking that it\'s your first time on this page. All your current work is stored in localStorage, which will be wiped clean if you continue. This is only for debugging purposes. Place two pairs of parentheses to reset HTML Studio (i.e. window.HTMLStudio.debug.fullReset()(); )'),function ReadTheWarningFirst(){return function DidYouReadTheWarning(){['blockNoPaste','stylesheets','documentHistoryEntries','documentHistoryCurrentEntry','presets','session','prefs'].forEach(function(a){localStorage.removeItem('HTML-Studio_'+a)});location.reload()}}
+				}
+			},
+			localStorage: {
+				get: function() {
+					return localStorageObject;
+				}
 			}
-		}
-	});
+		});
+	}();
 	// Load document from localStorage or create a new one
-	history.currentEntry = storage.get('documentHistoryCurrentEntry') || history.entries.length - 1;
+	history.currentEntry = storage.get('documentHistoryCurrentEntry');
+	if (isNaN(history.currentEntry)) history.currentEntry = history.entries.length - 1;
 
 	if (history.entries.length) {
 		framewindow.document.body.outerHTML = history.entries[history.currentEntry].html;
@@ -2195,8 +2348,8 @@ function main(){
 		this.mousePositions = {x: e.clientX, y: (e.clientY - Math.floor(document.getElementById('toolbarcontainer').getBoundingClientRect().height) + Math.round(document.getElementById('framecontainer').scrollTop))};
 		updateTooltip();
 		if (!userPrefs.toolbar) {
-			if (e.clientY < innerWidth * .075) document.getElementById('toolbargrabber').className = '';
-			else document.getElementById('toolbargrabber').className = 'inactive'; 
+			if (e.clientY < innerWidth * .075) document.getElementById('toolbargrabber').className = 'cursorgrab';
+			else document.getElementById('toolbargrabber').className = 'cursorgrab inactive'; 
 		}
 	});
 	overlay.addEventListener('mouseleave', function() {
@@ -2224,10 +2377,11 @@ function main(){
 	Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
 		new HTMLStudio.DraggableElement(element,{bounds:'body',init:function(){this.style.left = innerWidth / 4 + 'px'}});
 	});
-	Array.prototype.forEach.call(document.getElementsByClassName('topText'), function(element) {
-		element.style.left = '0';
-		new HTMLStudio.DraggableElement(element,{bounds:'body',doY:false,cursor:'grabbing'});
-		element.style.left = '';
+	forEach(document.getElementsByClassName('topText'), function() {
+		this.style.left = '0';
+		this.className = this.className + ' cursorgrab';
+		new HTMLStudio.DraggableElement(this,{bounds:'body',cursor:'',doY:false});
+		this.style.left = '';
 	});
 	// Prevents certain elements from letting their parent be dragged
 	Array.prototype.forEach.call(document.querySelectorAll('.content,.option,#idD,.topText input,.cle'), function(element) {
@@ -2261,14 +2415,17 @@ function main(){
 				shiftKey: e.shiftKey
 			});
 		}
-	}, cursor: 'grabbing', inertia: true});
-	new HTMLStudio.DraggableElement(document.getElementById('toolbargrabber'), {doY: false, bounds: 'body', move: function() {
-		this.dragged = true;
+	}, cursor: '', inertia: true});
+	new HTMLStudio.DraggableElement(document.getElementById('toolbargrabber'), {doY: false, bounds: 'body', cursor: '', move: function(e) {
+		if (e.coordinates.move.last.distance.x || e.coordinates.move.last.distance.y) this.dragged = true;
 	}});
 
 
 	Array.prototype.forEach.call(document.getElementsByClassName('localeCmdKey'), function(elem) {
 		elem.innerText = locale.cmdKey;
+	});
+	forEach(document.getElementsByClassName('localeTitle'), function() {
+		this.title = this.title.replace(/{localeCmdKey}/g, locale.cmdKey);
 	});
 
 
@@ -2947,6 +3104,600 @@ function main(){
 		license.addEventListener('click', select);
 		license.addEventListener('keydown', keypress);
 	}();
+
+	forEach(document.querySelectorAll('.edittextopt, #edittextbar'), function() {
+		function prevent(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		}
+		this.addEventListener('mousedown', prevent);
+		this.addEventListener('touchstart', prevent);
+		this.addEventListener('mouseup', prevent);
+		this.addEventListener('touchend', prevent);
+		this.addEventListener('touchcancel', prevent);
+		this.addEventListener('dblclick', prevent);
+	});
+
+	document.getElementById('etopt_bold').addEventListener('click', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		if (framewindow.document.queryCommandSupported('bold')) framewindow.document.execCommand('bold');
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_italic').addEventListener('click', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		if (framewindow.document.queryCommandSupported('italic')) framewindow.document.execCommand('italic');
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_underline').addEventListener('click', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		if (framewindow.document.queryCommandSupported('underline')) framewindow.document.execCommand('underline');
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_superscript').addEventListener('click', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		if (framewindow.document.queryCommandSupported('superscript')) framewindow.document.execCommand('superscript');
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_subscript').addEventListener('click', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		if (framewindow.document.queryCommandSupported('superscript')) framewindow.document.execCommand('subscript');
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_increase_font').addEventListener('click', function(e) {
+		!function() {
+			// Abunch of variables used later
+			var selection = rangy.getSelection(frame),
+				range = selection.getRangeAt(0),
+				start = range.startContainer,
+				node = start,
+				match,
+				re = [/(^\s*calc\(\s*(.+?)\+\s*)(-?(?:\.?\d+|\d+\.\d+))(pt\)\s*$)/,/(^\s*calc\(\s*(.+?)-\s*)(-?(?:\.?\d+|\d+\.\d+))(pt\)\s*$)/],
+				num,
+				span,
+				frag = document.createDocumentFragment(),
+				parent = document.createElement('div'),
+				ancestor = (range.commonAncestorContainer.nodeType == 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentNode),
+				newRange = document.createRange(),
+				tempAttr = (function(tempAttr) {
+					for (tempAttr = tempAttr.replace('.',''); this.querySelector('[' + tempAttr + ']'); tempAttr += (Math.random() * 10 + '').replace('.',''));
+						return tempAttr;
+				}).call(this, 'data-html-studio-placeholder-' + Math.random() * 10);
+
+			// Change start node to a text node if it is not one already
+			if (node.nodeType == 1) node = Text.firstChild(node);
+
+			// Combine any text nodes adjacent to the starting one
+			while (node.nextSibling && node.nextSibling.nodeType == 3) {
+				node.textContent += node.nextSibling.textContent;
+				node.parentNode.removeChild(node.nextSibling);
+			}
+
+			// Check if selection is inside a single text node
+			if (selection.isCollapsed) {
+				/*if (!node.parentNode.innerHTML && node.parentNode.style.fontSize) {
+					frag.appendChild(parent);
+					parent.appendChild(node.parentNode.cloneNode());
+					if (match = node.parentNode.style.fontSize.match(re[0])) parent.firstChild.style.fontSize = (num = parseFloat(match[3]) + 1) ? match[1] + num + match[4] : match[2];
+					else if (match = node.parentNode.style.fontSize.match(re[1])) {
+						parent.firstChild.style.fontSize = (num = parseFloat(match[3]) - 1) ? match[1] + num + match[4] : match[2];
+					} else {
+						parent.firstChild.style.fontSize = 'calc(' + node.parentNode.style.fontSize + ' + 1pt)';
+					}
+					range.selectNode(start.parentNode);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					framewindow.document.execCommand('insertHTML',null,parent.innerHTML);
+
+					var newRange = rangy.getSelection(frame).getRangeAt(0);
+					range.selectNodeContents(newRange.startContainer.nextElementSibling || newRange.startContainer);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					node = framewindow.document.createTextNode('\u00ad');
+					range.startContainer.appendChild(node);
+					range.selectNodeContents(node);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					pseudoEmptyNodes.push(node);
+					node.parentNode.addEventListener('keydown', function() {
+						this.innerHTML = '';
+					});
+				} else {
+					framewindow.document.execCommand('insertHTML',null,'<span ' + tempAttr + ' style="font-size:calc(1em + 1pt);"></span>');
+
+					var replacedNode = this.querySelector('[' + tempAttr + ']');
+					replacedNode.removeAttribute(tempAttr);
+					replacedNode.appendChild(framewindow.document.createTextNode('\u00ad'));
+					range.setStart(replacedNode.firstChild, 1);
+					range.setEnd(replacedNode.firstChild, 1);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					pseudoEmptyNodes.push(replacedNode.firstChild);
+					/*var newRange = rangy.getSelection(frame).getRangeAt(0);
+					range.selectNode(newRange.startContainer.nextElementSibling || newRange.startContainer);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					node = framewindow.document.createTextNode('\u00ad');
+					range.startContainer.appendChild(node);
+					range.selectNodeContents(node);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					pseudoEmptyNodes.push(node);
+					node.parentNode.addEventListener('keydown', function() {
+						this.innerHTML = '';
+					}); * /
+				}*/
+			} else if (start != range.endContainer) {
+				// Used to get the innerHTML later
+				frag.appendChild(parent);
+
+				// Used to create a clone of the selection inside the document fragment
+				function createClone(node, parent) {
+					// Don't include the node if it isn't in the selection
+					if (!selection.containsNode(node, true)) return;
+					// Create the clone
+					var clone = node.cloneNode();
+					// Assign a reference to their aliases
+					clone.alias2 = node;
+					node.alias2 = clone;
+					// Append the clone to its corresponding parent
+					parent.appendChild(clone);
+					// Clone any children of the node
+					if (node.childNodes) {
+						forEach(node.childNodes, function() {
+							createClone(this, clone);
+						});
+					}
+				}
+				// Start cloning process
+				forEach(ancestor.childNodes, function() {
+					createClone(this, parent);
+				});
+
+
+				// If the first selected text node isn't fully selected
+				if (range.startOffset) {
+					// Used to split the partially-selected text node
+					span = document.createElement('span');
+					// Set a bigger font size
+					span.style.fontSize = 'calc(1em + 1pt)';
+					// Keep track of element later
+					span.setAttribute(tempAttr, '');
+					// Put the selected text into the <span>
+					span.innerText = node.textContent.substring(range.startOffset);
+					// Replace the text node with the <span>
+					node.alias2.parentNode.insertBefore(span, node.alias2.nextSibling);
+					node.alias2.textContent = node.alias2.textContent.substring(0,range.startOffset);
+					// Select next text node
+					node = Text.prototype.nextTextNode(node);
+				}
+				
+				// Iterate through the other text nodes in the selection
+				for (;node && selection.containsNode(node, true); node = Text.prototype.nextTextNode(node)) {
+					// If the current node is the last node of the selection it is only partially selected
+					if (node == range.endContainer && range.endOffset != range.endContainer.textContent.length) break;
+					// Combine adjacent text nodes so they can be wrapped in a single element
+					while (node.nextSibling && node.nextSibling.nodeType == 3 && node.nextSibling != range.endContainer) {
+						node.textContent += node.nextSibling.textContent;
+						node.alias2.textContent += node.nextSibling.textContent;
+						node.parentNode.removeChild(node.nextSibling);
+						node.alias2.parentNode.removeChild(node.alias2.nextSibling);
+					}
+					// If the node is the only child text node of its parent
+					if (node == node.parentNode.firstChild && node == node.parentNode.lastChild && node.parentNode.style.fontSize) {
+						// Change the parent's font size instead of making a new element
+						if (match = node.parentNode.style.fontSize.match(re[0])) {
+							node.alias2.parentNode.style.fontSize = (num = parseFloat(match[3]) + 1) ? match[1] + num + match[4] : match[2];
+							node.alias2.parentNode.setAttribute(tempAttr, '');
+						} else if (match = node.parentNode.style.fontSize.match(re[1])) {
+							node.alias2.parentNode.style.fontSize = (num = parseFloat(match[3]) - 1) ? match[1] + num + match[4] : match[2];
+							node.alias2.parentNode.setAttribute(tempAttr, '');
+						} else {
+							node.alias2.parentNode.style.fontSize = 'calc(' + node.parentNode.style.fontSize + ' + 1pt)';
+							node.alias2.parentNode.setAttribute(tempAttr, '');
+						}
+					} else {
+						// Create a new element to wrap the text node
+						span = document.createElement('span');
+						// Set a bigger font size
+						span.style.fontSize = 'calc(1em + 1pt)';
+						span.setAttribute(tempAttr, '');
+						// Insert the <span> before the text node
+						node.alias2.parentNode.insertBefore(span, node.alias2);
+						// Place the text node inside the <span>
+						span.appendChild(node.alias2);
+					}
+				};
+
+				// If the last text node is only partially selected
+				if (node == range.endContainer) {
+					// Create a <span> to wrap the text node
+					span = document.createElement('span');
+					// Set a bigger font size
+					span.style.fontSize = 'calc(1em + 1pt)';
+					span.setAttribute(tempAttr, '');
+					// Only put the selected text into the <span>
+					span.innerText = node.textContent.substring(0, range.endOffset);
+					// Replace the text node with the <span>
+					node.alias2.parentNode.insertBefore(span, node.alias2);
+					node.alias2.textContent = node.alias2.textContent.substring(range.endOffset);
+				}
+
+				range.setStart(range.startContainer, 0);
+				range.setEnd(Text.lastChild(range.endContainer), Text.lastChild(range.endContainer).textContent.length);
+				selection.removeAllRanges();
+				selection.addRange(range);
+
+				// Replace the selection with the updated nodes
+				framewindow.document.execCommand('insertHTML', null, frag.firstChild.innerHTML);
+
+				var replacedElements = [];
+				forEach(ancestor.querySelectorAll('[' + tempAttr + ']'), function() {
+					this.removeAttribute(tempAttr);
+					replacedElements.push(this);
+				});
+				range.setStart(Text.firstChild(replacedElements[0]), 0);
+				var end = Text.lastChild(replacedElements[replacedElements.length - 1]);
+				range.setEnd(end, end.textContent.length);
+				selection.removeAllRanges();
+				selection.addRange(range);
+			} else {
+				// Selection is inside a single text node
+				// Used to get the innerHTML later
+				frag.appendChild(parent);
+				// If the selection encompasses the entire only-child text node of an element, change the font size directly on that element
+				if ((selection.containsNode(node, false) || !range.startOffset && range.endOffset == node.textContent.length) && node.parentNode.firstChild == node && node.parentNode.lastChild == node && node.parentNode.style.fontSize) {
+					// Get reference to the parent
+					span = node.parentNode.cloneNode(true);
+					// Sets a new font size equal to the old font size + 1pt
+					if (match = node.parentNode.style.fontSize.match(re[0])) {
+						span.style.fontSize = (num = parseFloat(match[3]) + 1) ? match[1] + num + match[4] : match[2];
+						span.setAttribute(tempAttr, '');
+					} else if (match = node.parentNode.style.fontSize.match(re[1])) {
+						span.style.fontSize = (num = parseFloat(match[3]) - 1) ? match[1] + num + match[4] : match[2];
+						span.setAttribute(tempAttr, '');
+					} else {
+						span.style.fontSize = 'calc(' + node.parentNode.style.fontSize + ' + 1pt)';
+						span.setAttribute(tempAttr, '');
+					}
+					// Append the element to the document fragment
+					parent.appendChild(span);
+					// Select the parent node to replace it
+					range.selectNode(node.parentNode);
+					var ancestorParent = node.parentNode.parentNode;
+					// Update the selection so that it matches the range
+					selection.removeAllRanges();
+					selection.addRange(range);
+					// Swap out the old parent for the new bigger-font clone
+					framewindow.document.execCommand('insertHTML', null, parent.innerHTML);
+					var replacedNode = ancestorParent.querySelector('[' + tempAttr + ']');
+					replacedNode.removeAttribute(tempAttr);
+					range.selectNodeContents(replacedNode);
+					selection.removeAllRanges();
+					selection.addRange(range);
+				} else {
+					// Create an element wrapper for the text node
+					span = document.createElement('span');
+					// Set bigger font size
+					span.style.fontSize = 'calc(1em + 1pt)';
+					span.setAttribute(tempAttr, '');
+					// Only put the selected text into the <span>
+					span.innerText = node.textContent.substring(range.startOffset, range.endOffset);
+					// Append the element to the document fragment
+					parent.appendChild(span);
+					// Insert new <span> in place of the part of the text node that was selected
+					framewindow.document.execCommand('insertHTML', null, parent.innerHTML);
+					// A bug in chromium doesn't really allow this to happen smoothly
+					// https://bugs.chromium.org/p/chromium/issues/detail?id=258512
+					// The parent element is divided instead of the html being added as a child
+					// There's no good way to fix this until the bug gets fixed
+					var replacedNode = ancestor.querySelector('[' + tempAttr + ']');
+					replacedNode.removeAttribute(tempAttr);
+					range.selectNodeContents(replacedNode);
+					selection.removeAllRanges();
+					selection.addRange(range);
+				}
+			}
+		}.call(document.querySelector('[data-html-studio-text-being-edited=true]').alias);
+	});
+
+	document.getElementById('etopt_decrease_font').addEventListener('click', function(e) {
+		!function() {
+			// Abunch of variables used later
+			var selection = rangy.getSelection(frame),
+				range = selection.getRangeAt(0),
+				start = range.startContainer,
+				node = start,
+				match,
+				re = [/(^\s*calc\(\s*(.+?)\+\s*)(-?(?:\.?\d+|\d+\.\d+))(pt\)\s*$)/,/(^\s*calc\(\s*(.+?)-\s*)(-?(?:\.?\d+|\d+\.\d+))(pt\)\s*$)/],
+				num,
+				span,
+				frag = document.createDocumentFragment(),
+				parent = document.createElement('div'),
+				ancestor = (range.commonAncestorContainer.nodeType == 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentNode),
+				newRange = document.createRange(),
+				tempAttr = (function(tempAttr) {
+					for (tempAttr = tempAttr.replace('.',''); this.querySelector('[' + tempAttr + ']'); tempAttr += (Math.random() * 10 + '').replace('.',''));
+						return tempAttr;
+				}).call(this, 'data-html-studio-placeholder-' + Math.random() * 10);
+
+			// Change start node to a text node if it is not one already
+			if (node.nodeType == 1) node = Text.firstChild(node);
+
+			// Combine any text nodes adjacent to the starting one
+			while (node.nextSibling && node.nextSibling.nodeType == 3) {
+				node.textContent += node.nextSibling.textContent;
+				node.parentNode.removeChild(node.nextSibling);
+			}
+
+			// Check if selection is inside a single text node
+			if (selection.isCollapsed) {
+				/*if (!node.parentNode.innerHTML && node.parentNode.style.fontSize) {
+					frag.appendChild(parent);
+					parent.appendChild(node.parentNode.cloneNode());
+					if (match = node.parentNode.style.fontSize.match(re[0])) parent.firstChild.style.fontSize = (num = parseFloat(match[3]) + 1) ? match[1] + num + match[4] : match[2];
+					else if (match = node.parentNode.style.fontSize.match(re[1])) {
+						parent.firstChild.style.fontSize = (num = parseFloat(match[3]) - 1) ? match[1] + num + match[4] : match[2];
+					} else {
+						parent.firstChild.style.fontSize = 'calc(' + node.parentNode.style.fontSize + ' + 1pt)';
+					}
+					range.selectNode(start.parentNode);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					framewindow.document.execCommand('insertHTML',null,parent.innerHTML);
+
+					var newRange = rangy.getSelection(frame).getRangeAt(0);
+					range.selectNodeContents(newRange.startContainer.nextElementSibling || newRange.startContainer);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					node = framewindow.document.createTextNode('\u00ad');
+					range.startContainer.appendChild(node);
+					range.selectNodeContents(node);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					pseudoEmptyNodes.push(node);
+					node.parentNode.addEventListener('keydown', function() {
+						this.innerHTML = '';
+					});
+				} else {
+					framewindow.document.execCommand('insertHTML',null,'<span ' + tempAttr + ' style="font-size:calc(1em + 1pt);"></span>');
+
+					var replacedNode = this.querySelector('[' + tempAttr + ']');
+					replacedNode.removeAttribute(tempAttr);
+					replacedNode.appendChild(framewindow.document.createTextNode('\u00ad'));
+					range.setStart(replacedNode.firstChild, 1);
+					range.setEnd(replacedNode.firstChild, 1);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					pseudoEmptyNodes.push(replacedNode.firstChild);
+					/*var newRange = rangy.getSelection(frame).getRangeAt(0);
+					range.selectNode(newRange.startContainer.nextElementSibling || newRange.startContainer);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					node = framewindow.document.createTextNode('\u00ad');
+					range.startContainer.appendChild(node);
+					range.selectNodeContents(node);
+					selection.removeAllRanges();
+					selection.addRange(range);
+					pseudoEmptyNodes.push(node);
+					node.parentNode.addEventListener('keydown', function() {
+						this.innerHTML = '';
+					}); * /
+				}*/
+			} else if (start != range.endContainer) {
+				// Used to get the innerHTML later
+				frag.appendChild(parent);
+
+				// Used to create a clone of the selection inside the document fragment
+				function createClone(node, parent) {
+					// Don't include the node if it isn't in the selection
+					if (!selection.containsNode(node, true)) return;
+					// Create the clone
+					var clone = node.cloneNode();
+					// Assign a reference to their aliases
+					clone.alias2 = node;
+					node.alias2 = clone;
+					// Append the clone to its corresponding parent
+					parent.appendChild(clone);
+					// Clone any children of the node
+					if (node.childNodes) {
+						forEach(node.childNodes, function() {
+							createClone(this, clone);
+						});
+					}
+				}
+				// Start cloning process
+				forEach(ancestor.childNodes, function() {
+					createClone(this, parent);
+				});
+
+
+				// If the first selected text node isn't fully selected
+				if (range.startOffset) {
+					// Used to split the partially-selected text node
+					span = document.createElement('span');
+					// Set a bigger font size
+					span.style.fontSize = 'calc(1em - 1pt)';
+					// Keep track of element later
+					span.setAttribute(tempAttr, '');
+					// Put the selected text into the <span>
+					span.innerText = node.textContent.substring(range.startOffset);
+					// Replace the text node with the <span>
+					node.alias2.parentNode.insertBefore(span, node.alias2.nextSibling);
+					node.alias2.textContent = node.alias2.textContent.substring(0,range.startOffset);
+					// Select next text node
+					node = Text.prototype.nextTextNode(node);
+				}
+				
+				// Iterate through the other text nodes in the selection
+				for (;node && selection.containsNode(node, true); node = Text.prototype.nextTextNode(node)) {
+					// If the current node is the last node of the selection it is only partially selected
+					if (node == range.endContainer && range.endOffset != range.endContainer.textContent.length) break;
+					// Combine adjacent text nodes so they can be wrapped in a single element
+					while (node.nextSibling && node.nextSibling.nodeType == 3 && node.nextSibling != range.endContainer) {
+						node.textContent += node.nextSibling.textContent;
+						node.alias2.textContent += node.nextSibling.textContent;
+						node.parentNode.removeChild(node.nextSibling);
+						node.alias2.parentNode.removeChild(node.alias2.nextSibling);
+					}
+					// If the node is the only child text node of its parent
+					if (node == node.parentNode.firstChild && node == node.parentNode.lastChild && node.parentNode.style.fontSize) {
+						// Change the parent's font size instead of making a new element
+						if (match = node.parentNode.style.fontSize.match(re[0])) {
+							node.alias2.parentNode.style.fontSize = (num = parseFloat(match[3]) - 1) ? match[1] + num + match[4] : match[2];
+							node.alias2.parentNode.setAttribute(tempAttr, '');
+						} else if (match = node.parentNode.style.fontSize.match(re[1])) {
+							node.alias2.parentNode.style.fontSize = (num = parseFloat(match[3]) + 1) ? match[1] + num + match[4] : match[2];
+							node.alias2.parentNode.setAttribute(tempAttr, '');
+						} else {
+							node.alias2.parentNode.style.fontSize = 'calc(' + node.parentNode.style.fontSize + ' - 1pt)';
+							node.alias2.parentNode.setAttribute(tempAttr, '');
+						}
+					} else {
+						// Create a new element to wrap the text node
+						span = document.createElement('span');
+						// Set a bigger font size
+						span.style.fontSize = 'calc(1em - 1pt)';
+						span.setAttribute(tempAttr, '');
+						// Insert the <span> before the text node
+						node.alias2.parentNode.insertBefore(span, node.alias2);
+						// Place the text node inside the <span>
+						span.appendChild(node.alias2);
+					}
+				};
+
+				// If the last text node is only partially selected
+				if (node == range.endContainer) {
+					// Create a <span> to wrap the text node
+					span = document.createElement('span');
+					// Set a bigger font size
+					span.style.fontSize = 'calc(1em - 1pt)';
+					span.setAttribute(tempAttr, '');
+					// Only put the selected text into the <span>
+					span.innerText = node.textContent.substring(0, range.endOffset);
+					// Replace the text node with the <span>
+					node.alias2.parentNode.insertBefore(span, node.alias2);
+					node.alias2.textContent = node.alias2.textContent.substring(range.endOffset);
+				}
+
+				range.setStart(range.startContainer, 0);
+				range.setEnd(Text.lastChild(range.endContainer), Text.lastChild(range.endContainer).textContent.length);
+				selection.removeAllRanges();
+				selection.addRange(range);
+
+				// Replace the selection with the updated nodes
+				framewindow.document.execCommand('insertHTML', null, frag.firstChild.innerHTML);
+
+				var replacedElements = [];
+				forEach(ancestor.querySelectorAll('[' + tempAttr + ']'), function() {
+					this.removeAttribute(tempAttr);
+					replacedElements.push(this);
+				});
+				range.setStart(Text.firstChild(replacedElements[0]), 0);
+				var end = Text.lastChild(replacedElements[replacedElements.length - 1]);
+				range.setEnd(end, end.textContent.length);
+				selection.removeAllRanges();
+				selection.addRange(range);
+			} else {
+				// Selection is inside a single text node
+				// Used to get the innerHTML later
+				frag.appendChild(parent);
+				// If the selection encompasses the entire only-child text node of an element, change the font size directly on that element
+				if ((selection.containsNode(node, false) || !range.startOffset && range.endOffset == node.textContent.length) && node.parentNode.firstChild == node && node.parentNode.lastChild == node && node.parentNode.style.fontSize) {
+					// Get reference to the parent
+					span = node.parentNode.cloneNode(true);
+					// Sets a new font size equal to the old font size + 1pt
+					if (match = node.parentNode.style.fontSize.match(re[0])) {
+						span.style.fontSize = (num = parseFloat(match[3]) - 1) ? match[1] + num + match[4] : match[2];
+						span.setAttribute(tempAttr, '');
+					} else if (match = node.parentNode.style.fontSize.match(re[1])) {
+						span.style.fontSize = (num = parseFloat(match[3]) + 1) ? match[1] + num + match[4] : match[2];
+						span.setAttribute(tempAttr, '');
+					} else {
+						span.style.fontSize = 'calc(' + node.parentNode.style.fontSize + ' - 1pt)';
+						span.setAttribute(tempAttr, '');
+					}
+					// Append the element to the document fragment
+					parent.appendChild(span);
+					// Select the parent node to replace it
+					range.selectNode(node.parentNode);
+					var ancestorParent = node.parentNode.parentNode;
+					// Update the selection so that it matches the range
+					selection.removeAllRanges();
+					selection.addRange(range);
+					// Swap out the old parent for the new bigger-font clone
+					framewindow.document.execCommand('insertHTML', null, parent.innerHTML);
+					var replacedNode = ancestorParent.querySelector('[' + tempAttr + ']');
+					replacedNode.removeAttribute(tempAttr);
+					range.selectNodeContents(replacedNode);
+					selection.removeAllRanges();
+					selection.addRange(range);
+				} else {
+					// Create an element wrapper for the text node
+					span = document.createElement('span');
+					// Set bigger font size
+					span.style.fontSize = 'calc(1em - 1pt)';
+					span.setAttribute(tempAttr, '');
+					// Only put the selected text into the <span>
+					span.innerText = node.textContent.substring(range.startOffset, range.endOffset);
+					// Append the element to the document fragment
+					parent.appendChild(span);
+					// Insert new <span> in place of the part of the text node that was selected
+					framewindow.document.execCommand('insertHTML', null, parent.innerHTML);
+					// A bug in chromium doesn't really allow this to happen smoothly
+					// https://bugs.chromium.org/p/chromium/issues/detail?id=258512
+					// The parent element is divided instead of the html being added as a child
+					// There's no good way to fix this until the bug gets fixed
+					var replacedNode = ancestor.querySelector('[' + tempAttr + ']');
+					replacedNode.removeAttribute(tempAttr);
+					range.selectNodeContents(replacedNode);
+					selection.removeAllRanges();
+					selection.addRange(range);
+				}
+			}
+		}.call(document.querySelector('[data-html-studio-text-being-edited=true]').alias);
+	});
+
+	document.getElementById('etopt_justify_left').addEventListener('click', function() {
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
+		node.style.textAlign = 'left';
+		node.alias.style.textAlign = 'left';
+		editable.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_justify_center').addEventListener('click', function() {
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
+		node.style.textAlign = 'center';
+		node.alias.style.textAlign = 'center';
+		editable.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_justify_right').addEventListener('click', function() {
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
+		node.style.textAlign = 'right';
+		node.alias.style.textAlign = 'right';
+		editable.dispatchEvent(new Event('keyup'));
+	});
+
+	document.getElementById('etopt_justify_full').addEventListener('click', function() {
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
+		node.style.textAlign = 'justify';
+		node.alias.style.textAlign = 'justify';
+		editable.dispatchEvent(new Event('keyup'));
+	});
 
 	// Click event for File > New... > New Preset... > Back
 	document.getElementById('Idj').addEventListener('click', function() {
@@ -3730,7 +4481,7 @@ function main(){
 		};
 		for (var children = document.getElementById('idi').children[0].children, i = children.length - 1; i >= 0; i--) {
 			try {
-				element.setAttribute(children[i].children[0].children[0].value, children[i].children[1].children[0].value);
+				if (children[i].children[0].children[0].value.trim()) element.setAttribute(children[i].children[0].children[0].value.trim(), children[i].children[1].children[0].value);
 			} catch (_) {};
 		};
 		overlayUpdate(false, true);
@@ -3741,7 +4492,7 @@ function main(){
 	document.getElementById('idt').addEventListener('click', function() {
 		var styleAttr = '';
 		Array.prototype.forEach.call(document.querySelectorAll('#idu .cl4:not(#idw)'), function(element) {
-			styleAttr += element.children[0].children[0].value.trim() + ':' + element.children[1].children[0].value.trim() + ';';
+			if (element.children[0].children[0].value.trim() && element.children[1].children[0].value.trim()) styleAttr += element.children[0].children[0].value.trim() + ':' + element.children[1].children[0].value.trim() + ';';
 		});
 		document.getElementById('idu').linkedElement.setAttribute('style', styleAttr);
 		overlayUpdate(false, true);
@@ -3847,7 +4598,7 @@ function main(){
 		storage.set('stylesheets', history.entries[history.currentEntry].stylesheets || []);
 		updateStylesheets();
 		overlayUpdate();
-		storage.set('documentHistoryCurrentEntry', Math.max(storage.get('HTML-Studio_documentHistoryCurrentEntry') - 1, 0));
+		storage.set('documentHistoryCurrentEntry', Math.max(storage.get('documentHistoryCurrentEntry') - 1, 0));
 		contextmenus[3].getItem('undo').disabled = !history.currentEntry;
 		contextmenus[3].getItem('redo').disabled = history.currentEntry == history.entries.length - 1;
 		contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
@@ -4044,6 +4795,34 @@ function main(){
 			e.stopPropagation();
 			e.preventDefault();
 			contextmenus[0].getItem('duplicate').dispatchEvent(new MouseEvent('click'));
+		// Alt + F
+		} else if (e.keyCode == 70 && e.altKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			closeHeaders();
+			document.getElementById('section_file').dispatchEvent(new MouseEvent('mousedown'));
+			contextmenus[2].getItem(0).focus();
+		// Alt + E
+		} else if (e.keyCode == 69 && e.altKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			closeHeaders();
+			document.getElementById('section_edit').dispatchEvent(new MouseEvent('mousedown'));
+			contextmenus[3].getItem(0).focus();
+		// Alt + V
+		} else if (e.keyCode == 86 && e.altKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			closeHeaders();
+			document.getElementById('section_view').dispatchEvent(new MouseEvent('mousedown'));
+			contextmenus[4].getItem(0).focus();
+		// Alt + S
+		} else if (e.keyCode == 83 && e.altKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			closeHeaders();
+			document.getElementById('section_stylesheets').dispatchEvent(new MouseEvent('mousedown'));
+			contextmenus[5].getItem(0).focus();
 		}
 
 		// Allows Ctrl + C to be handled natively by the browser
@@ -4078,6 +4857,7 @@ function main(){
 	addEventListener('paste', function(e) {
 		var target = document.activeElement == iframe ? framewindow.document.activeElement : document.activeElement, re = /^Copy_\d+_of_/;
 		if (!(target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) return;
+		var selection = document.querySelectorAll('[data-selected-element=selected]');
 		try {
 			var type = Array.prototype.slice.call(e.clipboardData.types);
 			var type = ~type.indexOf('text/html') ? 'text/html' : ~type.indexOf('text/plain') ? 'text/plain' : ~type.indexOf('text') ? 'text' : false;
@@ -4155,6 +4935,7 @@ function main(){
 				});
 			}
 		}
+		restoreSelection(selection);
 	})
 	addEventListener('resize', function() {
 		document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
@@ -4171,6 +4952,8 @@ function main(){
 			this.style.left = parseFloat(getComputedStyle(this.parentNode).width) - em(.5) + 'px';
 			this.previousElementSibling.style.left = '-1px';
 		});
+		var grabber = document.getElementById('toolbargrabber');
+		grabber.style.left = Math.max(-innerWidth * .45, grabber.style.left) + 'px';
 	});
 	addEventListener('unload', function() {
 		if (!document.getElementById('overwrite_warning').style.display) storage.set('session', 0);
@@ -4218,13 +5001,13 @@ function main(){
 			tempColor = gradient(document.querySelector('#Ide div:first-child').userColor || userPrefs.nodeSelectionColor[0], document.querySelector('#Ide div:last-child').userColor || userPrefs.nodeSelectionColor[1]);
 
 		document.getElementById('Idg').style.background = 'rgba(' + tempColor[0] + ',' + tempColor[1] + ',' + tempColor[2] + ',' + tempColor[3] + ')';
-		Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
+		forEach(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
 			element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')';
 		});
-		Array.prototype.forEach.call(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
-			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + progress + ')';
+		forEach(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
+			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + progress * userPrefs.nodeSelectionColor[0][3] + ')';
 		});
-		Array.prototype.forEach.call(document.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
+		forEach(document.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
 			element.style.color = 'rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 			element.style.textShadow = '0 0 1px rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 		});

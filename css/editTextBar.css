@@ -1,0 +1,139 @@
+#edittextbar {
+	z-index: 9999994;
+	position: relative;
+	background: #FAFAFA;
+	-webkit-transition: all .3s ease-out;
+	transition: all .3s ease-out;
+	height: 0;
+	border: 0;
+	box-shadow: initial;
+	overflow-y: hidden;
+	overflow-x: auto;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	-ms-flex-wrap: nowrap;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+}
+
+#toolbarcontainer:not(.inactive) ~ #edittextbar.active {
+	height: 2.5em;
+	border-bottom: 1px solid #AAA;
+	box-shadow: 0 2px 3px 3px rgba(0,0,0,.18)
+}
+
+#toolbarcontainer:not(.inactive) ~ #edittextbar.active ~ #framecontainer {
+	height: calc(100% - 6.95rem);
+}
+
+.edittextopt {
+	background-color: #F5F5F5;
+	border: 1px solid #AAA;
+	border-radius: 3px;
+	display: inline-block;
+	height: 1.5em;
+	width: 1.5em;
+	position: relative;
+	top: calc(.5em - 1px);
+	background-size: 1.25em auto;
+	margin-left: .75em;
+	background-position: .125em .125em;
+	background-repeat: no-repeat;
+	box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+}
+
+.edittextopt:first-of-type {
+	margin-left: 0;
+}
+
+.edittextopt.active {
+	background-color: #00acc1;
+}
+
+.edittextopt:hover:not(.active), .edittextopt:focus:not(.active) {
+	background-color: #E5E5E5;
+}
+
+#etopt_bold {
+	background-image: url('../svg/bold.svg');
+}
+
+#etopt_bold.active {
+	background-image: url('../svg/bold_active.svg');
+}
+
+#etopt_italic {
+	background-image: url('../svg/italic.svg');
+}
+
+#etopt_italic.active {
+	background-image: url('../svg/italic_active.svg');
+}
+
+#etopt_underline {
+	background-image: url('../svg/underline.svg');
+}
+
+#etopt_underline.active {
+	background-image: url('../svg/underline_active.svg');
+}
+
+#etopt_superscript {
+	background-image: url('../svg/superscript.svg');
+}
+
+#etopt_superscript.active {
+	background-image: url('../svg/superscript_active.svg');
+}
+
+#etopt_subscript {
+	background-image: url('../svg/subscript.svg');
+}
+
+#etopt_subscript.active {
+	background-image: url('../svg/subscript_active.svg');
+}
+
+#etopt_justify_left {
+	background-image: url('../svg/justify_left.svg');
+}
+
+#etopt_justify_left.active {
+	background-image: url('../svg/justify_left_active.svg');
+}
+
+#etopt_justify_center {
+	background-image: url('../svg/justify_center.svg');
+}
+
+#etopt_justify_center.active {
+	background-image: url('../svg/justify_center_active.svg');
+}
+
+#etopt_justify_right {
+	background-image: url('../svg/justify_right.svg');
+}
+
+#etopt_justify_right.active {
+	background-image: url('../svg/justify_right_active.svg');
+}
+
+#etopt_justify_full {
+	background-image: url('../svg/justify_full.svg');
+}
+
+#etopt_justify_full.active {
+	background-image: url('../svg/justify_full_active.svg');
+}
+
+#etopt_increase_font {
+	background-image: url('../svg/increase_font.svg');
+}
+
+#etopt_decrease_font {
+	background-image: url('../svg/decrease_font.svg');
+}

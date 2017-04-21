@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
-<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
   <g transform="translate(0,-992.36216)">
-    <rect style="fill:#456;fill-opacity:1" width="23" height="18" x="0.27777779" y="1031.14"/>
+    <rect style="fill:#456" width="23" height="18" x="0.27777779" y="1031.14"/>
     <rect y="1031.14" x="36.722221" height="18" width="23" style="fill:#456"/>
     <rect y="994.58441" x="17.222221" height="20" width="25.555555" style="fill:#456"/>
     <path style="fill:#456" d="m30,1034.3622 -8,-10 5,0 0,-8 6,0 0,8 5,0z"/>
