@@ -313,7 +313,7 @@
 			HTMLStudio.parseSelector(val).forEach(function(selector, i, a) {
 				selector.components.forEach(function(component) {
 					var span = document.createElement('span');
-					span.className = 'cssSelectorSyntax' + component.type ;
+					span.className = 'cssSelectorSyntax' + component.type;
 					span.innerText = component.str;
 					div.appendChild(span);
 					if (component.nextFiller) {
@@ -326,9 +326,18 @@
 
 
 				if (selector.invalid) {
-					var span = document.createElement('span');
+					var span = document.createElement('span'),
+						index = val.match(/^\s*/)[0].length;
 					span.className = 'cssSelectorSyntaxInvalid';
-					span.innerText = selector.selector.substring(selector.failedAtIndex);
+					selector.components.forEach(function(component) {
+						index += component.str.length;
+					});
+					span.innerText = selector.selector.substring(index);
+					if (!span.innerText) {
+						span.style.display = 'inline-block';
+						span.style.width = '.2em';
+						span.innerText = '\u00a0';
+					}
 					div.appendChild(span);
 				} else if (a[i + 1]) {
 					var span = document.createElement('span');

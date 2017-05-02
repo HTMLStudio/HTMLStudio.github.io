@@ -39,10 +39,13 @@
 			border-radius: .8em;
 			margin: 2em 0;
 			cursor: pointer;
+			box-shadow: 0 .3em .5em 0 rgba(80,80,80,.8);
 		}
 
 		#overwrite_continue:active, #mobile_continue:active {
-			box-shadow: 0 0 .3em .3em rgba(0, 0, 0, 0.3) inset
+			position: relative;
+			top: .3em;
+			box-shadow: initial;
 		}
 
 		#measurementReference {
@@ -92,10 +95,11 @@
 		#frame {
 			border: 0;
 			overflow-y: hidden;
+			margin-bottom: -4px;
 		}
 
 		.csspositionsticky #frame {
-			height: calc(100vh - calc(4.45rem - 1px));
+			height: calc(100vh - 4.45rem);
 			position: -webkit-sticky;
 			position: sticky;
 		}
@@ -831,7 +835,7 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.4.1</h3></td>
+						<td><h3>Version 1.4.1.1</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
@@ -1001,6 +1005,10 @@
 		<input type='text' placeholder='Edit ID' id='idR'>
 		<div class='cle'></div>
 	</div>
+	<div id='attrEditor' class='topText'>
+		<input type='text' id='Idk' placeholder='Edit Attribute'>
+		<div class='cle'></div>
+	</div>
 	<div id='idNoEdit' class='topText'>
 		<span>You can only edit the ID of one element at a time.</span>
 		<div class='cle'></div>
@@ -1017,7 +1025,7 @@
 		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
 		<link href='css/editTextBar.css' rel='stylesheet' type='text/css'>
 		<link href='css/deferredElements.css' rel='stylesheet' type='text/css'>
-		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic' rel='stylesheet' type='text/css'>
+		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic|Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
 		<link href='css/topText.css' rel='stylesheet' type='text/css'>
 		<link href='css/ColorSelector.css' rel='stylesheet' type='text/css'>

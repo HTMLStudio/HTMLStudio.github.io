@@ -866,7 +866,7 @@
 			var style = getComputedStyle(element), offset = {x: element.offsetLeft, y: element.offsetTop};
 
 			// Updates elements with their x axis enabled
-			if (element.draggableElement[settings].doX) {
+			if (element.draggableElement[settings] && element.draggableElement[settings].doX) {
 				// Reconfigures bounds
 				if (element.draggableElement[settings].boundParent && typeof element.draggableElement[settings].boundParent.getBoundingClientRect == 'function') {
 					var parentRect = element.draggableElement[settings].boundParent.getBoundingClientRect(), parentStyle =getComputedStyle(element.draggableElement[settings].boundParent);
@@ -894,7 +894,7 @@
 				
 
 			// Updates elements with their y axis enabled
-			if (element.draggableElement[settings].doY) {
+			if (element.draggableElement[settings] && element.draggableElement[settings].doY) {
 				// Reconfigures bounds
 				if (element.draggableElement[settings].boundParent && typeof element.draggableElement[settings].boundParent.getBoundingClientRect == 'function') {
 					var parentRect = element.draggableElement[settings].boundParent.getBoundingClientRect(), parentStyle =getComputedStyle(element.draggableElement[settings].boundParent);

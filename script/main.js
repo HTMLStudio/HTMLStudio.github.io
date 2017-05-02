@@ -112,14 +112,19 @@ Text.lastChild = function(arg) {
 function main(){
 	/*
 		TODO:
-		 - Resizable dialogs
-		 - Edit prefs dialog
+		 - Better SVG element positioning
 		 - Better grid
-		 - Toggleable toolbar
 		 - Import style sheets
 		 - Fix <a> Edit Text auto-blur
 		 - HTML Prettifier
 		 - Fix Edit Text bottom scrolling bug
+		 - Fix Edit as HTML for svg elements
+		 - Better svg element handling
+		 - Options for saving
+		   - Encode non-ASCII characters
+		   - Save as PDF
+		   - Remove stylesheet name
+		 - Fix CSS rule insertion bug
 	*/
 
 
@@ -192,7 +197,34 @@ function main(){
 						fontFamily: 'Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace'
 					},
 					separate: true,
-					id: 'info'
+					id: 'info',
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]') || overlay,
+							format = formatElementInfo(node.alias),
+							re = /(?:([a-z])(?=[A-Z\d])|(\d)(?=[a-zA-Z])|([a-zA-Z\d])(?=[^a-zA-Z\d])|([^a-zA-Z\d])(?=[a-zA-Z\d]))/g;
+						this.editText('<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : ''));
+						return true;
+					}
+				},{
+					name: 'Open in New Tab',
+					func: function(_,close) {
+						close();
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node || !(node.alias.nodeName in {a:0,A:0})) return;
+						open(node.alias.getAttribute('href'));
+					},
+					title: 'Opens the link in a new tab',
+					disabled: true,
+					separate: true,
+					hideOnDisabled: true,
+					hideSeparatorOnDisabled: true,
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						this.title = 'Opens the link in a new tab (' + node.alias.href + ')';
+						return node.alias.nodeName in {a:0,A:0} && node.alias.href && node.alias.getAttribute('href').trim()[0] != '#';
+					},
+					id: 'openLink'
 				},{
 					name: 'Copy Element',
 					func: function(e,close) {
@@ -257,6 +289,208 @@ function main(){
 					image: 'svg/duplicate.svg',
 					separate: true,
 					id: 'duplicate'
+				},{
+					name: 'Prepend Row',
+					func: function(_,close) {
+						close();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
+						if (node.length != 1) return this.disabled = true;
+						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
+							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
+						});
+						deselect();
+						clickhandler.call(node.firstElementChild, pseudoEvent.__extend__({set: true}));
+						contextmenus[0].getItem('insertRowAbove').execute(new MouseEvent('click', {shiftKey: true}), true);
+					},
+					title: 'Inserts a row at the beginning of the selected element',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
+					},
+					hideOnDisabled: true,
+					id: 'prependRow'
+				},{
+					name: 'Append Row',
+					func: function(_,close) {
+						close();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
+						if (node.length != 1) return this.disabled = true;
+						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
+							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
+						});
+						deselect();
+						clickhandler.call(node.lastElementChild, pseudoEvent.__extend__({set: true}));
+						contextmenus[0].getItem('insertRowBelow').execute(new MouseEvent('click', {shiftKey: true}), true);
+					},
+					title: 'Inserts a row at the end of the selected element',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
+					},
+					hideOnDisabled: true,
+					id: 'appendRow'
+				},{
+					name: 'Prepend Column',
+					func: function(_,close) {
+						close();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
+						if (node.length != 1) return this.disabled = true;
+						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
+							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
+						});
+						deselect();
+						clickhandler.call(node.firstElementChild.firstElementChild, pseudoEvent.__extend__({set: true}));
+						contextmenus[0].getItem('insertColLeft').execute(new MouseEvent('click', {shiftKey: true}), true);
+					},
+					title: 'Inserts a column at the beginning of the selected element',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
+					},
+					hideOnDisabled: true,
+					id: 'prependCol'
+				},{
+					name: 'Append Column',
+					func: function(_,close) {
+						var node = document.querySelectorAll('[data-selected-element=selected]');
+						if (node.length != 1) return this.disabled = true;
+						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
+							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
+						});
+						var info = {};
+						// Store <table> in info
+						info.table = node.alias.parentNode.nodeName == 'TABLE' ? node.alias.parentNode : null;
+						if (!info.table) return;
+						// Store the rows of the table
+						info.rows = Array.prototype.slice.call(info.table.rows);
+
+						// The following stores each table cell 
+						// Increases the length of all the row arrays so that they are always the same length (as a table should be)
+						function length(num) {
+							forEach(info.cells, function() {
+								while (this.length < num) {
+									this.push([]);
+								}
+							});
+						}
+						// Used to append a <td> to a <tr>
+						// Places the <td> in the next unoccupied slot in the <tr>
+						// Or force places it in a certain spot if an index is provided
+						// which helps with intersecting cells and cells with rowSpan > 1
+						// Automatically expands the array using length function above if the row runs out of spots
+						function push(row, item, index) {
+							if (index == -1 || !arguments[2]) {
+								for (var i = 0, r; i < row.length; i++) {
+									if (row[i].length) continue;
+									r = row[i].push(item);
+									return i + 1;
+								}
+								if (!r) return length(i + 1), row[i].push(item), i + 1;
+							} else {
+								return length(index + 1), row[index].push(item), index + 1;
+							}
+						};
+						// Create array of arrays where each sub-array represents a <tr>
+						info.cells = info.rows.map(function(){return[]});
+						// Fill in the cells using a bunch of for loops
+						// All the for loops allow for rowSpan and colSpan and intersecting cells
+						forEach(info.rows, function(row, ind) {
+							forEach(row.children, function(_,i) {
+								for (var j = 0, q; j < this.rowSpan; j++) {
+									if (info.rows[ind + j]) {
+										for (var n = this.colSpan - 1, p = q || -1; n >= 0; n--) {
+											p = push(info.cells[ind + j], this, p);
+											if (j == 0 && n == this.colSpan - 1) q = p - 1;
+										}
+									}
+								}
+							});
+						});
+
+						deselect();
+
+						forEach(info.cells, function() {
+							if (this[this.length - 1].length) return clickhandler.call(this[this.length - 1][0].alias, pseudoEvent.__extend__({set: true})), contextmenus[0].getItem('insertColRight').execute(new MouseEvent('click', {shiftKey: true}), true), "break";
+						});
+					},
+					title: 'Inserts a column at the end of the selected element',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
+					},
+					hideOnDisabled: true,
+					hideSeparatorOnDisabled: true,
+					separate: true,
+					id: 'appendCol'
+				},{
+					name: 'Insert Row Above',
+					func: function(e,close) {
+						close();
+						contextmenus[1].getItem('insertRowAbove').execute(e, true);
+					},
+					title: 'Inserts a row above the selected element\n(Shift to ignore merged cells)',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {td:0,TD:0,tr:0,TR:0};
+					},
+					hideOnDisabled: true,
+					id: 'insertRowAbove'
+				},{
+					name: 'Insert Row Below',
+					func: function(e,close) {
+						close();
+						contextmenus[1].getItem('insertRowBelow').execute(e, true);
+					},
+					title: 'Inserts a row below the selected element\n(Shift to ignore merged cells)',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {td:0,TD:0,tr:0,TR:0};
+					},
+					separateCondition: function() {
+						if (this.disabled) return false;
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return !(nodes[0].nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0});
+					},
+					hideOnDisabled: true,
+					separate: true,
+					id: 'insertRowBelow'
+				},{
+					name: 'Insert Column Left',
+					func: function(e,close) {
+						close();
+						contextmenus[1].getItem('insertColLeft').execute(e, true);
+					},
+					title: 'Inserts a column to the left of the selected element',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0};
+					},
+					hideOnDisabled: true,
+					id: 'insertColLeft'
+				},{
+					name: 'Insert Column Right',
+					func: function(e,close) {
+						close();
+						contextmenus[1].getItem('insertColRight').execute(e, true);
+					},
+					title: 'Inserts a column to the right of the selected element',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length != 1) return;
+						return nodes[0].nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0};
+					},
+					hideOnDisabled: true,
+					hideSeparatorOnDisabled: true,
+					separate: true,
+					id: 'insertColRight'
 				},{
 					name: 'Edit Text',
 					image: 'svg/edit_text.svg',
@@ -473,8 +707,18 @@ function main(){
 									})
 								});
 								clone.style.color = 'transparent';
-								clone.style.background = 'transparent';
-								clone.style.fontFamily = getComputedStyle(node).fontFamily;
+								clone.style.fontSize = getComputedStyle(node).fontSize;
+
+								if ((clone instanceof clone.ownerDocument.defaultView.SVGElement || clone.ownerSVGElement) && clone.nodeName.toLowerCase() != 'svg') {
+									clone.style.fill = 'transparent';
+									clone.style.stroke = 'transparent';
+									clone.setAttribute('fill', 'rgba(0,0,0,0)');
+									clone.setAttribute('stroke', 'rgba(0,0,0,0)');
+								} else {
+									clone.style.background = 'transparent';
+									clone.style.borderColor = 'transparent';
+								}
+
 								if (clone.nodeName == 'A') clone.removeAttribute('href');
 								if (clone.nodeName == 'IMG') {
 									if (node.getAttribute('src')) clone.setAttribute('src','svg/transparent.svg')
@@ -786,8 +1030,13 @@ function main(){
 						document.getElementById('edittextbar').className = 'active';
 						document.getElementById('framecontainer').scrollTop = originalScrollTop;
 					},
-					title: 'Allows you to edit the element\'s textual content',
+					title: 'Lets you edit the element\'s textual content',
 					disabledtitle: 'This element cannot contain textual content',
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						return !(node instanceof node.ownerDocument.defaultView.SVGElement || node.ownerSVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName));
+					},
 					id: 'editText'
 				},{
 					name: 'Edit as HTML&#133;',
@@ -800,9 +1049,69 @@ function main(){
 						document.getElementById('idf').value = element.alias[(element.alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
 						document.getElementById('idf').linkedElement = element.alias;
 					},
-					title: '(' + locale.cmdKey + ' + H) Allows you to edit the node\'s HTML',
+					title: '(' + locale.cmdKey + ' + H) Lets you edit the node\'s HTML',
 					separate: true,
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						this.editText((node.alias instanceof node.alias.ownerDocument.defaultView.SVGElement || node.alias.ownerSVGElement) && node.alias.nodeName.toLowerCase() != 'svg' ? 'Edit as XML&#133;' : 'Edit as HTML&#133;');
+						return true;
+					},
 					id: 'editHTML'
+				},{
+					name: 'Edit <span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">src</span> Attribute',
+					func: function(_,close) {
+						close();
+						var editor = document.getElementById('attrEditor'), Idk = document.getElementById('Idk'), elements = document.querySelectorAll('[data-selected-element=selected]');
+						if (!elements.length) return;
+						closeTopTexts();
+						if (elements.length > 1) {
+							document.getElementById('attrNoEdit').className = 'topText active';
+						} else {
+							if (!(elements[0].alias.nodeName in {img:0,IMG:0})) return true;
+							editor.className = 'topText active';
+							Idk.element = elements[0].alias;
+							Idk.value = elements[0].alias.getAttribute('src') || '';
+							Idk.placeholder = 'Edit src';
+							Idk.focus();
+						}
+					},
+					title: '(' + locale.cmd + ' + Shift + 8) Lets you quickly edit the element\'s src attribute',
+					disabled: true,
+					hideOnDisabled: true,
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						return node.alias.nodeName in {img:0,IMG:0};
+					},
+					id: 'editSrc'
+				},{
+					name: 'Edit <span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">href</span> Attribute',
+					func: function(_,close) {
+						close();
+						var editor = document.getElementById('attrEditor'), Idk = document.getElementById('Idk'), elements = document.querySelectorAll('[data-selected-element=selected]');
+						if (!elements.length) return;
+						closeTopTexts();
+						if (elements.length > 1) {
+							document.getElementById('attrNoEdit').className = 'topText active';
+						} else {
+							if (!(elements[0].alias.nodeName in {a:0,A:0})) return true;
+							editor.className = 'topText active';
+							Idk.element = elements[0].alias;
+							Idk.value = elements[0].alias.getAttribute('href') || '';
+							Idk.placeholder = 'Edit href';
+							Idk.focus();
+						}
+					},
+					title: '(' + locale.cmdKey + ' + Shift + 8) Lets you quickly edit the element\'s href attribute',
+					disabled: true,
+					hideOnDisabled: true,
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						return node.alias.nodeName in {a:0,A:0}
+					},
+					id: 'editHref'
 				},{
 					name: 'Edit Attributes&#133;',
 					func: function(_,close) {
@@ -845,7 +1154,7 @@ function main(){
 								});
 							});
 						});
-						Array.prototype.forEach.call(document.querySelectorAll('#idg input:not(#idj)'), function(element) {
+						forEach(document.querySelectorAll('#idg input:not(#idj)'), function(element) {
 							element.addEventListener('blur', function(e) {
 								setTimeout(function() {
 									var tr = element.parentNode.parentNode;
@@ -860,7 +1169,7 @@ function main(){
 								element.active = true;
 							});
 							element.addEventListener('keydown', function(e) {
-								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 58 && e.shiftKey) || e.keyCode == 61) && element.parentNode.nextElementSibling)) {
+								if ((e.keyCode == 9 && !e.shiftKey) || e.keyCode == 13 || (((e.keyCode == 58 && e.shiftKey) || e.keyCode == 61 || e.keyCode == 187) && element.parentNode.nextElementSibling)) {
 									e.preventDefault();
 									(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idh') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
 								};
@@ -868,7 +1177,7 @@ function main(){
 						});
 						document.querySelector('#idg tr:first-child input').focus();
 					},
-					title: 'Allows you to edit the element\'s attributes',
+					title: 'Lets you edit the element\'s attributes',
 					image: 'svg/edit_attributes.svg',
 					id: 'editAttributes'
 				},{
@@ -971,7 +1280,7 @@ function main(){
 						document.querySelector('#idv tr:first-child input').focus();
 					},
 					image: 'svg/edit_styles.svg',
-					title: 'Allows you to edit the element\'s CSS',
+					title: 'Lets you edit the element\'s CSS',
 					separate: true,
 					id: 'editStyle'
 				},{
@@ -1007,7 +1316,7 @@ function main(){
 						}
 						idQ.focus();
 					},
-					title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the element\'s classes',
+					title: '(' + locale.cmdKey + ' + . ) Lets you quickly edit the element\'s classes',
 					image: 'svg/edit_class.svg',
 					id: 'editClass'
 				},{
@@ -1026,7 +1335,7 @@ function main(){
 							idR.focus();
 						}
 					},
-					title: '(' + locale.cmdKey + ' + Shift + 3) Allows you to quickly edit the element\'s ID',
+					title: '(' + locale.cmdKey + ' + Shift + 3) Lets you quickly edit the element\'s ID',
 					separate: true,
 					image: 'svg/edit_id.svg',
 					id: 'editId'
@@ -1056,7 +1365,12 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected',
-					id: 'selectParent'
+					id: 'selectParent',
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						return node.alias != framewindow.document.body;
+					}
 				},{
 					name: 'Select Children',
 					image: 'svg/select_children.svg',
@@ -1075,7 +1389,12 @@ function main(){
 					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
 					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
 					separate: true,
-					id: 'selectChildren'
+					id: 'selectChildren',
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						return node.children.length;
+					}
 				},{
 					name: 'Insert Child&#133;',
 					func: function(_,close) {
@@ -1087,7 +1406,7 @@ function main(){
 							element.className = 'clf';
 						});
 						var obj;
-						document.getElementById('ida').insertChild = obj = {textNode: Symbol(), element: element.alias, children: null};
+						document.getElementById('ida').insertChild = obj = {textNode: Symbol(), element: element.alias, children: null, index: 0};
 						var idc = document.getElementById('idc');
 						idc.value = '';
 						idc.focus();
@@ -1132,7 +1451,7 @@ function main(){
 									if (e.type == 'focus' || e.type == 'keydown') idV.focus();
 								},
 								clickEvent = function(e) {
-									if (!clicked) Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
+									if (!clicked) forEach(document.querySelectorAll('.clh'), function(element) {
 										element.removeEventListener('mouseenter', replace);
 										element.removeEventListener('focus', replace);
 										element.addEventListener('click', replace);
@@ -1192,7 +1511,12 @@ function main(){
 					title: 'Replaces the element with all its child nodes',
 					disabledtitle: 'This element cannot be unwrapped',
 					separate: true,
-					id: 'unwrap'
+					id: 'unwrap',
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selcted]');
+						if (!node) return;
+						return node.alias != framewindow.document.body;
+					}
 				},{
 					name: 'Delete Element',
 					func: function(_,close) {
@@ -1205,11 +1529,729 @@ function main(){
 					disabledtitle: 'This node cannot be removed from the document',
 					image: 'svg/delete.svg',
 					disabledimage: 'svg/delete_disabled.svg',
-					id: 'delete'
+					id: 'delete',
+					condition: function() {
+						var node = document.querySelector('[data-selected-element=selected]');
+						if (!node) return;
+						return node.alias != framewindow.document.body;
+					}
 				}]
 			}),
 			new HTMLStudio.ContextMenu({
 				items: [{
+					name: '[Node Count]',
+					disabled: true,
+					pad: false,
+					separate: true,
+					id: 'count',
+					condition: function() {
+						this.editText('<span style="color:#000">' + document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected</span>');
+						return true;
+					}
+				},{
+					name: 'Copy Elements',
+					func: function(e,close) {
+						close();
+						prepareCopy(e.shiftKey);
+						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
+						} else openDialog('pseudo_paste');
+					},
+					title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
+					image: 'svg/copy.svg',
+					id: 'copy'
+				},{
+					name: 'Cut Elements',
+					func: function(e,close) {
+						close();
+						prepareCopy(e.shiftKey);
+						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
+							var cmi = contextmenus[1].getItem('delete');
+							cmi.cut = true;
+							cmi.dispatchEvent(new MouseEvent('click'));
+						} else openDialog('pseudo_paste');
+						if (document.activeElement == clipboard) userClipboard = clipboard.value;
+					},
+					title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements and all their descendants',
+					image: 'svg/cut.svg',
+					id: 'cut'
+				},{
+					name: 'Paste into Elements',
+					func: function(e,close) {
+						close();
+						if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
+						} else openDialog('pseudo_paste');
+					},
+					title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected nodes',
+					image: 'svg/paste.svg',
+					separate: true,
+					id: 'paste'
+				},{
+					name: 'Insert Row Above',
+					func: function(e,close) {
+						close();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						nodes = Array.prototype.map.call(nodes, function(node) {
+							return node.alias;
+						});
+						var rows = [],
+							iRows = [];
+						forEach(nodes, function() {
+							var r = this.nodeName.toLowerCase() == 'td' ? this.parentNode : this;
+							if (!~rows.indexOf(r)) rows.push(r);
+						});
+
+
+						forEach(rows, function(row) {
+							// Store the <table> as a more program-friendly object so that each cell can be tracked
+							var info = {};
+							// Store <table> in info
+							info.table = row.parentNode.parentNode.nodeName.toLowerCase() == 'table' ? row.parentNode.parentNode : row.parentNode.nodeName.toLowerCase() == 'table' ? row.parentNode : null;
+							if (!info.table) return;
+							// Store the rows of the table
+							info.rows = Array.prototype.slice.call(row.parentNode.children);
+
+							// The following stores each table cell 
+							// Increases the length of all the row arrays so that they are always the same length (as a table should be)
+							function length(num) {
+								forEach(info.cells, function() {
+									while (this.length < num) {
+										this.push([]);
+									}
+								});
+							}
+							// Used to append a <td> to a <tr>
+							// Places the <td> in the next unoccupied slot in the <tr>
+							// Or force places it in a certain spot if an index is provided
+							// which helps with intersecting cells and cells with rowSpan > 1
+							// Automatically expands the array using length function above if the row runs out of spots
+							function push(row, item, index) {
+								if (index == -1 || !arguments[2]) {
+									for (var i = 0, r; i < row.length; i++) {
+										if (row[i].length) continue;
+										r = row[i].push(item);
+										return i + 1;
+									}
+									if (!r) return length(i + 1), row[i].push(item), i + 1;
+								} else {
+									return length(index + 1), row[index].push(item), index + 1;
+								}
+							};
+							// Create array of arrays where each sub-array represents a <tr>
+							info.cells = info.rows.map(function(){return[]});
+							// Fill in the cells using a bunch of for loops
+							// All the for loops allow for rowSpan and colSpan and intersecting cells
+							forEach(info.rows, function(row, ind) {
+								forEach(row.children, function(_,i) {
+									for (var j = 0, q; j < this.rowSpan; j++) {
+										if (info.rows[ind + j]) {
+											for (var n = this.colSpan - 1, p = q || -1; n >= 0; n--) {
+												p = push(info.cells[ind + j], this, p);
+												if (j == 0 && n == this.colSpan - 1) q = p - 1;
+											}
+										}
+									}
+								});
+							});
+
+							// Clone the selected row
+							// Maintain rowSpan and colSpan for each element
+							// Keeps each <td>'s attributes (except id) but not its child nodes
+							var clone = row.cloneNode(),
+								index = info.rows.indexOf(row),
+								handled = [];
+							forEach(info.cells[index], function(_,i) {
+								if (e.shiftKey) {
+									if ((this.length > 1 || this[0] && this[0].rowSpan > 1 && this[0].parentNode != info.rows[index]) && !~handled.indexOf(this[0])) {
+										forEach(this, function() {
+											if (this.rowSpan > 1 && this.parentNode != info.rows[index]) {
+												this.rowSpan++;
+												handled.push(this);
+												return "break";
+											}
+										});
+									} else {
+										var td = framewindow.document.createElement('td');
+										td.appendChild(framewindow.document.createTextNode('\u00a0'));
+										clone.appendChild(td);
+									}
+								} else {
+									forEach(this, function() {
+										// Skip over <td>s with colSpan > 1 since they only need to be cloned once
+										if (i && ~info.cells[index][i - 1].indexOf(this)) return;
+										// If the element's parent is another row, but it intersects the selected row
+										// (i.e. it has a rowSpan > 1)
+										if (this.parentNode != info.rows[index]) {
+											this.rowSpan++;
+										// If the <td> is only part of one row
+										} else if (this.rowSpan == 1) {
+											var tdClone = this.cloneNode();
+											tdClone.appendChild(framewindow.document.createTextNode('\u00a0'));
+											tdClone.removeAttribute('id');
+											clone.appendChild(tdClone);
+										// If the <td> extends to rows below the selected one
+										} else {
+											clone.appendChild(this);
+											this.rowSpan++;
+										}
+									});
+								}
+							});
+							// Prevent id conflicts
+							row.removeAttribute('id');
+							// Insert new <tr>
+							row.parentNode.insertBefore(clone, row);
+							iRows.push(clone);
+						});
+						// Select the inserted row and save to the user's history
+						deselect();
+						overlayUpdate();
+						history.update('Insert row' + (iRows.length > 1 ? 's' : ''));
+						forEach(iRows, function() {
+							clickhandler.call(this.alias, pseudoEvent.__extend__({set: true}));
+						});
+						updateTreeSelections();
+					},
+					title: 'Inserts a row above the selected elements\n(Shift to ignore merged cells)',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length < 2) return;
+						var returnValue = false;
+						forEach(nodes, function() {
+							if (!(this.nodeName in {td:0,TD:0,tr:0,TR:0})) return returnValue = 'break';
+						});
+						return !returnValue;
+					},
+					hideOnDisabled: true,
+					id: 'insertRowAbove'
+				},{
+					name: 'Insert Row Below',
+					func: function(e,close) {
+						close();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						nodes = Array.prototype.map.call(nodes, function(node) {
+							return node.alias;
+						});
+						var rows = [],
+							iRows = [];
+						forEach(nodes, function() {
+							if (this.nodeName == 'TR') return !~rows.indexOf(this) && rows.push(this);
+							if (this.nodeName == 'TD' && this.rowSpan <= 1) return !~rows.indexOf(this.parentNode) && rows.push(this.parentNode);
+							if (this.nodeName.toLowerCase() != 'td') return;
+							var row = this.parentNode;
+							loop(this.rowSpan - 1, function(i,n) {
+								row = row.nextElementSibling;
+								if (!row) return row = row.previousElementSibling, "break";
+							}, this);
+							if (!~rows.indexOf(row)) rows.push(row);
+						});
+
+
+						forEach(rows, function(row) {
+							// Store the <table> as a more program-friendly object so that each cell can be tracked
+							var info = {};
+							// Store <table> in info
+							info.table = row.parentNode.parentNode.nodeName.toLowerCase() == 'table' ? row.parentNode.parentNode : row.parentNode.nodeName.toLowerCase() == 'table' ? row.parentNode : null;
+							if (!info.table) return;
+							// Store the rows of the table
+							info.rows = Array.prototype.slice.call(row.parentNode.children);
+
+							// The following stores each table cell 
+							// Increases the length of all the row arrays so that they are always the same length (as a table should be)
+							function length(num) {
+								forEach(info.cells, function() {
+									while (this.length < num) {
+										this.push([]);
+									}
+								});
+							}
+							// Used to append a <td> to a <tr>
+							// Places the <td> in the next unoccupied slot in the <tr>
+							// Or force places it in a certain spot if an index is provided
+							// which helps with intersecting cells and cells with rowSpan > 1
+							// Automatically expands the array using length function above if the row runs out of spots
+							function push(row, item, index) {
+								if (index == -1 || !arguments[2]) {
+									for (var i = 0, r; i < row.length; i++) {
+										if (row[i].length) continue;
+										r = row[i].push(item);
+										return i + 1;
+									}
+									if (!r) return length(i + 1), row[i].push(item), i + 1;
+								} else {
+									return length(index + 1), row[index].push(item), index + 1;
+								}
+							};
+							// Create array of arrays where each sub-array represents a <tr>
+							info.cells = info.rows.map(function(){return[]});
+							// Fill in the cells using a bunch of for loops
+							// All the for loops allow for rowSpan and colSpan and intersecting cells
+							forEach(info.rows, function(row, ind) {
+								forEach(row.children, function(_,i) {
+									for (var j = 0, q; j < this.rowSpan; j++) {
+										if (info.rows[ind + j]) {
+											for (var n = this.colSpan - 1, p = q || -1; n >= 0; n--) {
+												p = push(info.cells[ind + j], this, p);
+												if (j == 0 && n == this.colSpan - 1) q = p - 1;
+											}
+										}
+									}
+								});
+							});
+
+							// Clone the selected row
+							// Maintain rowSpan and colSpan for each element
+							// Keeps each <td>'s attributes (except id) but not its child nodes
+							var clone = row.cloneNode(),
+								index = info.rows.indexOf(row),
+								handled = [];
+							forEach(info.cells[index], function(_,i) {
+								if (e.shiftKey) {
+									if (this.length > 1) {
+										forEach(this, function() {
+											if (this.rowSpan > 1 && info.cells[index + 1] && info.cells[index + 1][i][0] == this && !~handled.indexOf(this[0])) {
+												this.rowSpan++;
+												handled.push(this);
+											}
+										});
+									} else if (this.length == 0) {
+										var td = framewindow.document.createElement('td');
+										td.appendChild(framewindow.document.createTextNode('\u00a0'));
+										clone.appendChild(td);
+									} else {
+										if (this[0].rowSpan > 1 && info.cells[index + 1] && info.cells[index + 1][i][0] == this[0]) {
+											if (!~handled.indexOf(this[0])) this[0].rowSpan++;
+											handled.push(this[0]);
+										} else {
+											var td = framewindow.document.createElement('td');
+											td.appendChild(framewindow.document.createTextNode('\u00a0'));
+											clone.appendChild(td);
+										}
+									}
+								} else {
+									forEach(this, function() {
+										// Skip over <td>s with colSpan > 1 since they only need to be cloned once
+										if (i && ~info.cells[index][i - 1].indexOf(this)) return;
+										// If the element's parent is another row, but it intersects the selected row
+										// (i.e. it has a rowSpan > 1)
+										if (this.rowSpan > 1) {
+											this.rowSpan++;
+										// If the <td> is only part of one row
+										} else {
+											var tdClone = this.cloneNode();
+											tdClone.appendChild(framewindow.document.createTextNode('\u00a0'));
+											tdClone.removeAttribute('id');
+											clone.appendChild(tdClone);
+										}
+									});
+								}
+							});
+							// Prevent id conflicts
+							row.removeAttribute('id');
+							// Insert new <tr>
+							row.parentNode.insertBefore(clone, row.nextElementSibling);
+							iRows.push(clone);
+						});
+						// Select the inserted row and save to the user's history
+						deselect();
+						overlayUpdate();
+						history.update('Insert row' + (iRows.length > 1 ? 's' : ''));
+						forEach(iRows, function() {
+							clickhandler.call(this.alias, pseudoEvent.__extend__({set: true}));
+						});
+					},
+					title: 'Inserts a row below the selected elements\n(Shift to ignore merged cells)',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						var returnValue = false;
+						forEach(nodes, function() {
+							if (!(this.nodeName in {td:0,TD:0,tr:0,TR:0})) return returnValue = 'break';
+						});
+						return !returnValue;
+					},
+					separateCondition: function() {
+						if (this.disabled) return false;
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						var returnValue = false;
+						forEach(nodes, function() {
+							if (!(this.nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0})) return returnValue = 'break';
+						});
+						return returnValue;
+					},
+					hideOnDisabled: true,
+					separate: true,
+					id: 'insertRowBelow'
+				},{
+					name: 'Insert Column Left',
+					func: function(e,close) {
+						close();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						nodes = Array.prototype.map.call(nodes, function(node) {
+							return node.alias;
+						});
+						var cols = [],
+							iCells = [];
+
+
+						forEach(nodes, function(node) {
+							// Store the <table> as a more program-friendly object so that each cell can be tracked
+							var info = {},
+								colIndex;
+							// Store <table> in info
+							info.table = node.parentNode.parentNode.parentNode.nodeName == 'TABLE' ? node.parentNode.parentNode.parentNode : node.parentNode.parentNode.nodeName == 'TABLE' ? node.parentNode.parentNode : node.parentNode.nodeName == 'TABLE' ? node.parentNode : null;
+							if (!info.table) return;
+							// Store the rows of the table
+							info.rows = Array.prototype.slice.call(info.table.rows);
+
+							// The following stores each table cell 
+							// Increases the length of all the row arrays so that they are always the same length (as a table should be)
+							function length(num) {
+								forEach(info.cells, function() {
+									while (this.length < num) {
+										this.push([]);
+									}
+								});
+							}
+							// Used to append a <td> to a <tr>
+							// Places the <td> in the next unoccupied slot in the <tr>
+							// Or force places it in a certain spot if an index is provided
+							// which helps with intersecting cells and cells with rowSpan > 1
+							// Automatically expands the array using length function above if the row runs out of spots
+							function push(row, item, index) {
+								if (index == -1 || !arguments[2]) {
+									for (var i = 0, r; i < row.length; i++) {
+										if (row[i].length) continue;
+										r = row[i].push(item);
+										return i + 1;
+									}
+									if (!r) return length(i + 1), row[i].push(item), i + 1;
+								} else {
+									return length(index + 1), row[index].push(item), index + 1;
+								}
+							};
+							// Create array of arrays where each sub-array represents a <tr>
+							info.cells = info.rows.map(function(){return[]});
+							// Fill in the cells using a bunch of for loops
+							// All the for loops allow for rowSpan and colSpan and intersecting cells
+							forEach(info.rows, function(row, ind) {
+								forEach(row.children, function(_,i) {
+									for (var j = 0, q; j < this.rowSpan; j++) {
+										if (info.rows[ind + j]) {
+											for (var n = this.colSpan - 1, p = q || -1; n >= 0; n--) {
+												p = push(info.cells[ind + j], this, p);
+												if (j == 0 && n == this.colSpan - 1) q = p - 1;
+												if (this == node && n == this.colSpan - 1) colIndex = p - 1;
+											}
+										}
+									}
+								});
+							});
+
+							if (node.nodeName == 'COL') {
+								colIndex = 0;
+								forEach(info.table.children, function() {
+									if (this.nodeName == 'COLGROUP') {
+										if (this.children.length) {
+											if (!forEach(this.children, function() {
+												if (this == node) return "break";
+												colIndex += this.span;
+											})) return "break";
+										} else {
+											colIndex += this.span;
+										}
+									}
+								});
+							} else if (node.nodeName == 'COLGROUP') {
+								colIndex = 0;
+								forEach(info.table.children, function() {
+									if (this.nodeName == 'COLGROUP') {
+										if (this == node) {
+											return "break";
+										} else if (this.children.length) {
+											forEach(this.children, function() {
+												colIndex += this.span;
+											});
+										} else {
+											colIndex += this.span;
+										}
+									}
+								});
+							}
+
+							if (isNaN(colIndex) || ~cols.indexOf(colIndex)) return;
+
+							var handled = [];
+							forEach(info.cells, function(_,ind) {
+								if (!this[colIndex].length) return;
+								if (e.shiftKey) {
+									if ((this[colIndex][1] || this[colIndex][0]).colSpan > 1 && colIndex && (this[colIndex - 1][1] || this[colIndex - 1][0]) == (this[colIndex][1] || this[colIndex][0])) {
+										var td = this[colIndex][1] || this[colIndex][0];
+										if (~handled.indexOf(td)) return;
+										td.colSpan++;
+										handled.push(td);
+									} else {
+										var td = framewindow.document.createElement('td'),
+											childIndex = 0;
+										td.appendChild(framewindow.document.createTextNode('\u00a0'));
+										loop(colIndex, function(i) {
+											if ((this[i][1] || this[i][0]).parentNode == info.rows[ind] && (!i || (this[i - 1][1] || this[i - 1][0]) != (this[i][1] || this[i][0]))) childIndex++;
+										}, this);
+										info.rows[ind].insertBefore(td, info.rows[ind].children[childIndex] || null);
+										iCells.push(td);
+									}
+								} else {
+									forEach(this[colIndex], function() {
+										if (~handled.indexOf(this)) return;
+										if (this.colSpan > 1) {
+											this.colSpan++;
+										} else {
+											var clone = this.cloneNode();
+											clone.removeAttribute('id');
+											clone.appendChild(framewindow.document.createTextNode('\u00a0'));
+											this.parentNode.insertBefore(clone, this);
+											iCells.push(clone);
+										}
+										handled.push(this);
+									});
+								}
+							});
+
+							forEach(cols, function(_,i) {
+								if (this > colIndex) cols[i]++;
+							});
+							cols.push(colIndex + 1);
+
+							var col = 0;
+							forEach(info.table.children, function() {
+								if (this.nodeName == 'COLGROUP') {
+									if (this.children.length) {
+										if (!forEach(this.children, function() {
+											if (col + this.span > colIndex) {
+												this.span++;
+												return "break";
+											}
+											col += this.span;
+										})) return "break";
+									} else {
+										if (col + this.span > colIndex) {
+											this.span++;
+											return "break";
+										}
+									}
+								}
+							});
+						});
+						// Select the inserted row and save to the user's history
+						deselect();
+						overlayUpdate();
+						history.update('Insert column' + (iCells.length > 1 ? 's' : ''));
+						forEach(iCells, function() {
+							clickhandler.call(this.alias, pseudoEvent.__extend__({set: true}));
+						});
+						updateTreeSelections();
+					},
+					title: 'Inserts a column to the left of the selected elements\n(Shift to ignore merged cells)',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						var returnValue = false;
+						forEach(nodes, function() {
+							if (!(this.nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0})) return returnValue = 'break';
+						});
+						return !returnValue;
+					},
+					hideOnDisabled: true,
+					id: 'insertColLeft'
+				},{
+					name: 'Insert Column Right',
+					func: function(e,close) {
+						close();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						nodes = Array.prototype.map.call(nodes, function(node) {
+							return node.alias;
+						});
+						var cols = [],
+							iCells = [];
+
+
+						forEach(nodes, function(node) {
+							// Store the <table> as a more program-friendly object so that each cell can be tracked
+							var info = {},
+								colIndex;
+							// Store <table> in info
+							info.table = node.parentNode.parentNode.parentNode.nodeName == 'TABLE' ? node.parentNode.parentNode.parentNode : node.parentNode.parentNode.nodeName == 'TABLE' ? node.parentNode.parentNode : node.parentNode.nodeName == 'TABLE' ? node.parentNode : null;
+							if (!info.table) return;
+							// Store the rows of the table
+							info.rows = Array.prototype.slice.call(info.table.rows);
+
+							// The following stores each table cell 
+							// Increases the length of all the row arrays so that they are always the same length (as a table should be)
+							function length(num) {
+								forEach(info.cells, function() {
+									while (this.length < num) {
+										this.push([]);
+									}
+								});
+							}
+							// Used to append a <td> to a <tr>
+							// Places the <td> in the next unoccupied slot in the <tr>
+							// Or force places it in a certain spot if an index is provided
+							// which helps with intersecting cells and cells with rowSpan > 1
+							// Automatically expands the array using length function above if the row runs out of spots
+							function push(row, item, index) {
+								if (index == -1 || !arguments[2]) {
+									for (var i = 0, r; i < row.length; i++) {
+										if (row[i].length) continue;
+										r = row[i].push(item);
+										return i + 1;
+									}
+									if (!r) return length(i + 1), row[i].push(item), i + 1;
+								} else {
+									return length(index + 1), row[index].push(item), index + 1;
+								}
+							};
+							// Create array of arrays where each sub-array represents a <tr>
+							info.cells = info.rows.map(function(){return[]});
+							// Fill in the cells using a bunch of for loops
+							// All the for loops allow for rowSpan and colSpan and intersecting cells
+							forEach(info.rows, function(row, ind) {
+								forEach(row.children, function(_,i) {
+									for (var j = 0, q; j < this.rowSpan; j++) {
+										if (info.rows[ind + j]) {
+											for (var n = this.colSpan - 1, p = q || -1; n >= 0; n--) {
+												p = push(info.cells[ind + j], this, p);
+												if (j == 0 && n == this.colSpan - 1) q = p - 1;
+												if (this == node && n == 0) colIndex = p - 1;
+											}
+										}
+									}
+								});
+							});
+
+							if (node.nodeName == 'COL') {
+								colIndex = 0;
+								forEach(info.table.children, function() {
+									if (this.nodeName == 'COLGROUP') {
+										if (this.children.length) {
+											if (!forEach(this.children, function() {
+												if (this == node) return colIndex += this.span - 1, "break";
+												colIndex += this.span;
+											})) return "break";
+										} else {
+											colIndex += this.span;
+										}
+									}
+								});
+							} else if (node.nodeName == 'COLGROUP') {
+								colIndex = 0;
+								forEach(info.table.children, function() {
+									if (this.nodeName == 'COLGROUP') {
+										if (this == node) {
+											colIndex += this.span - 1;
+											return "break";
+										} else if (this.children.length) {
+											forEach(this.children, function() {
+												colIndex += this.span;
+											});
+										} else {
+											colIndex += this.span;
+										}
+									}
+								});
+							}
+
+							if (isNaN(colIndex) || ~cols.indexOf(colIndex)) return;
+
+							var handled = [];
+							forEach(info.cells, function(_,ind) {
+								if (!this[colIndex].length) return;
+								if (e.shiftKey) {
+									if ((this[colIndex][1] || this[colIndex][0]).colSpan > 1 && this[colIndex + 1] && (this[colIndex + 1][1] || this[colIndex + 1][0]) == (this[colIndex][1] || this[colIndex][0])) {
+										var td = this[colIndex][1] || this[colIndex][0];
+										if (~handled.indexOf(td)) return;
+										td.colSpan++;
+										handled.push(td);
+									} else {
+										var td = framewindow.document.createElement('td'),
+											childIndex = 0;
+										td.appendChild(framewindow.document.createTextNode('\u00a0'));
+										loop(colIndex + 1, function(i) {
+											if ((this[i][1] || this[i][0]).parentNode == info.rows[ind] && (!i || (this[i - 1][1] || this[i - 1][0]) != (this[i][1] || this[i][0]))) childIndex++;
+										}, this);
+										info.rows[ind].insertBefore(td, (info.rows[ind].children[childIndex] || null));
+										iCells.push(td);
+									}
+								} else {
+									forEach(this[colIndex], function() {
+										if (~handled.indexOf(this)) return;
+										if (this.colSpan > 1) {
+											this.colSpan++;
+										} else {
+											var clone = this.cloneNode();
+											clone.removeAttribute('id');
+											clone.appendChild(framewindow.document.createTextNode('\u00a0'));
+											this.parentNode.insertBefore(clone, this.nextElementSibling);
+											iCells.push(clone);
+										}
+										handled.push(this);
+									});
+								}
+							});
+							forEach(cols, function(_,i) {
+								if (this > colIndex) cols[i]++;
+							});
+							cols.push(colIndex);
+
+							var col = 0;
+							forEach(info.table.children, function() {
+								if (this.nodeName == 'COLGROUP') {
+									if (this.children.length) {
+										if (!forEach(this.children, function() {
+											if (col + this.span >= colIndex) {
+												this.span++;
+												return "break";
+											}
+											col += this.span;
+										})) return "break";
+									} else {
+										if (col + this.span >= colIndex) {
+											this.span++;
+											return "break";
+										}
+										col += this.span;
+									}
+								}
+							});
+						});
+						// Select the inserted row and save to the user's history
+						deselect();
+						overlayUpdate();
+						history.update('Insert column' + (iCells.length > 1 ? 's' : ''));
+						forEach(iCells, function() {
+							clickhandler.call(this.alias, pseudoEvent.__extend__({set: true}));
+						});
+						updateTreeSelections();
+					},
+					title: 'Inserts a column to the right of the selected elements\n(Shift to ignore merged cells)',
+					condition: function() {
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
+						if (nodes.length == 0) return;
+						var returnValue = false;
+						forEach(nodes, function() {
+							if (!(this.nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0})) return returnValue = 'break';
+						});
+						return !returnValue;
+					},
+					hideOnDisabled: true,
+					separate: true,
+					hideSeparatorOnDisabled: true,
+					id: 'insertColRight'
+				},{
 					name: 'Delete Elements',
 					func: function(_,close) {
 						var elements = document.querySelectorAll('[data-selected-element=selected]');
@@ -1232,7 +2274,7 @@ function main(){
 						close();
 						contextmenus[0].getItem('editClass').dispatchEvent(new MouseEvent('click'));
 					},
-					title: '(' + locale.cmdKey + ' + . ) Allows you to quickly edit the elements\' classes',
+					title: '(' + locale.cmdKey + ' + . ) Lets you quickly edit the elements\' classes',
 					separate: true,
 					image: 'svg/edit_class.svg',
 					if: 'editClass'
@@ -1281,44 +2323,13 @@ function main(){
 					disabledimage: 'svg/select_children_disabled.svg',
 					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
 					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
-					separate: true,
-					id: 'selectChildren'
-				},{
-					name: 'Copy Elements',
-					func: function(e,close) {
-						close();
-						prepareCopy(e.shiftKey);
-						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-						} else openDialog('pseudo_paste');
-					},
-					title: '(' + locale.cmdKey + ' + C) or (' + locale.cmdKey + ' + Shift + C) Copies the selected elements',
-					image: 'svg/copy.svg',
-					id: 'copy'
-				},{
-					name: 'Cut Elements',
-					func: function(e,close) {
-						close();
-						prepareCopy(e.shiftKey);
-						if (document.queryCommandSupported('copy') && document.execCommand('copy')) {
-							var cmi = contextmenus[1].getItem('delete');
-							cmi.cut = true;
-							cmi.dispatchEvent(new MouseEvent('click'));
-						} else openDialog('pseudo_paste');
-						if (document.activeElement == clipboard) userClipboard = clipboard.value;
-					},
-					title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements and all their descendants',
-					image: 'svg/cut.svg',
-					id: 'cut'
-				},{
-					name: 'Paste into Elements',
-					func: function(e,close) {
-						close();
-						if (document.queryCommandSupported('paste') && document.execCommand('paste')) {
-						} else openDialog('pseudo_paste');
-					},
-					title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected nodes',
-					image: 'svg/paste.svg',
-					id: 'paste'
+					id: 'selectChildren',
+					condition: function() {
+						for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
+							if (elements[i].children.length) return true;
+						}
+						return false;
+					}
 				}]
 			}),
 			new HTMLStudio.ContextMenu({
@@ -1475,9 +2486,19 @@ function main(){
 						textbox.placeholder = document.getElementById('title').value.trim() || 'index.html';
 						textbox.value = '';
 					},
-					title: 'Download the document as an HTML file',
+					title: '(' + locale.cmdKey + ' + S) Download the document as an HTML file',
 					separate: true,
 					id: 'download'
+				},{
+					name: 'Print&#133;',
+					func: function(_,close) {
+						close();
+						closeHeaders();
+						framewindow.print();
+					},
+					title: 'Prints the document',
+					separate: true,
+					id: 'print'
 				},{
 					name: 'Edit Metadata',
 					func: function(_,close) {
@@ -2093,8 +3114,8 @@ function main(){
 				[prefs.c.charCodeAt(4) - 300, prefs.c.charCodeAt(5) - 300, prefs.c.charCodeAt(6) - 300, (prefs.c.charCodeAt(7) - 300) / 100]
 			];
 			obj.replacerColor = [
-				[prefs.c.charCodeAt(8) - 300, prefs.c.charCodeAt(9) - 300, prefs.c.charCodeAt(10) - 300, prefs.c.charCodeAt(11) - 300],
-				[prefs.c.charCodeAt(12) - 300, prefs.c.charCodeAt(13) - 300, prefs.c.charCodeAt(14) - 300, prefs.c.charCodeAt(15) - 300]
+				[prefs.c.charCodeAt(8) - 300, prefs.c.charCodeAt(9) - 300, prefs.c.charCodeAt(10) - 300, (prefs.c.charCodeAt(11) - 300) / 100],
+				[prefs.c.charCodeAt(12) - 300, prefs.c.charCodeAt(13) - 300, prefs.c.charCodeAt(14) - 300, (prefs.c.charCodeAt(15) - 300) / 100]
 			];
 
 			obj.units = ['px','pt','in','cm','vh / vw'][prefs.u] || 'px';
@@ -2115,7 +3136,7 @@ function main(){
 				if (this.tooltip) n+=8;
 				if (this.bounds) n+=16;
 				temp.n = n;
-				forEach([this.nodeSelectionColor], function() {
+				forEach([this.nodeSelectionColor, this.replacerColor], function() {
 					forEach(this, function() {
 						forEach(this, function(_,i) {
 							c += String.fromCharCode((i == 3 ? this * 100 : this) + 300);
@@ -2292,24 +3313,6 @@ function main(){
 		var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
 		if (!index) (document.querySelector('[data-selected-element=selected]') || overlay).dispatchEvent(new MouseEvent('click'));
 		if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
-		if (!index) {
-			var node = document.querySelector('[data-selected-element=selected]') || overlay,
-				format = formatElementInfo(node.alias),
-				re = /(?:([a-z])(?=[A-Z\d])|(\d)(?=[a-zA-Z])|([a-zA-Z\d])(?=[^a-zA-Z\d])|([^a-zA-Z\d])(?=[a-zA-Z\d]))/g;
-			contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : '');
-			contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
-			contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
-			contextmenus[0].getItem('editText').disabled = node instanceof SVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName);
-			contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
-			contextmenus[0].getItem('unwrap').disabled = node.alias == framewindow.document.body;
-		} else {
-			contextmenus[1].getItem('selectChildren').disabled = (function() {
-				for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
-					if (elements[i].children.length) return false;
-				}
-				return true;
-			})();
-		}
 		closeHeaders();
 		contextmenus[index].open();
 		var style = contextmenus[index].node.getBoundingClientRect();
@@ -2472,24 +3475,6 @@ function main(){
 			var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
 			if (!index) clonednode.dispatchEvent(new MouseEvent('click'));
 			if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
-			if (!index) {
-				var node = document.querySelector('[data-selected-element=selected]') || clonednode,
-					format = formatElementInfo(node.alias),
-					re = /(?:([a-z])(?=[A-Z\d])|(\d)(?=[a-zA-Z])|([a-zA-Z\d])(?=[^a-zA-Z\d])|([^a-zA-Z\d])(?=[a-zA-Z\d]))/g;
-				contextmenus[0].getItem('info').firstChild.firstChild.innerHTML = '<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : '');
-				contextmenus[0].getItem('delete').disabled = node.alias == framewindow.document.body;
-				contextmenus[0].getItem('selectChildren').disabled = !node.children.length;
-				contextmenus[0].getItem('editText').disabled = node instanceof SVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName);
-				contextmenus[0].getItem('selectParent').disabled = node.alias == framewindow.document.body;
-				contextmenus[0].getItem('unwrap').disabled = node.alias == framewindow.document.body;
-			} else {
-				contextmenus[1].getItem('selectChildren').disabled = (function() {
-					for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
-						if (elements[i].children.length) return false;
-					}
-					return true;
-				})();
-			}
 			closeHeaders();
 			contextmenus[index].open();
 			var style = contextmenus[index].node.getBoundingClientRect();
@@ -2502,7 +3487,7 @@ function main(){
 			e.preventDefault();
 			deselect();
 			this.dispatchEvent(new MouseEvent('click'));
-			contextmenus[0].getItem('editText').dispatchEvent(new MouseEvent('click'));
+			if (!((this instanceof this.ownerDocument.defaultView.SVGElement || this.ownerSVGElement) || /^(?:area|br|col|embed|hr|img|input|link|meta|param|svg)$/i.test(this.nodeName))) contextmenus[0].getItem('editText').dispatchEvent(new MouseEvent('click'));
 		}
 
 
@@ -2548,7 +3533,7 @@ function main(){
 				clonednode.alias = this;
 				clonednode.isOverlay = true;
 				clonednode.stylePrecedence = {};
-				if (clonednode instanceof Element || clonednode.nodeType == 1) {
+				if (clonednode instanceof clonednode.ownerDocument.defaultView.Element || clonednode.nodeType == 1) {
 					var DOMNodeObject = {
 						name: clonednode.alias.nodeName,
 						node: clonednode.alias,
@@ -2571,7 +3556,7 @@ function main(){
 					css.forEach(function(stylesheet) {
 						stylesheet[1].forEach(function(query) {
 							if (this.matches(query[0])) {
-								query[1].forEach(function(rule) {
+								(query[1] || []).forEach(function(rule) {
 									if (query[2] < clonednode.stylePrecedence[rule[0]]) return;
 									clonednode.style[rule[0]] = this.style[rule[0]] || rule[1];
 									clonednode.stylePrecedence[rule[0]] = query[2];
@@ -2590,13 +3575,20 @@ function main(){
 					}));
 
 					var comStyles = getComputedStyle(this);
-					clonednode.style.fontFamily = comStyles.fontFamily;
+					clonednode.style.fontSize = comStyles.fontSize;
 					// Saves the computed styles as a hidden attribute of the original node
 					this.htmlStudioComputedStyles = clonednode.getAttribute('style') || '';
 					// Other styles to make them transparent (since they are just an overlay)
 					// And to keep the crosshair cursor throughout the entire document
 					if (!skipListeners) clonednode.style.cursor = 'crosshair';
-					clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = clonednode.style.color = clonednode.style[clonednode instanceof SVGElement ? 'stroke' : 'borderColor'] = 'rgba(0,0,0,0)'
+					if ((clonednode instanceof this.ownerDocument.defaultView.SVGElement || clonednode.ownerSVGElement) && clonednode.nodeName.toLowerCase() != 'svg') {
+						clonednode.setAttribute('fill', clonednode.style.fill = 'rgba(0,0,0,0)');
+						clonednode.setAttribute('stroke', clonednode.style.stroke = 'rgba(0,0,0,0)');
+						clonednode.setAttribute('opacity', clonednode.style.opacity = 1);
+					} else {
+						clonednode.style.background = clonednode.style.borderColor = clonednode.style.color = 'rgba(0,0,0,0)';
+						clonednode.style.opacity = 1;
+					}
 					clonednode.style.boxShadow = '';
 					if (this.htmlStudioTextBeingEdited) clonednode.setAttribute('data-html-studio-text-being-edited', 'true');
 
@@ -2656,6 +3648,7 @@ function main(){
 		overlay.style.boxShadow = '';
 		overlay.style.fontFamily = (overlay.style.fontFamily || '') + ', serif';
 
+		overlay.style.height = getComputedStyle(framewindow.document.body).height;
 		document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
 
 		restoreSelection();
@@ -2665,11 +3658,19 @@ function main(){
 
 
 	// Some global functions used in different areas
-	// Array.prototype.forEach
+	// Array.prototype.forEach that works for all iterable objects
 	function forEach(array, func) {
 		if (!array) return;
 		for (var i = 0; i < array.length; i++) {
-			if (func.call(array[i], array[i], i, array) == 'break') return;
+			if (func.call(array[i], array[i], i, array) == 'break') return false;
+		}
+		return true;
+	}
+
+	function loop(num, func, thisVal) {
+		if (!num) return;
+		for (var i = 0; i < num; i++) {
+			if (func.call(thisVal || i,i,num) == 'break') return;
 		}
 	}
 
@@ -2702,15 +3703,21 @@ function main(){
 			if (position === false) return;
 			if (this.createTextRange) {
 				e.preventDefault();
-				this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
-				var range = this.createTextRange();
-				this.move('character', position + 1);
-				range.select();
+				if (document.queryCommandSupported('insertText')) document.execCommand('insertText',null,'\t');
+				else {
+					this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+					var range = this.createTextRange();
+					this.move('character', position + 1);
+					range.select();
+				}
 			} else if (typeof this.selectionStart == 'number') {
 				e.preventDefault();
-				this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
-				this.focus();
-				this.setSelectionRange(position + 1, position + 1);
+				if (document.queryCommandSupported('insertText')) document.execCommand('insertText',null,'\t');
+				else {
+					this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+					this.focus();
+					this.setSelectionRange(position + 1, position + 1);
+				}
 			}
 		}
 	}
@@ -2814,7 +3821,13 @@ function main(){
 	function deselect () {
 		Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
 			element.removeAttribute('data-selected-element');
-			element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+			if ((element instanceof element.ownerDocument.defaultView.SVGElement || element.ownerSVGElement) && element.nodeName.toLowerCase() != 'svg') element.setAttribute('fill', element.style.fill = 'rgba(0,0,0,0)');
+			else element.style.background = 'rgba(0,0,0,0)';
+			if (element.nodeName in {tr:0,TR:0,tbody:0,TBODY:0,thead:0,THEAD:0,tfoot:0,TFOOT:0}) {
+				forEach(element.querySelectorAll('td'), function() {
+					this.style.background = 'rgba(0,0,0,0)';
+				});
+			}
 			forEach(element.boundRects, function() {
 				if (this.parentNode) this.parentNode.removeChild(this);
 			});
@@ -3024,27 +4037,52 @@ function main(){
 		e.stopPropagation();
 		if (clonednode.preventClick) return clonednode.preventClick = false;
 		if ('set' in e) {
-			clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+			if ((clonednode instanceof clonednode.ownerDocument.defaultView.SVGElement || clonednode.ownerSVGElement) && clonednode.nodeName.toLowerCase() != 'svg') clonednode.setAttribute('fill', clonednode.style.fill = 'rgba(0,0,0,0)');
+			else clonednode.style.background = 'rgba(0,0,0,0)';
 			clonednode.setAttribute('data-selected-element', e.set ? 'selected' : '');
-			var nodes = document.querySelectorAll('[data-selected-element=selected]');
-			updateTooltip();
 		} else if (e.shiftKey) {
-			clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+			if ((clonednode instanceof clonednode.ownerDocument.defaultView.SVGElement || clonednode.ownerSVGElement) && clonednode.nodeName.toLowerCase() != 'svg') clonednode.setAttribute('fill', clonednode.style.fill = 'rgba(0,0,0,0)');
+			else clonednode.style.background = 'rgba(0,0,0,0)';
 			clonednode.setAttribute('data-selected-element', clonednode.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
-			var nodes = document.querySelectorAll('[data-selected-element=selected]');
-			updateTooltip();
 		} else {
-			clonednode.style[clonednode instanceof SVGElement && clonednode.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(0,0,0,0)';
+			if ((clonednode instanceof clonednode.ownerDocument.defaultView.SVGElement || clonednode.ownerSVGElement) && clonednode.nodeName.toLowerCase() != 'svg') clonednode.setAttribute('fill', clonednode.style.fill = 'rgba(0,0,0,0)');
+			else clonednode.style.background = 'rgba(0,0,0,0)';
 			var selected = clonednode.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
 			deselect();
 			clonednode.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
-			updateTooltip();
 		}
 		if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 		else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 		updateTreeSelections();
 		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		updateTooltip();
+
+		if (contextmenus[0].node.parentNode || contextmenus[1].node.parentNode) {
+			var menu = contextmenus[0].node.parentNode ? contextmenus[0] : contextmenus[1];
+
+			if (selection.length == 0) menu.close();
+			else if (selection.length == 1) {
+				contextmenus[0].open();
+				var style = menu.node.style,
+					rect = contextmenus[0].node.getBoundingClientRect(),
+					x = parseFloat(style.left),
+					y = parseFloat(style.top);
+				contextmenus[0].node.style.left = x - (rect.width + x > window.innerWidth ? rect.width - window.innerWidth + x : 0) + 'px';
+				contextmenus[0].node.style.top = y - (rect.height + y > window.innerHeight ? rect.height - window.innerHeight + y + em() : 0) + 'px';
+				menu.close();
+				contextmenus[0].open();
+			} else {
+				contextmenus[1].open();
+				var style = menu.node.style,
+					rect = contextmenus[1].node.getBoundingClientRect(),
+					x = parseFloat(style.left),
+					y = parseFloat(style.top);
+				contextmenus[1].node.style.left = x - (rect.width + x > window.innerWidth ? rect.width - window.innerWidth + x : 0) + 'px';
+				contextmenus[1].node.style.top = y - (rect.height + y > window.innerHeight ? rect.height - window.innerHeight + y + em() : 0) + 'px';
+				menu.close();
+				contextmenus[1].open();
+			}
+		}
 
 		// Create bounding box lines
 		if (this.getAttribute('data-selected-element') == 'selected') {
@@ -3379,7 +4417,7 @@ function main(){
 					selection.addRange(range);
 					// Swap out the old parent for the new bigger-font clone
 					framewindow.document.execCommand('insertHTML', null, parent.innerHTML);
-					var replacedNode = ancestorParent.querySelector('[' + tempAttr + ']');
+					var replacedNode = this.querySelector('[' + tempAttr + ']');
 					replacedNode.removeAttribute(tempAttr);
 					range.selectNodeContents(replacedNode);
 					selection.removeAllRanges();
@@ -3400,7 +4438,7 @@ function main(){
 					// https://bugs.chromium.org/p/chromium/issues/detail?id=258512
 					// The parent element is divided instead of the html being added as a child
 					// There's no good way to fix this until the bug gets fixed
-					var replacedNode = ancestor.querySelector('[' + tempAttr + ']');
+					var replacedNode = this.querySelector('[' + tempAttr + ']');
 					replacedNode.removeAttribute(tempAttr);
 					range.selectNodeContents(replacedNode);
 					selection.removeAllRanges();
@@ -3636,7 +4674,7 @@ function main(){
 					selection.addRange(range);
 					// Swap out the old parent for the new bigger-font clone
 					framewindow.document.execCommand('insertHTML', null, parent.innerHTML);
-					var replacedNode = ancestorParent.querySelector('[' + tempAttr + ']');
+					var replacedNode = this.querySelector('[' + tempAttr + ']');
 					replacedNode.removeAttribute(tempAttr);
 					range.selectNodeContents(replacedNode);
 					selection.removeAllRanges();
@@ -3657,7 +4695,7 @@ function main(){
 					// https://bugs.chromium.org/p/chromium/issues/detail?id=258512
 					// The parent element is divided instead of the html being added as a child
 					// There's no good way to fix this until the bug gets fixed
-					var replacedNode = ancestor.querySelector('[' + tempAttr + ']');
+					var replacedNode = this.querySelector('[' + tempAttr + ']');
 					replacedNode.removeAttribute(tempAttr);
 					range.selectNodeContents(replacedNode);
 					selection.removeAllRanges();
@@ -3770,18 +4808,22 @@ function main(){
 		var obj = document.getElementById('ida').insertChild,
 			node = obj.nodeName == obj.textNode ? document.createTextNode(document.getElementById('idX').value) : document.createElement(obj.nodeName);
 		var symbol = Symbol();
-		var refNode = obj.children[obj.index] || {n:{s:symbol, previousSibling: obj.children[obj.children.length - 1].n}};
+		if (obj.children) {
+			var refNode = obj.children[obj.index] || {n:{s:symbol, previousSibling: obj.children[obj.children.length - 1].n}};
 
-		if (node.nodeType == 3 && (refNode.n.previousSibling || {nodeType: 0}).nodeType == 3) {
-			refNode.n.previousSibling.textContent += node.textContent;
-		} else if (node.nodeType == 3 && (refNode.n || {nodeType: 0}).nodeType == 3) {
-			refNode.n.textContent = node.textContent + refNode.n.textContent;
-		} else if (node.nodeType == 1 && refNode.n.nodeType == 1 && refNode.n.previousSibling.nodeType == 3 && !refNode.n.previousSibling.textContent.trim()) {
-			var text = refNode.n.previousSibling.textContent;
-			obj.element.insertBefore(node, refNode.n)
-			obj.element.insertBefore(document.createTextNode(text), refNode.n);
+			if (node.nodeType == 3 && (refNode.n.previousSibling || {}).nodeType == 3) {
+				refNode.n.previousSibling.textContent += node.textContent;
+			} else if (node.nodeType == 3 && (refNode.n || {}).nodeType == 3) {
+				refNode.n.textContent = node.textContent + refNode.n.textContent;
+			} else if (node.nodeType == 1 && refNode.n.nodeType == 1 && refNode.n.previousSibling && refNode.n.previousSibling.nodeType == 3 && !refNode.n.previousSibling.textContent.trim()) {
+				var text = refNode.n.previousSibling.textContent;
+				obj.element.insertBefore(node, refNode.n)
+				obj.element.insertBefore(document.createTextNode(text), refNode.n);
+			} else {
+				obj.element.insertBefore(node, refNode.n.s == symbol ? null : refNode.n);
+			}
 		} else {
-			obj.element.insertBefore(node, refNode.n.s == symbol ? null : refNode.n);
+			obj.element.appendChild(node);
 		}
 
 		document.getElementById('dialog_new_child').style.display = '';
@@ -3911,6 +4953,20 @@ function main(){
 		this.parentNode.className = 'topText';
 	});
 	document.getElementById('idQ').addEventListener('keydown', onEnter);
+
+	// Updates the element's attribute
+	document.getElementById('Idk').addEventListener('keyup', function() {
+		if (this.value.trim()) this.element.setAttribute(this.element.nodeName in {a:0,A:0} ? 'href' : 'src', this.value.trim());
+		else this.element.removeAttribute(this.element.nodeName in {a:0,A:0} ? 'href' : 'src');
+		deselect();
+		updateTooltip();
+	});
+	document.getElementById('Idk').addEventListener('blur', function() {
+		history.update('Edit ' + (this.element.nodeName in {a:0,A:0} ? 'href' : 'src'));
+		overlayUpdate();
+		this.parentNode.className = 'topText';
+	});
+	document.getElementById('Idk').addEventListener('keydown', onEnter);
 
 	// Updates the element's id
 	document.getElementById('idR').addEventListener('keyup', function() {
@@ -4737,7 +5793,7 @@ function main(){
 
 			updateTooltip();
 		// Ctrl + I
-		} else if (e.keyCode == 73 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+		} else if (e.keyCode == 73 && locale.cmdKeyPressed(e) && !e.shiftKey && !dialogOpen()) {
 			e.preventDefault();
 			e.stopPropagation();
 			contextmenus[6].getItem('invert').dispatchEvent(new MouseEvent('click'));
@@ -4750,7 +5806,7 @@ function main(){
 		} else if (e.keyCode == 40 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.preventDefault();
 			e.stopPropagation();
-			contextmenus[1].getItem('selectChildren').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+			contextmenus[1].getItem('selectChildren').execute(new MouseEvent('click', {shiftKey: e.shiftKey}), true);
 		// Ctrl + Left Arrow
 		} else if (e.keyCode == 37 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.preventDefault();
@@ -4779,6 +5835,15 @@ function main(){
 			e.stopPropagation();
 			e.preventDefault();
 			contextmenus[0].getItem('editId').dispatchEvent(new MouseEvent('click'));
+		// Ctrl + Shift + 8 (Ctrl + *)
+		} else if (e.keyCode == 56 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			if (nodes.length == 1) {
+				if (!contextmenus[0].getItem('editSrc').execute(false, true)) return;
+				if (!contextmenus[0].getItem('editHref').execute(false, true)) return;
+			} else if (nodes.length > 1) document.getElementById('attrNoEdit').className = 'topText active';
 		// Ctrl + .
 		} else if (e.keyCode == 190 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
@@ -4788,13 +5853,31 @@ function main(){
 		} else if (e.keyCode == 72 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			if (document.querySelectorAll('[data-selected-element="selected"]').length == 1) contextmenus[0].getItem('editHTML').dispatchEvent(new MouseEvent('click'));
-			else document.getElementById('htmlNoEdit').className = 'topText active';
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			if (nodes.length == 1) contextmenus[0].getItem('editHTML').dispatchEvent(new MouseEvent('click'));
+			else if (nodes.length > 1) document.getElementById('htmlNoEdit').className = 'topText active';
 		// Ctrl + Shift + D
 		} else if (e.keyCode == 68 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
 			contextmenus[0].getItem('duplicate').dispatchEvent(new MouseEvent('click'));
+		// Ctrl + S
+		} else if (e.keyCode == 83 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			openDialog('download');
+		// Ctrl + Q
+		} else if (e.keyCode == 81 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			if (nodes.length == 1) contextmenus[0].getItem('editStyle').execute(false, true);
+		// Ctrl + E
+		} else if (e.keyCode == 69 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			if (nodes.length == 1) contextmenus[0].getItem('editAttributes').execute(false, true);
 		// Alt + F
 		} else if (e.keyCode == 70 && e.altKey && !dialogOpen()) {
 			e.stopPropagation();
@@ -4823,6 +5906,17 @@ function main(){
 			closeHeaders();
 			document.getElementById('section_stylesheets').dispatchEvent(new MouseEvent('mousedown'));
 			contextmenus[5].getItem(0).focus();
+		// Ctrl + Shift + I
+		} else if (e.keyCode == 73 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
+			if (nodes.length == 1) contextmenus[0].getItem('insertChild').execute(false, true);
+		// Ctrl + U
+		} else if (e.keyCode == 85 && locale.cmdKeyPressed(e) && !dialogOpen()) {
+			e.stopPropagation();
+			e.preventDefault();
+			contextmenus[0].getItem('unwrap').execute(false, true);
 		}
 
 		// Allows Ctrl + C to be handled natively by the browser
@@ -4938,7 +6032,13 @@ function main(){
 		restoreSelection(selection);
 	})
 	addEventListener('resize', function() {
-		document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
+		frame.style.position = 'initial';
+		setTimeout(function() {
+			frame.style.position = '';
+			overlay.style.height = getComputedStyle(framewindow.document.body).height;
+			document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
+			framecontainer.dispatchEvent(new Event('scroll'));
+		}, 500);
 		var oldSelection = selection.slice();
 		overlayUpdate();
 		restoreSelection(oldSelection);
@@ -4957,6 +6057,9 @@ function main(){
 	});
 	addEventListener('unload', function() {
 		if (!document.getElementById('overwrite_warning').style.display) storage.set('session', 0);
+	});
+	addEventListener('selectstart', function(e) {
+		if (e.target.root && HTMLStudio.ContextMenu.isInstance(e.target.root)) e.preventDefault();
 	});
 
 
@@ -5001,8 +6104,9 @@ function main(){
 			tempColor = gradient(document.querySelector('#Ide div:first-child').userColor || userPrefs.nodeSelectionColor[0], document.querySelector('#Ide div:last-child').userColor || userPrefs.nodeSelectionColor[1]);
 
 		document.getElementById('Idg').style.background = 'rgba(' + tempColor[0] + ',' + tempColor[1] + ',' + tempColor[2] + ',' + tempColor[3] + ')';
-		forEach(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
-			element.style[element instanceof SVGElement && element.nodeName.toLowerCase() != 'svg' ? 'fill' : 'background'] = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')';
+		forEach(document.querySelectorAll('[data-selected-element=selected]:not(tr):not(thead):not(tbody):not(tfoot), tr[data-selected-element=selected] td, thead[data-selected-element=selected] td, tbody[data-selected-element=selected] td, tfoot[data-selected-element=selected] td'), function(element) {
+			if ((element instanceof element.ownerDocument.defaultView.SVGElement || element.ownerSVGElement) && element.nodeName.toLowerCase() != 'svg') element.setAttribute('fill', element.style.fill = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')');
+			else element.style.background = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')';
 		});
 		forEach(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
 			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + progress * userPrefs.nodeSelectionColor[0][3] + ')';
