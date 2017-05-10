@@ -1,5 +1,21 @@
 !function() {
 	"use strict";
+
+	// Import JSON with all CSS properties
+	// https://www.chromestatus.com/metrics/css/timeline/popularity
+	var properties;
+	!function() {
+		var request = new XMLHttpRequest();
+		request.open('GET', 'script/CSS_properties.json', true);
+
+		request.onreadystatechange = function() {
+			if (this.readyState === 4) properties = this.status >= 200 && this.status < 400 ? JSON.parse(this.responseText) : [];
+		};
+
+		request.send();
+		request = null;
+	}();
+
 	var includeSelectors = false;
 	(window.HTMLStudio = window.HTMLStudio || {}).CSSEditor = function CSSEditor() {
 		var root = this.node = document.createElement('div');
@@ -194,6 +210,7 @@
 		this.nameNode = document.createElement('input');
 		this.nameNode.className = 'cssStyleName';
 		this.nameNode.type = 'text';
+		if (HTMLStudio.autoFill && properties) HTMLStudio.autoFill(this.nameNode, properties, true);
 		container.appendChild(this.nameNode);
 		this.nameNode.addEventListener('keydown', nameKeyPress);
 		this.nameNode.addEventListener('blur', blur);
@@ -268,6 +285,8 @@
 						if (context) {
 							var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
 							if (!match || match[0].length != context.length || context.trim()[context.trim().length - 1] != ',') break testForComma;
+						} else {
+							break testForComma;
 						}
 					}
 					return;

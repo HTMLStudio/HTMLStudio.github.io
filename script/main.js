@@ -19,7 +19,22 @@ var debug = {
 	}
 }
 
+
 !function(){
+
+var cssProperties
+
+!function() {
+	var request = new XMLHttpRequest();
+	request.open('GET', 'script/CSS_properties.json', true);
+
+	request.onreadystatechange = function() {
+		if (this.readyState === 4) cssProperties = this.status >= 200 && this.status < 400 ? JSON.parse(this.responseText) : [];
+	};
+
+	request.send();
+	request = null;
+}();
 
 /*! modernizr 3.3.1 (Custom Build) | MIT *
  * https://modernizr.com/download/?-csspositionsticky-setclasses !*/
@@ -298,6 +313,25 @@ function main(){
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
 						});
+						if (node.nodeName == 'TABLE') {
+							var tbody = framewindow.document.createElement('tbody');
+							tbody.innerHTML = '<tr><td>&nbsp;</td></tr>';
+							node.alias.appendChild(tbody);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Row');
+							clickhandler.call(tbody.firstElementChild.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						} else if (!node.firstElementChild) {
+							var tr = framewindow.document.createElement('tr');
+							tr.innerHTML = '<td>&nbsp;</td>';
+							node.alias.appendChild(tr);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Row');
+							clickhandler.call(tr.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						}
 						deselect();
 						clickhandler.call(node.firstElementChild, pseudoEvent.__extend__({set: true}));
 						contextmenus[0].getItem('insertRowAbove').execute(new MouseEvent('click', {shiftKey: true}), true);
@@ -319,6 +353,25 @@ function main(){
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
 						});
+						if (node.nodeName == 'TABLE') {
+							var tbody = framewindow.document.createElement('tbody');
+							tbody.innerHTML = '<tr><td>&nbsp;</td></tr>';
+							node.alias.appendChild(tbody);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Row');
+							clickhandler.call(tbody.firstElementChild.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						} else if (!node.firstElementChild) {
+							var tr = framewindow.document.createElement('tr');
+							tr.innerHTML = '<td>&nbsp;</td>';
+							node.alias.appendChild(tr);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Row');
+							clickhandler.call(tr.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						}
 						deselect();
 						clickhandler.call(node.lastElementChild, pseudoEvent.__extend__({set: true}));
 						contextmenus[0].getItem('insertRowBelow').execute(new MouseEvent('click', {shiftKey: true}), true);
@@ -340,6 +393,25 @@ function main(){
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
 						});
+						if (node.nodeName == 'TABLE') {
+							var tbody = framewindow.document.createElement('tbody');
+							tbody.innerHTML = '<tr><td>&nbsp;</td></tr>';
+							node.alias.appendChild(tbody);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Column');
+							clickhandler.call(tbody.firstElementChild.firstElementChild.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						} else if (!node.firstElementChild) {
+							var tr = framewindow.document.createElement('tr');
+							tr.innerHTML = '<td>&nbsp;</td>';
+							node.alias.appendChild(tr);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Column');
+							clickhandler.call(tr.firstElementChild.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						}
 						deselect();
 						clickhandler.call(node.firstElementChild.firstElementChild, pseudoEvent.__extend__({set: true}));
 						contextmenus[0].getItem('insertColLeft').execute(new MouseEvent('click', {shiftKey: true}), true);
@@ -355,11 +427,31 @@ function main(){
 				},{
 					name: 'Append Column',
 					func: function(_,close) {
+						close();
 						var node = document.querySelectorAll('[data-selected-element=selected]');
 						if (node.length != 1) return this.disabled = true;
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
 						});
+						if (node.nodeName == 'TABLE') {
+							var tbody = framewindow.document.createElement('tbody');
+							tbody.innerHTML = '<tr><td>&nbsp;</td></tr>';
+							node.alias.appendChild(tbody);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Column');
+							clickhandler.call(tbody.firstElementChild.firstElementChild.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						} else if (!node.firstElementChild) {
+							var tr = framewindow.document.createElement('tr');
+							tr.innerHTML = '<td>&nbsp;</td>';
+							node.alias.appendChild(tr);
+							deselect();
+							overlayUpdate();
+							history.update('Insert Column');
+							clickhandler.call(tr.firstElementChild.alias, pseudoEvent.__extend__({set: true}));
+							return;
+						}
 						var info = {};
 						// Store <table> in info
 						info.table = node.alias.parentNode.nodeName == 'TABLE' ? node.alias.parentNode : null;
@@ -1046,7 +1138,7 @@ function main(){
 						var element = document.querySelector('[data-selected-element=selected]');
 						if (!element) return;
 						openDialog('edit_html');
-						document.getElementById('idf').value = element.alias[(element.alias == framewindow.document.body ? 'inn' : 'out')+ 'erHTML'];
+						document.getElementById('idf').value = HTMLStudio.formatHTML.prettify(element.alias, element.alias == framewindow.document.body);
 						document.getElementById('idf').linkedElement = element.alias;
 					},
 					title: '(' + locale.cmdKey + ' + H) Lets you edit the node\'s HTML',
@@ -1276,6 +1368,9 @@ function main(){
 									(element.parentNode.parentNode == finaltr && !element.parentNode.nextElementSibling && !finaltr.children[0].children[0].value && !finaltr.children[1].children[0].value ? document.getElementById('idt') : element.parentNode.nextElementSibling ? element.parentNode.nextElementSibling.children[0] : element.parentNode.parentNode.nextElementSibling.children[0].children[0]).focus();
 								}
 							});
+						});
+						forEach(document.querySelectorAll('.cl1'), function() {
+							HTMLStudio.autoFill(this, cssProperties, true);
 						});
 						document.querySelector('#idv tr:first-child input').focus();
 					},
@@ -1519,8 +1614,9 @@ function main(){
 					}
 				},{
 					name: 'Delete Element',
-					func: function(_,close) {
-						document.querySelector('[data-selected-element=selected]').alias.parentNode.removeChild(document.querySelector('[data-selected-element=selected]').alias);
+					func: function(_,close,node) {
+						if (!(node = document.querySelector('[data-selected-element=selected]'))) return
+						node.alias.parentNode.removeChild(node.alias);
 						overlayUpdate();
 						history.update('Delete element');
 						close();
@@ -2257,6 +2353,7 @@ function main(){
 						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						for (var i = elements.length - 1; i >= 0; i--) {
 							if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
+							else if (elements[i].alias == framewindow.document.body) elements[i].alias.innerHTML = '';
 						}
 						overlayUpdate();
 						history.update((this.cut ? 'Cut element' : 'Delete element') + (elements.length > 1 ? 's' : ''));
@@ -3614,6 +3711,10 @@ function main(){
 							clonednode.alias.addEventListener('error',resize);
 						}
 					}
+					// Keep track of SVG elements
+					if (clonednode.nodeName.toLowerCase() == 'svg' || parent.htmlStudioIsSVG) {
+						clonednode.htmlStudioIsSVG = true;
+					}
 					// Prevent conflicting ids and incorrect inheritance from non-user style sheets
 					clonednode.removeAttribute('id');
 					// Prevent incorrect inheritance from non-user stylesheets
@@ -3688,42 +3789,6 @@ function main(){
 	function onEnter(e) {
 		if (e.keyCode == 13) this.blur();
 	}
-
-	// Used for event listeners to input tab into text element instead of blurring it
-	function onTab(e) {
-		if (e.keyCode == 9) {
-			var position = false;
-			if (document.selection) {
-				this.focus();
-				var range = document.selection.createRange();
-				range.moveStart('character', -this.value.length);
-				position = range.text.length;
-			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
-
-			if (position === false) return;
-			if (this.createTextRange) {
-				e.preventDefault();
-				if (document.queryCommandSupported('insertText')) document.execCommand('insertText',null,'\t');
-				else {
-					this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
-					var range = this.createTextRange();
-					this.move('character', position + 1);
-					range.select();
-				}
-			} else if (typeof this.selectionStart == 'number') {
-				e.preventDefault();
-				if (document.queryCommandSupported('insertText')) document.execCommand('insertText',null,'\t');
-				else {
-					this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
-					this.focus();
-					this.setSelectionRange(position + 1, position + 1);
-				}
-			}
-		}
-	}
-
-	// Prevent blurring when the user presses tab for Edit HTML <textarea>
-	document.getElementById('idf').addEventListener('keydown', onTab);
 
 	// Restores a user's selection (like when the window is resized and selected element are deleted)
 	function restoreSelection(preset) {
@@ -4154,6 +4219,146 @@ function main(){
 		this.addEventListener('touchend', prevent);
 		this.addEventListener('touchcancel', prevent);
 		this.addEventListener('dblclick', prevent);
+	});
+
+	// Allows for more code-friendly editing in the Edit as HTML/XML <textarea>
+	document.getElementById('idf').addEventListener('keydown', function(e) {
+		// Inserts a tab character on Tab instead of focusing next element
+		if (e.keyCode == 9 && !e.altKey && !e.metaKey && !e.ctrlKey) {
+			var position = false;
+			if (document.selection) {
+				this.focus();
+				var range = document.selection.createRange();
+				range.moveStart('character', -this.value.length);
+				position = range.text.length;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+			if (position === false) return;
+			if (typeof this.selectionStart == 'number') {
+				e.preventDefault();
+				// Check if selection spans multiple lines
+				// If yes, add tab to beginning of each selected line (or take away if shift is held)
+				if (this.value.substring(this.selectionStart, this.selectionEnd).includes('\n')) {
+					var start = this.selectionStart,
+						end = this.selectionEnd,
+						dir = this.selectionDirection;
+
+					var newLines = (this.value.substring(0, this.selectionStart).match(/\n/g) || {length:0}).length;
+					this.selectionStart = this.value.match(new RegExp('(?:.*\\n){' + newLines + '}'))[0].length;
+					this.selectionEnd += this.value.substring(this.selectionEnd).match(/.*/)[0].length;
+
+					// Take away a tab or four spaces from the beginning of each selected line
+					if (e.shiftKey) {
+						var lostTabs = (function(self) {
+							var a = 0;
+							forEach(self.value.substring(self.selectionStart, self.selectionEnd).match(/(?:^|\n)(?:\t|    )/g) || [], function() {
+								a += this.match(/\t|    /)[0].length;
+							});
+							return a;
+						})(this),
+							startTab = this.value.substring(this.selectionStart, start).match(/^(\t| {1,3}$|    |)/)[1].length;
+						if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, this.value.substring(this.selectionStart, this.selectionEnd).replace(/(^|\n)(?:\t|    )/g,'$1')));
+						else this.value = this.value.substring(0, this.selectionStart) + this.value.substring(this.selectionStart, this.selectionEnd).replace(/(^|\n)(?:\t|    )/g,'$1') + this.value.substring(this.selectionEnd);
+						this.selectionStart = start - startTab;
+						this.selectionEnd = end - lostTabs;
+					// Add a tab to the beginning of each selected line
+					} else {
+						var newTabs  = this.value.substring(this.selectionStart, this.selectionEnd).match(/(?:^|\n)/g).length;
+						if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, this.value.substring(this.selectionStart, this.selectionEnd).replace(/(?:^|\n)/g,'$&\t')));
+						else this.value = this.value.substring(0, this.selectionStart) + this.value.substring(this.selectionStart, this.selectionEnd).replace(/(?:^|\n)/g,'$&\t') + this.value.substring(this.selectionEnd);
+						this.selectionStart = start + 1;
+						this.selectionEnd = end + newTabs;
+					}
+					this.selectionDirection = dir;
+				// Else add a tab at the caret
+				} else {
+					if (document.queryCommandSupported('insertText')) document.execCommand('insertText', null, '\t');
+					else {
+						this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+						this.focus();
+						this.setSelectionRange(position + 1, position + 1);
+					}
+				}
+			} else if (this.createTextRange) {
+				e.preventDefault();
+				if (document.queryCommandSupported('insertText')) document.execCommand('insertText', null, '\t');
+				else {
+					this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+					var range = this.createTextRange();
+					this.move('character', position + 1);
+					range.select();
+				}
+			}
+		// Automatically adds current line's indentation on Enter
+		} else if (e.keyCode == 13 && !e.altKey && !e.metaKey && !e.ctrlKey) {
+			var position = false;
+			if (document.selection) {
+				this.focus();
+				var range = document.selection.createRange();
+				range.moveStart('character', -this.value.length);
+				position = range.text.length;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+			if (position === false) return;
+			if (typeof this.selectionStart == 'number') {
+				e.preventDefault();
+				var indentation = this.value.substring(0, this.selectionStart).match(/(?:^|\n)([ \t]*).*$/)[1];
+				if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, '\n' + indentation));
+				else {
+					var start = this.selectionStart;
+					this.value = this.value.substring(0, start) + '\n' + indentation + this.value.substring(this.selectionEnd);
+					this.selectionStart = this.selectionEnd = start + 1 + indentation.length;
+				}
+			} else if (this.createTextRange) {
+				var indentation = this.value.substring(0, position).match(/(?:^|\n)([ \t]*).*$/)[1];
+				this.value = this.value.substring(0,position) + '\n' + indentation + this.value.substring(position);
+				var range = this.createTextRange();
+				this.move('character', position + 1 + indentation.length);
+				range.select();
+			}
+			e.preventDefault();
+		// Focus Save button on Enter + any function key
+		} else if (e.keyCode == 13 && (e.altKey || e.metaKey || e.ctrlKey)) {
+			document.getElementById('idd').focus();
+			e.stopPropagation();
+		// Go to beginning of line text on Home instead of the very beginning of the line
+		} else if (e.keyCode == 36) {
+			var position = false;
+			if (document.selection) {
+				this.focus();
+				var range = document.selection.createRange();
+				range.moveStart('character', -this.value.length);
+				position = range.text.length;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+			if (position === false) return;
+			if (typeof this.selectionStart == 'number') {
+				var before = this.value.substring(0, this.selectionDirection == 'backward' ? this.selectionStart : this.selectionEnd).match(/(?:.*\n)*/)[0],
+					line = this.value.replace(before, ''),
+					wsLength = line.match(/^[ \t]*/)[0].length;
+				if (!wsLength || (this.selectionDirection == 'backward' ? this.selectionStart : this.selectionEnd) == before.length + wsLength) return;
+				e.preventDefault();
+				var home = before.length + wsLength
+				if (!e.shiftKey) this.selectionStart = this.selectionEnd = home;
+				else if (this.selectionStart == this.selectionEnd && this.selectionStart < home) {
+					this.selectionEnd = home;
+					this.selectionDirection = 'forward';
+				} else if (this.selectionStart == this.selectionEnd && this.selectionStart > home) {
+					this.selectionStart = home;
+					this.selectionDirection = 'backward';
+				} else if (this.selectionDirection == 'backward' && this.selectionStart < home && this.selectionEnd <= home) {
+					this.selectionStart = this.selectionEnd;
+					this.selectionEnd = home;
+					this.selectionDirection = 'forward';
+				} else if (this.selectionDirection == 'backward' && this.selectionEnd > home) this.selectionStart = home;
+				else if (this.selectionStart < home) this.selectionEnd = home;
+				else if (this.selectionStart >= home && this.selectionEnd > home) {
+					this.selectionEnd = this.selectionStart;
+					this.selectionStart = home;
+					this.selectionDirection = 'backward';
+				}
+			}
+		}
 	});
 
 	document.getElementById('etopt_bold').addEventListener('click', function(e) {
@@ -4786,7 +4991,7 @@ function main(){
 			return filename + '.html';
 		}
 		framewindow.document.documentElement.style.overflowY = '';
-		HTMLStudio.saveAs(new Blob(['<!DOCTYPE html>' + HTMLStudio.minifyHTML()], {type: 'text/html'}), toFileName(document.getElementById('Ida').value) || toFileName(document.getElementById('title').value) || 'index.html');
+		HTMLStudio.saveAs(new Blob(['<!DOCTYPE html>' + HTMLStudio.formatHTML.minify()], {type: 'text/html'}), toFileName(document.getElementById('Ida').value) || toFileName(document.getElementById('title').value) || 'index.html');
 		framewindow.document.documentElement.style.overflowY = 'hidden';
 	});
 
@@ -5510,16 +5715,22 @@ function main(){
 	document.getElementById('idd').addEventListener('click', function() {
 		var textarea = document.getElementById('idf'), template = document.createElement('template');
 		if (textarea.linkedElement == framewindow.document.body) {
-			return framewindow.document.body.innerHTML = textarea.value,closeDialogs(),overlayUpdate(),history.update('Edit HTML');
+			framewindow.document.body.innerHTML = textarea.value;
+			closeDialogs();
+			overlayUpdate();
+			history.update('Edit HTML');
+			return;
 		}
 		template.innerHTML = textarea.value;
-		var children = template.content.childNodes;
-		for (var i = children.length - 1; i >= 0; i--) {
-			textarea.linkedElement.parentNode.insertBefore(children[i], i == children.length - 1 ? textarea.linkedElement.nextSibling : children[i + 1]);
-		}
+		var firstChildren = Array.prototype.slice.call(template.content.children);
+		textarea.linkedElement.parentNode.insertBefore(template.content, textarea.linkedElement);
 		textarea.linkedElement.parentNode.removeChild(textarea.linkedElement);
 		overlayUpdate(false, true);
 		history.update('Edit HTML');
+		deselect();
+		forEach(firstChildren, function() {
+			clickhandler.call(this.alias, pseudoEvent.__extend__({set: true}));
+		});
 		closeDialogs();
 	});
 
@@ -5801,7 +6012,7 @@ function main(){
 		} else if (e.keyCode == 38 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.preventDefault();
 			e.stopPropagation();
-			contextmenus[1].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+			contextmenus[1].getItem('selectParent').execute(new MouseEvent('click', {shiftKey: e.shiftKey}), true);
 		// Ctrl + Down Arrow
 		} else if (e.keyCode == 40 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.preventDefault();
@@ -5811,12 +6022,12 @@ function main(){
 		} else if (e.keyCode == 37 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.preventDefault();
 			e.stopPropagation();
-			contextmenus[6].getItem('selectPreviousSibling').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+			contextmenus[6].getItem('selectPreviousSibling').execute(new MouseEvent('click', {shiftKey: e.shiftKey}), true);
 		// Ctrl + Right Arrow
 		} else if (e.keyCode == 39 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.preventDefault();
 			e.stopPropagation();
-			contextmenus[6].getItem('selectNextSibling').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+			contextmenus[6].getItem('selectNextSibling').execute(new MouseEvent('click', {shiftKey: e.shiftKey}), true);
 		// Ctrl + X
 		} else if (e.keyCode == 88 && locale.cmdKeyPressed(e) && target == clipboard && !dialogOpen()) {
 			prepareCopy(e.shiftKey);

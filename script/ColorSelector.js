@@ -18,13 +18,20 @@
 
 
 	// Import JSON with all CSS named color values
-	var colors;
+	var colors,
+		colorArray = [];
 	!function() {
 		var request = new XMLHttpRequest();
 		request.open('GET', 'script/CSS_colors.json', true);
 
 		request.onreadystatechange = function() {
-			if (this.readyState === 4) colors = this.status >= 200 && this.status < 400 ? JSON.parse(this.responseText) : {};
+			if (this.readyState === 4) {
+				colors = this.status >= 200 && this.status < 400 ? JSON.parse(this.responseText) : {};
+				for (var color in colors) {
+					colorArray.push(color);
+				}
+				colorArray.push('rgb(','hsl(','rgba(','hsla(')
+			}
 		};
 
 		request.send();
@@ -60,6 +67,7 @@
 		this.input = document.createElement('input');
 		this.input.type = 'text';
 		this.input.className = 'colorSelectorInput';
+		if (HTMLStudio.autoFill && colors) HTMLStudio.autoFill(this.input, colorArray, true, true);
 		this.node.appendChild(this.input);
 		this.input.addEventListener('keyup', function(e) {
 			var value = this.value.trim().toLowerCase();
@@ -67,10 +75,6 @@
 			var rgb = self.parse(value);
 			opacityText.innerText = '';
 			if (rgb) {
-				// Prevents resetting opacity to 100% when user uses CSS named color
-				if (colors && value in colors && rgb[3] == 1) {
-					rgb[3] = self.parse(self.trueColor)[3];
-				}
 				self.goTo(rgb);
 				this.color = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + rgb[3] + ')';
 				this.style.color = '';

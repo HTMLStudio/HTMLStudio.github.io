@@ -538,6 +538,10 @@
 			overflow: hidden;
 		}
 
+		#toolbarcontainer:not(.inactive) ~ #toolbargrabber {
+			pointer-events: none;
+		}
+
 		#toolbarcontainer.inactive ~ #toolbargrabber {
 			height: 2.5vw;
 			box-shadow: 0 0 5px 3px rgba(0,0,0,.18);
@@ -694,7 +698,7 @@
 			<div class='dialog_resizer_right'></div>
 		</div>
 		<div id='dialog_edit_html' class='dialog'>
-			<span>Edit Node as HTML</span>
+			<span>Edit Node as HTML/XML</span>
 			<div class='content' id='ide'>
 				<textarea id='idf' spellcheck='false'></textarea>
 			</div>
@@ -835,13 +839,10 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.4.1.1</h3></td>
+						<td><h3>Version 1.4.1.2</h3></td>
 					</tr>
 					<tr>
 						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
-					</tr>
-					<tr>
-						<td><h3><a href='dependencies' target='_blank'>Dependencies</a></h3></td>
 					</tr>
 					<tr>
 						<td><h3><a href='#' id='meta_license' tabindex='0'>License</a></h3></td>
@@ -863,7 +864,7 @@
 			<div class='content'>
 				<h3 id='idE'>Copyright 2017 Christian Figueroa <<a href='/' target='_blank'>https://christianfigueroa.github.io</a>><br><br>HTML Studio is licensed under the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version. View the webpages linked below for the full license.</h3>
 				<br>
-				<a href='license' target='_blank'>HTML</a>
+				<a href='license.html' target='_blank'>HTML</a>
 				<br>
 				<a href='license-plain.txt' target='_blank'>Plain Text</a>
 			</div>
@@ -1049,10 +1050,11 @@
 	</script>
 	<script type='text/javascript' src='script/DraggableElements.js' defer></script>
 	<script type="text/javascript" src='script/ContextMenu.js' defer></script>
+	<script type="text/javascript" src='script/autoFill.js' defer></script>
 	<script type="text/javascript" src='script/CSSEditor.js' defer></script>
 	<script type="text/javascript" src='script/Blob.js' defer></script>
 	<script type="text/javascript" src='script/saveAs.js' defer></script>
-	<script type="text/javascript" src='script/minifyHTML.js' defer></script>
+	<script type="text/javascript" src='script/formatHTML.js' defer></script>
 	<script type="text/javascript" src='script/parseSelector.js' defer></script>
 	<script type="text/javascript" src='script/ColorSelector.js' defer></script>
 	<script type="text/javascript" src='script/rangy.js' defer></script>

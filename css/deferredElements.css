@@ -98,6 +98,7 @@
 	padding: .75em 1.75em;
 	border: 0;
 	resize: none;
+	tab-size: 4;
 }
 
 #idi, #idu {
@@ -194,7 +195,7 @@
 }
 
 #idF h1 {
-	font-family: "Open Sans", Arial, sans-serif;
+	font-family: "Roboto Slab", "Open Sans", Arial, sans-serif;
 }
 
 #idG {

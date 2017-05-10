@@ -101,9 +101,8 @@ input:checked ~ .cssEditContainer .cssRule > input:focus + .cssSelectorDisplay {
 
 .cssStyleColon:after {
 	color: grey;
-	content: ": ";
+	content: ":";
 	font-size: initial;
-	white-space: pre;
 }
 
 .cssStyleValue {
