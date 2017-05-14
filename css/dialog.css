@@ -85,7 +85,7 @@
 	transition: all .15s linear;
 }
 
-.dialog .option:hover, .dialog>.option:focus {
+.dialog .option:hover, .dialog .option:focus {
 	background: -webkit-linear-gradient(top, #EEE 0%,#CCC 100%);
 	background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
 }

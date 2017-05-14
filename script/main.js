@@ -151,8 +151,9 @@ function main(){
 		return Math.round(document.getElementById('measurementReference').getBoundingClientRect().height * (arguments.length ? +arguments[0]: 1) * 1000) / 1000 + (arguments[1] ? 'px' : 0);
 	}
 	// Same for one pt
-	window.pt = function(){
-		return Math.round(document.getElementById('measurementReference').getBoundingClientRect().width * (arguments.length ? +arguments[0] : 1) * 1000) / 1000 + (arguments[1] ? 'px' : 0);
+	window.scrollBar = function(){
+		var ref = document.getElementById('measurementReference');
+		return Math.round((ref.offsetWidth - ref.scrollWidth) * (arguments.length ? +arguments[0] : 1) * 1000) / 1000;
 	}
 
 
@@ -1137,9 +1138,11 @@ function main(){
 						close();
 						var element = document.querySelector('[data-selected-element=selected]');
 						if (!element) return;
+						var idf = document.getElementById('idf');
+						idf.value = HTMLStudio.formatHTML.prettify(element.alias, element.alias == framewindow.document.body);
+						idf.linkedElement = element.alias;
+						idf.dispatchEvent(new Event('keydown'));
 						openDialog('edit_html');
-						document.getElementById('idf').value = HTMLStudio.formatHTML.prettify(element.alias, element.alias == framewindow.document.body);
-						document.getElementById('idf').linkedElement = element.alias;
 					},
 					title: '(' + locale.cmdKey + ' + H) Lets you edit the node\'s HTML',
 					separate: true,
@@ -1160,7 +1163,7 @@ function main(){
 						if (elements.length > 1) {
 							document.getElementById('attrNoEdit').className = 'topText active';
 						} else {
-							if (!(elements[0].alias.nodeName in {img:0,IMG:0})) return true;
+							if (!(elements[0].alias.nodeName == 'IMG')) return true;
 							editor.className = 'topText active';
 							Idk.element = elements[0].alias;
 							Idk.value = elements[0].alias.getAttribute('src') || '';
@@ -1174,7 +1177,7 @@ function main(){
 					condition: function() {
 						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
-						return node.alias.nodeName in {img:0,IMG:0};
+						return node.alias.nodeName == 'IMG';
 					},
 					id: 'editSrc'
 				},{
@@ -3717,6 +3720,8 @@ function main(){
 					}
 					// Prevent conflicting ids and incorrect inheritance from non-user style sheets
 					clonednode.removeAttribute('id');
+					if (this.getAttribute('id') == '') this.removeAttribute('id');
+					if (this.getAttribute('class') == '') this.removeAttribute('class');
 					// Prevent incorrect inheritance from non-user stylesheets
 					clonednode.removeAttribute('class');
 					// Prevents the user from editting the inner text
@@ -4221,145 +4226,271 @@ function main(){
 		this.addEventListener('dblclick', prevent);
 	});
 
-	// Allows for more code-friendly editing in the Edit as HTML/XML <textarea>
-	document.getElementById('idf').addEventListener('keydown', function(e) {
-		// Inserts a tab character on Tab instead of focusing next element
-		if (e.keyCode == 9 && !e.altKey && !e.metaKey && !e.ctrlKey) {
-			var position = false;
-			if (document.selection) {
-				this.focus();
-				var range = document.selection.createRange();
-				range.moveStart('character', -this.value.length);
-				position = range.text.length;
-			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+	!function(idf) {
+		// Allows for more code-friendly editing in the Edit as HTML/XML <textarea>
+		idf.addEventListener('keydown', function(e) {
+			this.lines = 0;
+			// Inserts a tab character on Tab instead of focusing next element
+			if (e.keyCode == 9 && !e.altKey && !e.metaKey && !e.ctrlKey) {
+				var position = false;
+				if (document.selection) {
+					this.focus();
+					var range = document.selection.createRange();
+					range.moveStart('character', -this.value.length);
+					position = range.text.length;
+				} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
 
-			if (position === false) return;
-			if (typeof this.selectionStart == 'number') {
-				e.preventDefault();
-				// Check if selection spans multiple lines
-				// If yes, add tab to beginning of each selected line (or take away if shift is held)
-				if (this.value.substring(this.selectionStart, this.selectionEnd).includes('\n')) {
-					var start = this.selectionStart,
-						end = this.selectionEnd,
-						dir = this.selectionDirection;
+				if (position === false) return;
+				if (typeof this.selectionStart == 'number') {
+					e.preventDefault();
+					// Check if selection spans multiple lines
+					// If yes, add tab to beginning of each selected line (or take away if shift is held)
+					if (this.value.substring(this.selectionStart, this.selectionEnd).includes('\n')) {
+						var start = this.selectionStart,
+							end = this.selectionEnd,
+							dir = this.selectionDirection;
 
-					var newLines = (this.value.substring(0, this.selectionStart).match(/\n/g) || {length:0}).length;
-					this.selectionStart = this.value.match(new RegExp('(?:.*\\n){' + newLines + '}'))[0].length;
-					this.selectionEnd += this.value.substring(this.selectionEnd).match(/.*/)[0].length;
+						var newLines = (this.value.substring(0, this.selectionStart).match(/\n/g) || {length:0}).length;
+						this.selectionStart = this.value.match(new RegExp('(?:.*\\n){' + newLines + '}'))[0].length;
+						this.selectionEnd += this.value.substring(this.selectionEnd).match(/.*/)[0].length;
 
-					// Take away a tab or four spaces from the beginning of each selected line
-					if (e.shiftKey) {
-						var lostTabs = (function(self) {
-							var a = 0;
-							forEach(self.value.substring(self.selectionStart, self.selectionEnd).match(/(?:^|\n)(?:\t|    )/g) || [], function() {
-								a += this.match(/\t|    /)[0].length;
-							});
-							return a;
-						})(this),
-							startTab = this.value.substring(this.selectionStart, start).match(/^(\t| {1,3}$|    |)/)[1].length;
-						if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, this.value.substring(this.selectionStart, this.selectionEnd).replace(/(^|\n)(?:\t|    )/g,'$1')));
-						else this.value = this.value.substring(0, this.selectionStart) + this.value.substring(this.selectionStart, this.selectionEnd).replace(/(^|\n)(?:\t|    )/g,'$1') + this.value.substring(this.selectionEnd);
-						this.selectionStart = start - startTab;
-						this.selectionEnd = end - lostTabs;
-					// Add a tab to the beginning of each selected line
+						// Take away a tab or four spaces from the beginning of each selected line
+						if (e.shiftKey) {
+							var lostTabs = (function(self) {
+								var a = 0;
+								forEach(self.value.substring(self.selectionStart, self.selectionEnd).match(/(?:^|\n)(?:\t|    )/g) || [], function() {
+									a += this.match(/\t|    /)[0].length;
+								});
+								return a;
+							})(this),
+								startTab = this.value.substring(this.selectionStart, start).match(/^(\t| {1,3}$|    |)/)[1].length;
+							if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, this.value.substring(this.selectionStart, this.selectionEnd).replace(/(^|\n)(?:\t|    )/g,'$1')));
+							else this.value = this.value.substring(0, this.selectionStart) + this.value.substring(this.selectionStart, this.selectionEnd).replace(/(^|\n)(?:\t|    )/g,'$1') + this.value.substring(this.selectionEnd);
+							this.selectionStart = start - startTab;
+							this.selectionEnd = end - lostTabs;
+						// Add a tab to the beginning of each selected line
+						} else {
+							var newTabs  = this.value.substring(this.selectionStart, this.selectionEnd).match(/(?:^|\n)/g).length;
+							if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, this.value.substring(this.selectionStart, this.selectionEnd).replace(/(?:^|\n)/g,'$&\t')));
+							else this.value = this.value.substring(0, this.selectionStart) + this.value.substring(this.selectionStart, this.selectionEnd).replace(/(?:^|\n)/g,'$&\t') + this.value.substring(this.selectionEnd);
+							this.selectionStart = start + 1;
+							this.selectionEnd = end + newTabs;
+						}
+						this.selectionDirection = dir;
+					// Else add a tab at the caret
 					} else {
-						var newTabs  = this.value.substring(this.selectionStart, this.selectionEnd).match(/(?:^|\n)/g).length;
-						if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, this.value.substring(this.selectionStart, this.selectionEnd).replace(/(?:^|\n)/g,'$&\t')));
-						else this.value = this.value.substring(0, this.selectionStart) + this.value.substring(this.selectionStart, this.selectionEnd).replace(/(?:^|\n)/g,'$&\t') + this.value.substring(this.selectionEnd);
-						this.selectionStart = start + 1;
-						this.selectionEnd = end + newTabs;
+						if (document.queryCommandSupported('insertText')) document.execCommand('insertText', null, '\t');
+						else {
+							this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+							this.focus();
+							this.setSelectionRange(position + 1, position + 1);
+						}
 					}
-					this.selectionDirection = dir;
-				// Else add a tab at the caret
-				} else {
+				} else if (this.createTextRange) {
+					e.preventDefault();
 					if (document.queryCommandSupported('insertText')) document.execCommand('insertText', null, '\t');
 					else {
 						this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
-						this.focus();
-						this.setSelectionRange(position + 1, position + 1);
+						var range = this.createTextRange();
+						this.move('character', position + 1);
+						range.select();
 					}
 				}
-			} else if (this.createTextRange) {
-				e.preventDefault();
-				if (document.queryCommandSupported('insertText')) document.execCommand('insertText', null, '\t');
-				else {
-					this.value = this.value.substring(0,position) + '\t' + this.value.substring(position);
+				this.blur();
+				this.focus();
+			// Automatically adds current line's indentation on Enter
+			} else if (e.keyCode == 13 && !e.altKey && !e.metaKey && !e.ctrlKey) {
+				this.lines = this.value.match(/(?:\n|$)/g).length;
+				var position = false;
+				if (document.selection) {
+					this.focus();
+					var range = document.selection.createRange();
+					range.moveStart('character', -this.value.length);
+					position = range.text.length;
+				} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+				if (position === false) return;
+				if (typeof this.selectionStart == 'number') {
+					e.preventDefault();
+					var indentation = this.value.substring(0, this.selectionStart).match(/(?:^|\n)([ \t]*).*$/)[1];
+					if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, '\n' + indentation));
+					else {
+						var start = this.selectionStart;
+						this.value = this.value.substring(0, start) + '\n' + indentation + this.value.substring(this.selectionEnd);
+						this.selectionStart = this.selectionEnd = start + 1 + indentation.length;
+					}
+				} else if (this.createTextRange) {
+					var indentation = this.value.substring(0, position).match(/(?:^|\n)([ \t]*).*$/)[1];
+					this.value = this.value.substring(0,position) + '\n' + indentation + this.value.substring(position);
 					var range = this.createTextRange();
-					this.move('character', position + 1);
+					this.move('character', position + 1 + indentation.length);
 					range.select();
 				}
+				e.preventDefault();
+				this.blur();
+				this.focus();
+			// Focus Save button on Enter + any function key
+			} else if (e.keyCode == 13 && (e.altKey || e.metaKey || e.ctrlKey)) {
+				document.getElementById('idd').focus();
+				e.stopPropagation();
+			// Go to beginning of line text on Home instead of the very beginning of the line
+			} else if (e.keyCode == 36) {
+				var position = false;
+				if (document.selection) {
+					this.focus();
+					var range = document.selection.createRange();
+					range.moveStart('character', -this.value.length);
+					position = range.text.length;
+				} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+
+				if (position === false) return;
+				if (typeof this.selectionStart == 'number') {
+					var before = this.value.substring(0, this.selectionDirection == 'backward' ? this.selectionStart : this.selectionEnd).match(/(?:.*\n)*/)[0],
+						line = this.value.replace(before, ''),
+						wsLength = line.match(/^[ \t]*/)[0].length;
+					if (!wsLength || (this.selectionDirection == 'backward' ? this.selectionStart : this.selectionEnd) == before.length + wsLength) return;
+					e.preventDefault();
+					var home = before.length + wsLength
+					if (!e.shiftKey) this.selectionStart = this.selectionEnd = home;
+					else if (this.selectionStart == this.selectionEnd && this.selectionStart < home) {
+						this.selectionEnd = home;
+						this.selectionDirection = 'forward';
+					} else if (this.selectionStart == this.selectionEnd && this.selectionStart > home) {
+						this.selectionStart = home;
+						this.selectionDirection = 'backward';
+					} else if (this.selectionDirection == 'backward' && this.selectionStart < home && this.selectionEnd <= home) {
+						this.selectionStart = this.selectionEnd;
+						this.selectionEnd = home;
+						this.selectionDirection = 'forward';
+					} else if (this.selectionDirection == 'backward' && this.selectionEnd > home) this.selectionStart = home;
+					else if (this.selectionStart < home) this.selectionEnd = home;
+					else if (this.selectionStart >= home && this.selectionEnd > home) {
+						this.selectionEnd = this.selectionStart;
+						this.selectionStart = home;
+						this.selectionDirection = 'backward';
+					}
+				}
+				this.blur();
+				this.focus();
 			}
-		// Automatically adds current line's indentation on Enter
-		} else if (e.keyCode == 13 && !e.altKey && !e.metaKey && !e.ctrlKey) {
+		});
+
+		idf.addEventListener('keydown', function(e) {
+			this.lines = this.lines || this.value.match(/(?:\n|$)/g).length;
+			setTimeout(function() {
+				var lines = this.value.match(/(?:\n|$)/g).length,
+					Idl = document.getElementById('Idl'),
+					idf = document.getElementById('idf'),
+					length = 0;
+				if (this.lines == lines && e.isTrusted) return this.dispatchEvent(new Event('focus'));
+				Idl.innerHTML = '';
+				var digits = (lines + '').length,
+					frag = document.createDocumentFragment(),
+					position = false,
+					lineNumber = false;
+
+				if (document.selection) {
+					this.focus();
+					var range = document.selection.createRange();
+					range.moveStart('character', -this.value.length);
+					position = range.text.length;
+				} else if (typeof this.selectionStart == 'number') position = this.selectionDirection != 'backward' ? this.selectionEnd : this.selectionStart;
+
+				var lineNumber = !e.isTrusted && !this.matches(':hover') || position === false ? -1 : this.value.substring(0, position).match(/(\n|$)/g).length;
+
+				loop(lines, function() {
+					var div = document.createElement('div');
+					div.innerText = ' '.repeat(digits - (this + 1 + '').length) + (this + 1);
+					div.line = this + 1;
+					if (this + 1 == lineNumber) div.className = 'activeLine';
+					frag.appendChild(div);
+				});
+				Idl.appendChild(frag);
+				Idl.style.width = digits + 'ch';
+				Idl.style.paddingBottom = 'calc(.75rem + ' + scrollBar() + 'px)';
+			}.bind(this), 0);
+		});
+
+		idf.addEventListener('selectionchange', function() {
+			var position = false;
+
+			if (document.selection) {
+				this.focus();
+				var range = document.selection.createRange();
+				range.moveStart('character', -this.value.length);
+				position = range.text.length;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionDirection != 'backward' ? this.selectionEnd : this.selectionStart;
+
+			if (position === false) return;
+			var lineNumber = this.value.substring(0, position).match(/(\n|$)/g).length,
+				Idl = document.getElementById('Idl'),
+				div = Idl.querySelector('.activeLine');
+			if (div && div.line == lineNumber) return;
+			if (div) div.className = '';
+			if (Idl.children[lineNumber - 1]) Idl.children[lineNumber - 1].className = 'activeLine';
+		});
+
+		idf.addEventListener('mouseup', function() {
 			var position = false;
 			if (document.selection) {
 				this.focus();
 				var range = document.selection.createRange();
 				range.moveStart('character', -this.value.length);
 				position = range.text.length;
-			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionDirection != 'backward' ? this.selectionEnd : this.selectionStart;
 
 			if (position === false) return;
-			if (typeof this.selectionStart == 'number') {
-				e.preventDefault();
-				var indentation = this.value.substring(0, this.selectionStart).match(/(?:^|\n)([ \t]*).*$/)[1];
-				if (document.queryCommandSupported('insertText') && document.execCommand('insertText', null, '\n' + indentation));
-				else {
-					var start = this.selectionStart;
-					this.value = this.value.substring(0, start) + '\n' + indentation + this.value.substring(this.selectionEnd);
-					this.selectionStart = this.selectionEnd = start + 1 + indentation.length;
-				}
-			} else if (this.createTextRange) {
-				var indentation = this.value.substring(0, position).match(/(?:^|\n)([ \t]*).*$/)[1];
-				this.value = this.value.substring(0,position) + '\n' + indentation + this.value.substring(position);
-				var range = this.createTextRange();
-				this.move('character', position + 1 + indentation.length);
-				range.select();
-			}
-			e.preventDefault();
-		// Focus Save button on Enter + any function key
-		} else if (e.keyCode == 13 && (e.altKey || e.metaKey || e.ctrlKey)) {
-			document.getElementById('idd').focus();
-			e.stopPropagation();
-		// Go to beginning of line text on Home instead of the very beginning of the line
-		} else if (e.keyCode == 36) {
+			var lineNumber = this.value.substring(0, position).match(/(\n|$)/g).length,
+				Idl = document.getElementById('Idl'),
+				div = Idl.querySelector('.activeLine');
+			if (div && div.line == lineNumber) return;
+			if (div) div.className = '';
+			if (Idl.children[lineNumber - 1]) Idl.children[lineNumber - 1].className = 'activeLine';
+		});
+
+		idf.addEventListener('mousedown', function() {
 			var position = false;
+
 			if (document.selection) {
 				this.focus();
 				var range = document.selection.createRange();
 				range.moveStart('character', -this.value.length);
 				position = range.text.length;
-			} else if (typeof this.selectionStart == 'number') position = this.selectionStart;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionDirection != 'backward' ? this.selectionEnd : this.selectionStart;
 
 			if (position === false) return;
-			if (typeof this.selectionStart == 'number') {
-				var before = this.value.substring(0, this.selectionDirection == 'backward' ? this.selectionStart : this.selectionEnd).match(/(?:.*\n)*/)[0],
-					line = this.value.replace(before, ''),
-					wsLength = line.match(/^[ \t]*/)[0].length;
-				if (!wsLength || (this.selectionDirection == 'backward' ? this.selectionStart : this.selectionEnd) == before.length + wsLength) return;
-				e.preventDefault();
-				var home = before.length + wsLength
-				if (!e.shiftKey) this.selectionStart = this.selectionEnd = home;
-				else if (this.selectionStart == this.selectionEnd && this.selectionStart < home) {
-					this.selectionEnd = home;
-					this.selectionDirection = 'forward';
-				} else if (this.selectionStart == this.selectionEnd && this.selectionStart > home) {
-					this.selectionStart = home;
-					this.selectionDirection = 'backward';
-				} else if (this.selectionDirection == 'backward' && this.selectionStart < home && this.selectionEnd <= home) {
-					this.selectionStart = this.selectionEnd;
-					this.selectionEnd = home;
-					this.selectionDirection = 'forward';
-				} else if (this.selectionDirection == 'backward' && this.selectionEnd > home) this.selectionStart = home;
-				else if (this.selectionStart < home) this.selectionEnd = home;
-				else if (this.selectionStart >= home && this.selectionEnd > home) {
-					this.selectionEnd = this.selectionStart;
-					this.selectionStart = home;
-					this.selectionDirection = 'backward';
-				}
-			}
-		}
-	});
+			var lineNumber = this.value.substring(0, position).match(/(\n|$)/g).length,
+				Idl = document.getElementById('Idl'),
+				div = Idl.querySelector('.activeLine');
+			if (div && div.line == lineNumber) return;
+			if (div) div.className = '';
+			if (Idl.children[lineNumber - 1]) Idl.children[lineNumber - 1].className = 'activeLine';
+		});
+
+		idf.addEventListener('focus', function() {
+			var position = false;
+
+			if (document.selection) {
+				this.focus();
+				var range = document.selection.createRange();
+				range.moveStart('character', -this.value.length);
+				position = range.text.length;
+			} else if (typeof this.selectionStart == 'number') position = this.selectionDirection != 'backward' ? this.selectionEnd : this.selectionStart;
+
+			if (position === false) return;
+			var lineNumber = this.value.substring(0, position).match(/(\n|$)/g).length,
+				Idl = document.getElementById('Idl'),
+				div = Idl.querySelector('.activeLine');
+			if (div && div.line == lineNumber) return;
+			if (div) div.className = '';
+			if (Idl.children[lineNumber - 1]) Idl.children[lineNumber - 1].className = 'activeLine';
+		});
+
+		idf.addEventListener('blur', function() {
+			var div = document.getElementById('Idl').querySelector('.activeLine');
+			if (div) div.className = '';
+		});
+	}(document.getElementById('idf'));
 
 	document.getElementById('etopt_bold').addEventListener('click', function(e) {
 		e.stopPropagation();
@@ -5024,6 +5155,10 @@ function main(){
 				var text = refNode.n.previousSibling.textContent;
 				obj.element.insertBefore(node, refNode.n)
 				obj.element.insertBefore(document.createTextNode(text), refNode.n);
+			} else if (node.nodeType == 1 && !refNode.n.nodeType && refNode.n.previousSibling.nodeType == 1 && refNode.n.previousSibling.previousSibling && refNode.n.previousSibling.previousSibling.nodeType == 3 && !refNode.n.previousSibling.previousSibling.textContent.trim()) {
+				var text = refNode.n.previousSibling.previousSibling.textContent;
+				obj.element.appendChild(document.createTextNode(text));
+				obj.element.appendChild(node);
 			} else {
 				obj.element.insertBefore(node, refNode.n.s == symbol ? null : refNode.n);
 			}
@@ -5715,7 +5850,7 @@ function main(){
 	document.getElementById('idd').addEventListener('click', function() {
 		var textarea = document.getElementById('idf'), template = document.createElement('template');
 		if (textarea.linkedElement == framewindow.document.body) {
-			framewindow.document.body.innerHTML = textarea.value;
+			framewindow.document.body.innerHTML = '\t' + textarea.value;
 			closeDialogs();
 			overlayUpdate();
 			history.update('Edit HTML');
@@ -6303,6 +6438,8 @@ function main(){
 				var start = 1 - c1[3] / c2[3];
 				if (1 - progress < start) return [c2[0], c2[1], c2[2], c1[3] * iprogress + c2[3] * progress];
 				var pseudoOpacity = (progress - start) / (1 - start);
+				if (pseudoOpacity < 0) pseudoOpacity = ((1 - start) - progress) / (1 - start);
+				pseudoOpacity = 1 - pseudoOpacity;
 				iprogress = 1 - pseudoOpacity;
 				return [~~(c1[0] * iprogress + c2[0] * pseudoOpacity), ~~(c1[1] * iprogress + c2[1] * pseudoOpacity), ~~(c1[2] * iprogress + c2[2] * pseudoOpacity), c1[3] * (1 - progress) + c2[3] * progress];
 			} else {

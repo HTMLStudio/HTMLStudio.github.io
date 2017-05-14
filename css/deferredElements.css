@@ -76,10 +76,6 @@
 	text-align: center;
 }
 
-#ida {
-	
-}
-
 #idc {
 	text-align: center;
 	cursor: text;
@@ -91,14 +87,25 @@
 	width: calc(100% - 1em);
 }
 
+#ide table {
+	width: 100%;
+	height: 100%;
+	border-collapse: collapse;
+}
+
 #idf {
-	height: calc(75vh - 8.9em - 1px);
-	width: calc(100% - 3.5em);
+	width: calc(100% - 1rem);
 	margin: 0;
-	padding: .75em 1.75em;
 	border: 0;
+	padding: calc(.75rem + 2px) .5rem 0;
 	resize: none;
 	tab-size: 4;
+	white-space: nowrap;
+	flex-grow: 1;
+	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+	font-size: 13.3333px;
+	min-height: calc(100% - 2px);
+	line-height: 1.2;
 }
 
 #idi, #idu {
@@ -291,6 +298,28 @@
 	display: inline-block;
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	margin-top: 2em;
+}
+
+#Idl {
+	padding: .75rem 0;
+	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
+	font-size: 13.3333px;
+	vertical-align: top;
+	background: #DDD;
+	border-right: 1px solid #008ca1;
+}
+
+#Idl div {
+	white-space: pre;
+	border-width: 0 .5rem;
+	border-color: transparent;
+	border-style: solid;
+	color: #008ca1;
+}
+
+#Idl div.activeLine {
+	background: #CCC;
+	color: #007c91;
 }
 
 .cl9 {
