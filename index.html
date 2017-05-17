@@ -7,7 +7,7 @@
 	<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 		ga('create', 'UA-91403443-1', 'auto');
 		ga('send', 'pageview');</script>
 		<link rel="apple-touch-icon" sizes="180x180" href="/HTML-Studio/icon/apple-touch-icon.png">
@@ -103,21 +103,19 @@
 			background-size: contain;
 		}
 
-		#frame {
+		#frame, #frameoverlay {
 			border: 0;
 			overflow-y: hidden;
 			margin-bottom: -4px;
 		}
 
-		.csspositionsticky #frame {
+		.csspositionsticky #frame, .csspositionsticky #frameoverlay {
 			height: calc(100vh - 4.45rem);
-			position: -webkit-sticky;
-			position: sticky;
 		}
 
-		#frameoverlay {
-			overflow: hidden;
-			font-family: initial;
+		.csspositionsticky #frame {
+			position: -webkit-sticky;
+			position: sticky;
 		}
 
 		#overlaygrid {
@@ -158,6 +156,12 @@
 
 		#toolbarcontainer.inactive ~ .topText.active {
 			margin-top: -4.45rem;
+		}
+
+		#toolbarcontainer:not(.inactive) ~ #framecontainer #rectDisplays .rectX,
+		#toolbarcontainer:not(.inactive) ~ #framecontainer #rectDisplays .rectXT,
+		#toolbarcontainer:not(.inactive) ~ #framecontainer #rectDisplays .rectYT {
+			margin-top: calc(4.45rem - 1px);
 		}
 
 		#headersectionbar {
@@ -226,6 +230,7 @@
 			max-width: 85%;
 			left: 0;
 			font-size: 1.2rem;
+			white-space: pre-line;
 		}
 
 		.placeholder {
@@ -252,6 +257,7 @@
 		#logo:hover {
 			width: 100%;
 			min-width: 672px;
+			z-index: 1;
 		}
 
 		#tooltip {
@@ -621,10 +627,76 @@
 			top: -2.5vw;
 			position: relative;
 		}
+
+		#printDisplay {
+			display: none;
+		}
+
+		#googOpenCont {
+			position: relative;
+			left: 93%;
+			width: 7%;
+			height: 100%;
+		}
+
+		#googOpen {
+			height: 55%;
+			width: calc(4.45em * .55);
+			top: 22.5%;
+			position: relative;
+			margin: auto;
+			background: #DDD;
+			border-radius: 50%;
+			box-shadow: .1em .1em .4em 0 #888;
+			cursor: pointer;
+		}
+
+		#googOpen:hover {
+			background: #D0D0D0;
+		}
+
+		#driveLogo {
+			height: 73%;
+			position: relative;
+			top: 13.5%;
+			display: block;
+			margin: auto;
+		}
+
+		#googInterface {
+			display: none;
+			width: 300px;
+			max-width: 98vw;
+			height: 500px;
+			max-height: calc(100vh - 4.45em - 2vw);
+			background: #DDD;
+			border-radius: 4px;
+			position: absolute;
+			right: 1vw;
+			top: calc(4.45em + 1vw);
+			border: 1px solid #AAA;
+			box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+			overflow-y: auto;
+			font-family: "Open Sans",Arial,sans-serif;
+		}
+
+		@media print {
+			#printDisplay {
+				display: block;
+			}
+
+			body > *:not(noscript):not(#mobile_warning):not(#overwrite_continue):not(#printDisplay) {
+				display: none;
+			}
+
+			body, html {
+				overflow: initial;
+			}
+		}
 	</style>
 </head>
 <body>
-	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration:underline}noscript{z-index:9999999;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='http://enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='http://enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
+	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration:underline}noscript{z-index:9999999;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='//enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='//enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
 	<div id='mobile_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/mobile_device.svg'><span>This webpage wasn't built with mobile devices in mind since it's a lot harder to actually accomplish anything on small touch screen devices. There are probably tons of bugs and stuff will definitely look weird but you can still continue to the site by clicking the button below. Just know that this webpage will look and work a lot better on a computer.</span><button id='mobile_continue' title='Hide this message'>Continue to Site</button></div></div>
 	<div id='overwrite_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/open_windows.svg'><span>This page may be open in another tab. It is dangerous to have two different documents open at once because any changes made on one document may overwrite the other document and screw up some stuff. Even editing two different versions of the same document may have the same affect. If you think this is a mistake and you want to continue (sometimes happens when your browser crashes), click the button below to hide this message.</span><button id='overwrite_continue' title='Hide this message'>Continue to Site</button></div></div>
 	<div id='measurementReference'></div>
@@ -648,8 +720,13 @@
 			<div id='logoContextHolder'>
 				<a href='#' id='meta_about' tabindex='0'><div class='pseudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
 				<a href='help' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
-				<a href='https://github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
+				<a href='//github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
 				<a href='documentation' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/documentation.svg'><span>Documentation</span></div></a>
+			</div>
+		</div>
+		<div id='googOpenCont'>
+			<div id='googOpen' title='Connect to Google Drive' class='signedOut'>
+				<img src='png/drive128.png' id='driveLogo'>
 			</div>
 		</div>
 	</div>
@@ -674,7 +751,7 @@
 	<div id='framecontainer'>
 		<div id='frameback'></div>
 		<iframe id='frame'></iframe>
-		<div id='frameoverlay'></div>
+		<iframe id='frameoverlay'></iframe>
 		<div id='overlaygrid'></div>
 		<div id='rectDisplays'></div>
 	</div>
@@ -683,6 +760,47 @@
 		<div id='tooltipinner'>
 			<div id='tooltiptextcont'>
 				<div id='tooltiptext'></div>
+			</div>
+		</div>
+	</div>
+	<div id='googInterface' class='signedOut'>
+		<div id='GIhead'>
+			<div id='googProfileContainer'>
+				<div id='googProfileOutline'>
+					<img id='googProfileIcon'>
+				</div>
+			</div>
+			<div id='GIO1'>Connect to<br>
+				<span>Google Drive</span>
+			</div>
+		</div>
+		<div id='GIbody'>
+			<div id='GIbodyI'>
+				<div id='GII1'>Signed in as</div>
+				<div id='GII2'>User Name</div>
+				<div id='GII3'>(User Email)</div>
+				<table id='GII6'>
+					<tr>
+						<td><button id='GII4'>Sign Out</button></td>
+					</tr>
+					<tr>
+						<td><button id='GII5'>Switch Account</button></td>
+					</tr>
+				</table>
+			</div>
+			<div id='GIbodyO'>
+				<div id='GIO2'>Connect <span>HTML Studio</span> to Google Drive&#153;</div>
+				<div id='GIO3'>
+					<ul style='margin:0'>
+						<li>Create new files directly in Google Drive</li>
+						<li>Open and edit HTML files in Google Drive</li>
+						<li>Save documents to Google Drive</li>
+					</ul>
+				</div>
+				<div id='googNoNetwork'>
+					<span>Could not connect to Google</span>
+				</div>
+				<button id='GIO4'>Sign In</button>
 			</div>
 		</div>
 	</div>
@@ -857,16 +975,16 @@
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.4.1.3</h3></td>
+						<td><h3>Version 1.4.3 <span style="opacity:.6;font-style:italic">beta</span></h3></td>
 					</tr>
 					<tr>
-						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
+						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='//github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
 					</tr>
 					<tr>
 						<td><h3><a href='#' id='meta_license' tabindex='0'>License</a></h3></td>
 					</tr>
 					<tr>
-						<td><h3><a href='https://github.com/ChristianFigueroa/HTML-Studio/issues' target='_blank'>Report an Issue</a></h3></td>
+						<td><h3><a href='//github.com/ChristianFigueroa/HTML-Studio/issues' target='_blank'>Report an Issue</a></h3></td>
 					</tr>
 				</table>
 			</div>
@@ -1039,12 +1157,13 @@
 	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
 	<iframe id='cssTest' class='hidden'></iframe>
+	<div id='printDisplay'></div>
 	<noscript id='deferred-styles' style="z-index:-1">
 		<link href='css/ContextMenu.css' rel='stylesheet' type='text/css'>
 		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
 		<link href='css/editTextBar.css' rel='stylesheet' type='text/css'>
 		<link href='css/deferredElements.css' rel='stylesheet' type='text/css'>
-		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic|Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
+		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700,700italic|Roboto+Slab:400,700|Roboto:400' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
 		<link href='css/topText.css' rel='stylesheet' type='text/css'>
 		<link href='css/ColorSelector.css' rel='stylesheet' type='text/css'>
@@ -1065,7 +1184,19 @@
 			if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
 			else window.addEventListener('load', loadDeferredStyles);
 		}();
+		window.HTMLStudio = {
+			google: {
+				loaded: function() {
+					setTimeout(function() {
+						// Waits until actual HTMLStudio.google.loaded (script/google.js) is actually loaded
+						HTMLStudio.google.loaded();
+					}, 50);
+				}
+			}
+		}
 	</script>
+	<script type='text/javascript' src='script/google.js' defer></script>
+	<script async defer src="//apis.google.com/js/api.js" onload="this.onload=function(){};HTMLStudio.google.loaded()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
 	<script type='text/javascript' src='script/DraggableElements.js' defer></script>
 	<script type="text/javascript" src='script/ContextMenu.js' defer></script>
 	<script type="text/javascript" src='script/autoFill.js' defer></script>

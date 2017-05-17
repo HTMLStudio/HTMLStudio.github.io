@@ -12,6 +12,7 @@
 .dialog { 
 	width: 50%;
 	min-width: 50vw;
+	max-width: 100vw;
 	max-height: 75vh;
 	background: #F0F0F0;
 	text-align: center;

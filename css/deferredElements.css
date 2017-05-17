@@ -201,8 +201,9 @@
 	padding: .2em 0 .2em 2em;
 }
 
-#idF h1 {
+#idF h1, #GIO2 span {
 	font-family: "Roboto Slab", "Open Sans", Arial, sans-serif;
+	font-weight: bold;
 }
 
 #idG {
@@ -532,4 +533,171 @@ label, label input[type=checkbox] {
 .cursorgrab[data-draggable-element-being-dragged="1"] {
 	cursor: -webkit-grabbing !important;
 	cursor: grabbing !important;
+}
+
+#GIhead {
+	background: #05e;
+	width: 100%;
+	height: 150px;
+	border-bottom: 1px solid #03b;
+}
+
+#googProfileContainer {
+	height: 104px;
+	position: relative;
+	top: 23px;
+}
+
+#googProfileIcon {
+	border-radius: 50%;
+	height: 96px;
+	width: 96px;
+}
+
+#googProfileOutline {
+	height: 96px;
+	width: 96px;
+	padding: 4px;
+	background: #acacdc;
+	box-shadow: 0 0 10px 2px #002464;
+	margin: auto;
+	border-radius: 50%;
+}
+
+#GIbody {
+	height: 349px;
+	width: 100%;
+}
+
+#googInterface.signedIn #GIbody {
+	padding-top: 60px;
+	height: 289px;
+}
+
+#googInterface.signedOut #googProfileContainer, #GIbodyI, #GIbodyO {
+	display: none;
+}
+
+#googInterface.signedIn #GIbodyI, #googInterface.signedOut #GIbodyO, #googInterface.signedOut #GIO1 {
+	display: block;
+}
+
+#GII1 {
+	margin: 0 0 20px;
+}
+
+#GII2, #GII3 {
+	font-weight: 600;
+}
+
+#GII2 {
+	font-size: 1.25em;
+}
+
+#GII3 {
+	font-size: 1.1em;
+}
+
+#GII1, #GII2, #GII3 {
+	text-align: center;
+}
+
+#GII4, #GII5, #GIO4 {
+	background: #05e;
+	color: white;
+	font-family: "Open Sans", Arial, sans-serif;
+	font-weight: 600;
+	border-radius: 6px;
+	font-size: 1.15rem;
+	padding: .2em .5em;
+	width: 100%;
+	margin: 2px 0;
+	max-width: calc(300px - 2vw - 2px);
+	border: 1px solid #03b;
+	box-shadow: .1em .1em .3em 0 rgba(80,80,80,.8);
+	cursor: pointer;
+}
+
+#GII4:hover, #GII5:hover, #GIO4:hover {
+	background: #27f;
+}
+
+#GII6 {
+	table-layout: fixed;
+	border-collapse: collapse;
+	margin: auto;
+	min-width: 150px;
+	max-width: 96vw;
+	margin-top: 40px;
+}
+
+#GIO1 {
+	display: none;
+	font-size: 22px;
+	padding-top: 40px;
+	color: #FFF;
+	text-align: center;
+	font-family: Roboto, "Open Sans", Arial, sans-serif;
+}
+
+#GIO1 span {
+	font-size: 1.7em;
+	font-weight: 600;
+}
+
+#GIO2 {
+	width: 80%;
+	margin: auto;
+	font-size: 1.2em;
+	text-align: center;
+	padding-top: 20px;
+}
+
+#GIO3 {
+	padding-top: 30px;
+	width: 80%;
+	margin: auto;
+}
+
+#GIO3 ul {
+	padding-left: 10%;
+}
+
+#GIO4 {
+	max-width: 96vw;
+	min-width: 150px;
+	margin: 30px auto 0;
+	width: initial;
+	display: block;
+}
+
+#googNoNetwork {
+	opacity: 0;
+	pointer-events: none;
+	color: #FFF;
+	text-align: center;
+	position: absolute;
+	width: 100%;
+	transition: opacity 1s ease-out;
+	margin-top: -.3em;
+}
+
+#googNoNetwork span {
+	background: rgba(0,0,0,.8);
+	border-radius: .4em;
+	padding: .3em .6em;
+	display: inline-block;
+}
+
+#googNoNetwork.active {
+	opacity: 1;
+	transition: initial;
+}
+
+#googOpen.signedIn {
+	background: #00acc1;
+}
+
+#googOpen.signedIn:hover {
+	background: #009cb1;
 }
