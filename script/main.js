@@ -140,7 +140,6 @@ function main(){
 		   - Save as PDF
 		   - Remove stylesheet name
 		 - Fix CSS rule insertion bug
-		 - Fix edit text bug when html-entity-replacing \t or \n
 	*/
 
 
@@ -165,10 +164,8 @@ function main(){
 	storage.set('session', 1);
 	var iframe = document.getElementById('frame'),
 		framewindow = iframe.contentWindow,
-		overlayframe = document.getElementById('frameoverlay'),
-		overlay = overlayframe.contentWindow.document.body,
+		overlay = document.getElementById('frameoverlay'),
 		backdialog = document.getElementById('dialogcover'),
-		printDisplay = document.getElementById('printDisplay'),
 		pseudoEmptyNodes = [],
 		history = {
 			entries: storage.get('documentHistoryEntries') || [],
@@ -186,7 +183,7 @@ function main(){
 					action: action,
 					stylesheets: stylesheethtml
 				};
-				if (obj.html == (this.entries[this.currentEntry] || {html: ''}).html && obj.title == (this.entries[this.currentEntry] || {title: ''}).title && JSON.stringify(obj.stylesheets) == JSON.stringify((this.entries[this.currentEntry] || {stylesheets: '[]'}).stylesheets)) return;
+				if (obj.html == (this.entries[this.currentEntry] || {html: ''}).html && obj.title == (this.entries[this.currentEntry] || {title: ''} ).title && JSON.stringify(obj.stylesheets) == JSON.stringify((this.entries[this.currentEntry] || {stylesheets: '[]'}).stylesheets)) return;
 
 				this.currentEntry = this.currentEntry == null ? 0 : this.currentEntry + 1;
 				this.entries[this.currentEntry] = obj;
@@ -198,6 +195,7 @@ function main(){
 				contextmenus[3].getItem('redo').disabled = this.currentEntry == this.entries.length - 1;
 				contextmenus[3].getItem('undo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Undo' + (history.currentEntry == 0 || !history.entries[history.currentEntry].action ? '' : ' • ' + history.entries[history.currentEntry].action);
 				contextmenus[3].getItem('redo').getElementsByClassName('contextmenuitemtext')[0].innerText = 'Redo' + (history.currentEntry + 2 > history.entries.length || !history.entries[history.currentEntry + 1].action ? '' : ' • ' + history.entries[history.currentEntry + 1].action);
+				setTimeout(overlayUpdate, 1000);
 			}
 		}, locale = {
 			isMac: /mac/i.test(navigator.platform),
@@ -217,7 +215,7 @@ function main(){
 					separate: true,
 					id: 'info',
 					condition: function() {
-						var node = selection.get.first() || overlay,
+						var node = document.querySelector('[data-selected-element=selected]') || overlay,
 							format = formatElementInfo(node.alias),
 							re = /(?:([a-z])(?=[A-Z\d])|(\d)(?=[a-zA-Z])|([a-zA-Z\d])(?=[^a-zA-Z\d])|([^a-zA-Z\d])(?=[a-zA-Z\d]))/g;
 						this.editText('<span style="font-family:Consolas,Monaco\'Ubuntu Mono\',\'Courier New\',Courier,monospace"><span style="color:#33f">' + format.name.value.replace(re,'$1$2$3$4<wbr>') + '</span>' + (format.id.value ? '<wbr><span style="color:#009">#<wbr>' + format.id.value.replace(re,'$1$2$3$4<wbr>') + '</span>' : '') + (format.class.value ? '<wbr><span style="color:#F44">.<wbr>' + format.class.value.replace(/\s+/g,'.').replace(re,'$1$2$3$4<wbr>') : ''));
@@ -227,7 +225,7 @@ function main(){
 					name: 'Open in New Tab',
 					func: function(_,close) {
 						close();
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node || !(node.alias.nodeName in {a:0,A:0})) return;
 						open(node.alias.getAttribute('href'));
 					},
@@ -237,7 +235,7 @@ function main(){
 					hideOnDisabled: true,
 					hideSeparatorOnDisabled: true,
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						this.title = 'Opens the link in a new tab (' + node.alias.href + ')';
 						return node.alias.nodeName in {a:0,A:0} && node.alias.href && node.alias.getAttribute('href').trim()[0] != '#';
@@ -284,7 +282,7 @@ function main(){
 					name: 'Duplicate Element',
 					func: function(_,close) {
 						close();
-						var element = selection.get.first();
+						var element = document.querySelector('[data-selected-element=selected]');
 						if (!element) return;
 						var clone = element.alias.cloneNode(true),
 							re = /^Duplicate_\d+_of_/;
@@ -311,7 +309,7 @@ function main(){
 					name: 'Prepend Row',
 					func: function(_,close) {
 						close();
-						var node = selection.get.all();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
 						if (node.length != 1) return this.disabled = true;
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
@@ -341,7 +339,7 @@ function main(){
 					},
 					title: 'Inserts a row at the beginning of the selected element',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
 					},
@@ -351,7 +349,7 @@ function main(){
 					name: 'Append Row',
 					func: function(_,close) {
 						close();
-						var node = selection.get.all();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
 						if (node.length != 1) return this.disabled = true;
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
@@ -381,7 +379,7 @@ function main(){
 					},
 					title: 'Inserts a row at the end of the selected element',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
 					},
@@ -391,7 +389,7 @@ function main(){
 					name: 'Prepend Column',
 					func: function(_,close) {
 						close();
-						var node = selection.get.all();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
 						if (node.length != 1) return this.disabled = true;
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
@@ -421,7 +419,7 @@ function main(){
 					},
 					title: 'Inserts a column at the beginning of the selected element',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
 					},
@@ -431,7 +429,7 @@ function main(){
 					name: 'Append Column',
 					func: function(_,close) {
 						close();
-						var node = selection.get.all();
+						var node = document.querySelectorAll('[data-selected-element=selected]');
 						if (node.length != 1) return this.disabled = true;
 						if ((node = node[0]).nodeName == 'TABLE') forEach(node.children, function() {
 							if (this.nodeName in {THEAD:0,TBODY:0,TFOOT:0}) return node = this, "break";
@@ -513,7 +511,7 @@ function main(){
 					},
 					title: 'Inserts a column at the end of the selected element',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {table:0,TABLE:0,thead:0,THEAD:0,tbody:0,TBODY:0,tfoot:0,TFOOT:0};
 					},
@@ -529,7 +527,7 @@ function main(){
 					},
 					title: 'Inserts a row above the selected element\n(Shift to ignore merged cells)',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {td:0,TD:0,tr:0,TR:0};
 					},
@@ -543,13 +541,13 @@ function main(){
 					},
 					title: 'Inserts a row below the selected element\n(Shift to ignore merged cells)',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {td:0,TD:0,tr:0,TR:0};
 					},
 					separateCondition: function() {
 						if (this.disabled) return false;
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return !(nodes[0].nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0});
 					},
@@ -564,7 +562,7 @@ function main(){
 					},
 					title: 'Inserts a column to the left of the selected element',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0};
 					},
@@ -578,7 +576,7 @@ function main(){
 					},
 					title: 'Inserts a column to the right of the selected element',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length != 1) return;
 						return nodes[0].nodeName in {td:0,TD:0,col:0,COL:0,colgroup:0,COLGROUP:0};
 					},
@@ -591,7 +589,7 @@ function main(){
 					image: 'svg/edit_text.svg',
 					func: function(_,close) {
 						close();
-						var element = selection.get.first();
+						var element = document.querySelector('[data-selected-element=selected]');
 						if (!element) return;
 						var boxshadow = element.alias.style.boxShadow, pendingUpdate = false,
 							contenteditable = element.alias.hasAttribute('contenteditable') ? element.alias.getAttribute('contenteditable') : false, hasBlurred = false,
@@ -599,7 +597,7 @@ function main(){
 						// Makes element contenteditable
 						element.alias.setAttribute('contenteditable','');
 						// Prevent the user from interacting with the overlay
-						overlayframe.style.pointerEvents = 'none';
+						overlay.style.pointerEvents = 'none';
 						// Focus the editable element
 						if (element.alias.focus) element.alias.focus();
 						deselect();
@@ -646,7 +644,7 @@ function main(){
 							if (contenteditable === false) element.alias.removeAttribute('contenteditable');
 							else element.alias.setAttribute('contenteditable', contenteditable);
 							// Allows the user to continue interacting with the overlay
-							overlayframe.style.pointerEvents = '';
+							overlay.style.pointerEvents = '';
 							// Restores the element's box-shadow
 							element.alias.style.boxShadow = boxshadow;
 							// Reverts attribute
@@ -1128,7 +1126,7 @@ function main(){
 					title: 'Lets you edit the element\'s textual content',
 					disabledtitle: 'This element cannot contain textual content',
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						return !(node instanceof node.ownerDocument.defaultView.SVGElement || node.ownerSVGElement || /^(?:area|br|col|embed|hr|img|input|link|meta|param)$/i.test(node.nodeName));
 					},
@@ -1138,7 +1136,7 @@ function main(){
 					image: 'svg/edit_as_html.svg',
 					func: function(_,close) {
 						close();
-						var element = selection.get.first();
+						var element = document.querySelector('[data-selected-element=selected]');
 						if (!element) return;
 						var idf = document.getElementById('idf');
 						idf.value = HTMLStudio.formatHTML.prettify(element.alias, element.alias == framewindow.document.body);
@@ -1149,7 +1147,7 @@ function main(){
 					title: '(' + locale.cmdKey + ' + H) Lets you edit the node\'s HTML',
 					separate: true,
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						this.editText((node.alias instanceof node.alias.ownerDocument.defaultView.SVGElement || node.alias.ownerSVGElement) && node.alias.nodeName.toLowerCase() != 'svg' ? 'Edit as XML&#133;' : 'Edit as HTML&#133;');
 						return true;
@@ -1159,7 +1157,7 @@ function main(){
 					name: 'Edit <span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">src</span> Attribute',
 					func: function(_,close) {
 						close();
-						var editor = document.getElementById('attrEditor'), Idk = document.getElementById('Idk'), elements = selection.get.all();
+						var editor = document.getElementById('attrEditor'), Idk = document.getElementById('Idk'), elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						closeTopTexts();
 						if (elements.length > 1) {
@@ -1177,7 +1175,7 @@ function main(){
 					disabled: true,
 					hideOnDisabled: true,
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						return node.alias.nodeName == 'IMG';
 					},
@@ -1186,7 +1184,7 @@ function main(){
 					name: 'Edit <span style="font-family:Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">href</span> Attribute',
 					func: function(_,close) {
 						close();
-						var editor = document.getElementById('attrEditor'), Idk = document.getElementById('Idk'), elements = selection.get.all();
+						var editor = document.getElementById('attrEditor'), Idk = document.getElementById('Idk'), elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						closeTopTexts();
 						if (elements.length > 1) {
@@ -1204,7 +1202,7 @@ function main(){
 					disabled: true,
 					hideOnDisabled: true,
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						return node.alias.nodeName in {a:0,A:0}
 					},
@@ -1213,16 +1211,14 @@ function main(){
 					name: 'Edit Attributes&#133;',
 					func: function(_,close) {
 						close();
-						var node = selection.get.first();
-						if (!node) return;
 						openDialog('edit_attributes');
 						var html = '<table id="idi">';
-						forEach(node.alias.attributes, function(attribute) {
+						Array.prototype.forEach.call(document.querySelector('[data-selected-element=selected]').alias.attributes, function(attribute) {
 							html += '<tr class="cl4"><td><input type="text" value="' + quoteEscape(attribute.name) + '" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" value="' + quoteEscape(attribute.value) + '" placeholder="value" class="cl2 cl3"></td></td>';
 						});
 						html += '<tr class="cl4"><td><input type="text" placeholder="attribute" class="cl1 cl3"></td><td><input type="text" placeholder="value" class="cl2 cl3"></td></tr><tr class="cl4" id="idk"><td><input type="text" placeholder="attribute" class="cl1 cl3" id="idj"></td><td><input type="text" tabindex="-1" placeholder="value" class="cl2 cl3"></td></tr></table>';
 						document.getElementById('idg').innerHTML = html;
-						document.getElementById('idi').linkedElement = selection.get.first().alias;
+						document.getElementById('idi').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
 						var finaltr = document.getElementById('idk').previousElementSibling;
 						document.getElementById('idj').addEventListener('focus', function() {
 							var tr = document.createElement('tr');
@@ -1285,7 +1281,7 @@ function main(){
 						close();
 						openDialog('edit_styles');
 						var html = '<table id="idu">',
-							selectedElement = selection.get.first(),
+							selectedElement = document.querySelector('[data-selected-element=selected]'),
 							style = selectedElement.alias.getAttribute('style') || '';
 						style.replace(/(?:^\s*|;\s*)([a-z-]+)?\s*:\s*((?:[^;'"}]|("|')(?:(?:(?!\3).(?=\3|\\))?(?:(?=\3)|\\.(?:(?!\3)[^\\](?=\3|\\))?|(?:.(?!\\|\3))+.)*?)\3)*)/g, function($0,$1,$2) {
 							if (!$1 && !$2) return $0;
@@ -1294,7 +1290,7 @@ function main(){
 						});
 						html += '<tr class="cl4"><td><input type="text" placeholder="style name" class="cl1 cl3"></td><td><input type="text" placeholder="style value" class="cl2 cl3"></td></tr><tr class="cl4" id="idw"><td><input type="text" placeholder="style name" class="cl1 cl3" id="idx"></td><td><input type="text" tabindex="-1" placeholder="style value" class="cl2 cl3"></td></tr></table>';
 						document.getElementById('idv').innerHTML = html;
-						document.getElementById('idu').linkedElement = selection.get.first().alias;
+						document.getElementById('idu').linkedElement = document.querySelector('[data-selected-element=selected]').alias;
 						var finaltr = document.getElementById('idw').previousElementSibling;
 						document.getElementById('idx').addEventListener('focus', function() {
 							var tr = document.createElement('tr');
@@ -1340,7 +1336,7 @@ function main(){
 								});
 							});
 						});
-						forEach(document.querySelectorAll('#idv input:not(#idx)'), function(element) {
+						Array.prototype.forEach.call(document.querySelectorAll('#idv input:not(#idx)'), function(element) {
 							element.addEventListener('blur', function(e) {
 								setTimeout(function() {
 									var tr = element.parentNode.parentNode;
@@ -1389,7 +1385,7 @@ function main(){
 					name: 'Edit Classes&#133;',
 					func: function(_,close) {
 						close();
-						var editor = document.getElementById('classEditor'), idQ = document.getElementById('idQ'), elements = selection.get.all();
+						var editor = document.getElementById('classEditor'), idQ = document.getElementById('idQ'), elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						closeTopTexts();
 						editor.className = 'topText active';
@@ -1425,7 +1421,7 @@ function main(){
 					name: 'Edit ID&#133;',
 					func: function(_,close) {
 						close();
-						var editor = document.getElementById('idEditor'), idR = document.getElementById('idR'), elements = selection.get.all();
+						var editor = document.getElementById('idEditor'), idR = document.getElementById('idR'), elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						closeTopTexts();
 						if (elements.length > 1) {
@@ -1447,7 +1443,7 @@ function main(){
 					disabledimage: 'svg/select_parent_disabled.svg',
 					func: function(e,close) {
 						close();
-						if (selection.get.first() == overlay) {
+						if (document.querySelector('[data-selected-element=selected]') == overlay) {
 							clickhandler.call(overlay, {
 								stopPropagation: function(){},
 								clientX: 0,
@@ -1457,19 +1453,19 @@ function main(){
 							updateTooltip();
 							return this.disabled = true;
 						}
-						var node = selection.get.first().parentNode;
+						var node = document.querySelector('[data-selected-element=selected]').parentNode;
 						if (!e.shiftKey) deselect();
 						clickhandler.call(node, pseudoEvent.__extend__({set: true}));
 
 						updateTooltip();
 						updateTreeSelections();
-						selection.update();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
 					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parent of the node',
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) This node\'s parent cannot be selected',
 					id: 'selectParent',
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						return node.alias != framewindow.document.body;
 					}
@@ -1479,21 +1475,21 @@ function main(){
 					disabledimage: 'svg/select_children_disabled.svg',
 					func: function(e,close) {
 						close();
-						var element = selection.get.first();
+						var element = document.querySelector('[data-selected-element=selected]');
 						if (!e.shiftKey) deselect();
 						forEach(element.children, function() {
 							clickhandler.call(this, (pseudoEvent.__extend__({set: true})));
 						});
 						updateTooltip();
 						updateTreeSelections();
-						selection.update();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
 					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the node',
 					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) This node has no children',
 					separate: true,
 					id: 'selectChildren',
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						return node.children.length;
 					}
@@ -1501,10 +1497,10 @@ function main(){
 					name: 'Insert Child&#133;',
 					func: function(_,close) {
 						close();
-						var element = selection.get.first();
+						var element = document.querySelector('[data-selected-element="selected"]');
 						if (!element) return;
 						openDialog('new_child');
-						forEach(document.querySelectorAll('.clf.clg'), function(element) {
+						Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
 							element.className = 'clf';
 						});
 						var obj;
@@ -1520,7 +1516,7 @@ function main(){
 							test.innerText = str;
 							return test.innerHTML.replace(/<br>/g, '<span style="color:#009;font-weight:700">&#8629;</span>').replace(/-\$-/,'<span style="color:#009;font-weight:700">&#133;</span>').replace(/\$\$/g,'$');
 						}
-						forEach(element.alias.childNodes, function(child, i) {
+						Array.prototype.forEach.call(element.alias.childNodes, function(child, i) {
 							if (child.nodeType == 1) {
 								hasChildren = true;
 								var format = formatElementInfo(child);
@@ -1565,7 +1561,7 @@ function main(){
 								};
 
 							// On hover for [Right Click] > Insert Child... > [Node Position <div>s]
-							forEach(document.querySelectorAll('.clh'), function(element) {
+							Array.prototype.forEach.call(document.querySelectorAll('.clh'), function(element) {
 								element.addEventListener('mouseenter', replace);
 								element.addEventListener('focus', replace);
 							});
@@ -1584,7 +1580,7 @@ function main(){
 					image: 'svg/transparent.svg',
 					func: function(_,close) {
 						close();
-						var element = selection.get.first();
+						var element = document.querySelector('[data-selected-element="selected"]');
 						if (!element || element == overlay) return;
 						element = element.alias;
 						var frag = document.createDocumentFragment();
@@ -1615,14 +1611,14 @@ function main(){
 					separate: true,
 					id: 'unwrap',
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selcted]');
 						if (!node) return;
 						return node.alias != framewindow.document.body;
 					}
 				},{
 					name: 'Delete Element',
 					func: function(_,close,node) {
-						if (!(node = selection.get.first())) return
+						if (!(node = document.querySelector('[data-selected-element=selected]'))) return
 						node.alias.parentNode.removeChild(node.alias);
 						overlayUpdate();
 						history.update('Delete element');
@@ -1634,7 +1630,7 @@ function main(){
 					disabledimage: 'svg/delete_disabled.svg',
 					id: 'delete',
 					condition: function() {
-						var node = selection.get.first();
+						var node = document.querySelector('[data-selected-element=selected]');
 						if (!node) return;
 						return node.alias != framewindow.document.body;
 					}
@@ -1648,7 +1644,7 @@ function main(){
 					separate: true,
 					id: 'count',
 					condition: function() {
-						this.editText('<span style="color:#000">' + selection.get.all().length + ' nodes selected</span>');
+						this.editText('<span style="color:#000">' + document.querySelectorAll('[data-selected-element=selected]').length + ' nodes selected</span>');
 						return true;
 					}
 				},{
@@ -1692,7 +1688,7 @@ function main(){
 					name: 'Insert Row Above',
 					func: function(e,close) {
 						close();
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						nodes = Array.prototype.map.call(nodes, function(node) {
 							return node.alias;
@@ -1817,7 +1813,7 @@ function main(){
 					},
 					title: 'Inserts a row above the selected elements\n(Shift to ignore merged cells)',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length < 2) return;
 						var returnValue = false;
 						forEach(nodes, function() {
@@ -1831,7 +1827,7 @@ function main(){
 					name: 'Insert Row Below',
 					func: function(e,close) {
 						close();
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						nodes = Array.prototype.map.call(nodes, function(node) {
 							return node.alias;
@@ -1966,7 +1962,7 @@ function main(){
 					},
 					title: 'Inserts a row below the selected elements\n(Shift to ignore merged cells)',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						var returnValue = false;
 						forEach(nodes, function() {
@@ -1976,7 +1972,7 @@ function main(){
 					},
 					separateCondition: function() {
 						if (this.disabled) return false;
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						var returnValue = false;
 						forEach(nodes, function() {
@@ -1991,7 +1987,7 @@ function main(){
 					name: 'Insert Column Left',
 					func: function(e,close) {
 						close();
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						nodes = Array.prototype.map.call(nodes, function(node) {
 							return node.alias;
@@ -2159,7 +2155,7 @@ function main(){
 					},
 					title: 'Inserts a column to the left of the selected elements\n(Shift to ignore merged cells)',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						var returnValue = false;
 						forEach(nodes, function() {
@@ -2173,7 +2169,7 @@ function main(){
 					name: 'Insert Column Right',
 					func: function(e,close) {
 						close();
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						nodes = Array.prototype.map.call(nodes, function(node) {
 							return node.alias;
@@ -2342,7 +2338,7 @@ function main(){
 					},
 					title: 'Inserts a column to the right of the selected elements\n(Shift to ignore merged cells)',
 					condition: function() {
-						var nodes = selection.get.all();
+						var nodes = document.querySelectorAll('[data-selected-element=selected]');
 						if (nodes.length == 0) return;
 						var returnValue = false;
 						forEach(nodes, function() {
@@ -2357,7 +2353,7 @@ function main(){
 				},{
 					name: 'Delete Elements',
 					func: function(_,close) {
-						var elements = selection.get.all();
+						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						for (var i = elements.length - 1; i >= 0; i--) {
 							if (elements[i].alias.parentNode && elements[i].alias != framewindow.document.body) elements[i].alias.parentNode.removeChild(elements[i].alias);
 							else if (elements[i].alias == framewindow.document.body) elements[i].alias.innerHTML = '';
@@ -2387,10 +2383,10 @@ function main(){
 					image: 'svg/select_parent.svg',
 					disabledimage: 'svg/select_parent_disabled.svg',
 					func: function(e,close) {
-						if (selection.get.all().length == 1) return contextmenus[0].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
-						else if (!selection.get.first()) return;
+						if (document.querySelectorAll('[data-selected-element=selected]').length == 1) return contextmenus[0].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
+						else if (!document.querySelector('[data-selected-element=selected]')) return;
 						close();
-						var nodes = Array.prototype.filter.call(selection.get.all(), function(node) {
+						var nodes = Array.prototype.filter.call(document.querySelectorAll('[data-selected-element=selected]'), function(node) {
 							return node != overlay;
 						}).map(function(node) {
 							return node.parentNode;
@@ -2402,7 +2398,7 @@ function main(){
 
 						updateTooltip();
 						updateTreeSelections();
-						selection.update();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
 					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents',
@@ -2411,7 +2407,7 @@ function main(){
 					name: 'Select Children',
 					func: function(e,close) {
 						close();
-						var elements = selection.get.all();
+						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						if (!e.shiftKey) deselect();
 						forEach(elements, function() {
@@ -2421,7 +2417,7 @@ function main(){
 						})
 						updateTooltip();
 						updateTreeSelections();
-						selection.update();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
 					image: 'svg/select_children.svg',
 					disabledimage: 'svg/select_children_disabled.svg',
@@ -2429,7 +2425,7 @@ function main(){
 					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
 					id: 'selectChildren',
 					condition: function() {
-						for (var elements = selection.get.all(), i = elements.length - 1; i >= 0; i--) {
+						for (var elements = document.querySelectorAll('[data-selected-element=selected]'), i = elements.length - 1; i >= 0; i--) {
 							if (elements[i].children.length) return true;
 						}
 						return false;
@@ -2515,7 +2511,7 @@ function main(){
 						close();
 						closeHeaders();
 						// Selection of File > New... preset
-						forEach(document.querySelectorAll('#idm td:not(#ido)'), function(element) {
+						Array.prototype.forEach.call(document.querySelectorAll('#idm td:not(#ido)'), function(element) {
 							element.addEventListener('click', function(e) {
 								document.getElementById('idl').className = 'option';
 								forEach(document.querySelectorAll('#idm td'), function() {
@@ -2581,7 +2577,7 @@ function main(){
 					image: 'svg/open.svg',
 					id: 'open'
 				},{
-					name: 'Save File&#133;',
+					name: 'Download File&#133;',
 					func: function(_,close) {
 						close();
 						closeHeaders();
@@ -2590,7 +2586,7 @@ function main(){
 						textbox.placeholder = document.getElementById('title').value.trim() || 'index.html';
 						textbox.value = '';
 					},
-					title: '(' + locale.cmdKey + ' + S) Lets you download the document or save it to Google Drive',
+					title: '(' + locale.cmdKey + ' + S) Download the document as an HTML file',
 					separate: true,
 					id: 'download'
 				},{
@@ -2598,7 +2594,7 @@ function main(){
 					func: function(_,close) {
 						close();
 						closeHeaders();
-						print();
+						framewindow.print();
 					},
 					title: 'Prints the document',
 					separate: true,
@@ -2877,13 +2873,13 @@ function main(){
 					func: function(_,close) {
 						close();
 						closeHeaders();
-						forEach(overlay.querySelectorAll('*'), function() {
+						var elements = document.querySelectorAll('#frameoverlay *,#frameoverlay');
+						forEach(document.querySelectorAll('#frameoverlay, #frameoverlay *'), function() {
 							clickhandler.call(this, pseudoEvent.__extend__({set: true}));
 						});
-						clickhandler.call(this, pseudoEvent.__extend__({set: true}));
 						updateTooltip();
 						updateTreeSelections();
-						selection.update();
+						selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 					},
 					title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
 					image: 'svg/select_all.svg',
@@ -2923,10 +2919,15 @@ function main(){
 					func: function(_,close) {
 						close();
 						closeHeaders();
-						forEach(overlay.querySelectorAll('*'), function() {
-							clickhandler.call(this, pseudoEvent.__extend__({shiftKey: true}));
-						});
-						clickhandler.call(overlay, pseudoEvent.__extend__({shiftKey: true}))
+						for (var elements = document.querySelectorAll('#frameoverlay, #frameoverlay *'), i = elements.length - 1; i >= 0; i--) {
+							clickhandler.call(elements[i], {
+								stopPropagation: function(){},
+								clientX: 0,
+								clientY: 0,
+								isTrusted: true,
+								shiftKey: true
+							});
+						};
 						updateTreeSelections();
 						updateTooltip();
 					},
@@ -2951,7 +2952,7 @@ function main(){
 					func: function(e,close) {
 						close();
 						closeHeaders();
-						var elements = selection.get.all();
+						var elements = document.querySelectorAll('[data-selected-element="selected"]');
 						if (!elements.length) return;
 						var y = Math.round(em(4.45));
 						if (e.shiftKey) {
@@ -3005,7 +3006,7 @@ function main(){
 					func: function(e,close) {
 						close();
 						closeHeaders();
-						var elements = selection.get.all();
+						var elements = document.querySelectorAll('[data-selected-element=selected]');
 						if (!elements.length) return;
 						var y = Math.round(em(4.45));
 						if (e.shiftKey) {
@@ -3250,36 +3251,9 @@ function main(){
 			return obj;
 		})(storage.get('prefs') || {n: 9, c: '\u012c\u01d8\u01ed\u013b\u012c\u01d8\u01ed\u015e\u012c\u01d8\u01ed\u0145\u012c\u01d8\u01ed\u0190', u: 0});
 
-	// Returns the user-selected node(s)
-	selection.get = {
-		all: function() {
-			var a = Array.prototype.slice.call(overlay.querySelectorAll('[data-selected-element=selected]'));
-			if (overlay.getAttribute('data-selected-element') == 'selected') a.unshift(overlay);
-			return a;
-		},
-		first: function() {
-			return overlay.getAttribute('data-selected-element') == 'selected' ? overlay : overlay.querySelector('[data-selected-element=selected]');
-		},
-		query: function(query) {
-			var a = Array.prototype.slice.call(overlay.querySelectorAll(query));
-			if (overlay.matches(query)) a.unshift(overlay);
-			return a;
-		}
-	};
-
-	selection.update = function() {
-		var array = selection.get.all();
-		array.get = selection.get;
-		array.update = selection.update;
-		selection = array;
-		return selection;
-	}
-
 	!function() {
 		// Add some debugging options for developers
-		(window.HTMLStudio = window.HTMLStudio || {}).debug = {
-			selection: selection
-		};
+		(window.HTMLStudio = window.HTMLStudio || {}).debug = {};
 
 		var localStorageObject = {};
 
@@ -3308,6 +3282,14 @@ function main(){
 		});
 
 		Object.defineProperties(HTMLStudio.debug, {
+			selection: {
+				get: function() {
+					return selection;
+				},
+				set: function(v) {
+					return selection = v;
+				}
+			},
 			updateOverlay: {
 				get: function() {
 					return overlayUpdate;
@@ -3399,7 +3381,7 @@ function main(){
 		framewindow.document.body.style.fontSize = '1.5em';
 		framewindow.document.body.style.fontFamily = 'Arial, sans-serif';
 		framewindow.document.body.style.margin = '0';
-		framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = overlay.style.overflowY = overlay.parentNode.style.overflowY = 'hidden';
+		framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = 'hidden';
 	}
 	// Get stylesheets
 	updateStylesheets();
@@ -3428,8 +3410,8 @@ function main(){
 		if (e.shiftKey) return;
 		e.preventDefault();
 		e.stopPropagation();
-		var index = selection.get.all().length > 1 ? 1 : 0;
-		if (!index) (selection.get.first() || overlay).dispatchEvent(new MouseEvent('click'));
+		var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
+		if (!index) (document.querySelector('[data-selected-element=selected]') || overlay).dispatchEvent(new MouseEvent('click'));
 		if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
 		closeHeaders();
 		contextmenus[index].open();
@@ -3443,19 +3425,19 @@ function main(){
 		if (e.shiftKey) {
 			overlay.style.background = 'rgba(0,0,0,0)';
 			overlay.setAttribute('data-selected-element', overlay.getAttribute('data-selected-element') != 'selected' ? 'selected' : '');
-			var nodes = selection.get.all();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
 			updateTooltip();
 		} else {
 			overlay.style.background = 'rgba(0,0,0,0)';
-			var selected = overlay.getAttribute('data-selected-element') == 'selected', length = selection.get.all().length;
+			var selected = overlay.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
 			deselect();
 			overlay.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
 			updateTooltip();
 		}
-		if (document.selection) overlay.ownerDocument.selection.empty(),iframewindow.document.selection.empty();
-		else if (getSelection) overlayframe.contentWindow.getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
+		if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
+		else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 		updateTreeSelections();
-		selection.update();
+		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		updateTooltip();
 	});
 	overlay.addEventListener('dblclick', function(e) {
@@ -3495,7 +3477,7 @@ function main(){
 			};
 	}
 	// Lets dialogs && .topText <div>s be draggable
-	forEach(document.getElementsByClassName('dialog'), function(element) {
+	Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
 		new HTMLStudio.DraggableElement(element,{bounds:'body',init:function(){this.style.left = innerWidth / 4 + 'px'}});
 	});
 	forEach(document.getElementsByClassName('topText'), function() {
@@ -3505,7 +3487,7 @@ function main(){
 		this.style.left = '';
 	});
 	// Prevents certain elements from letting their parent be dragged
-	forEach(document.querySelectorAll('.content,.option,#idD,.topText input,.cle'), function(element) {
+	Array.prototype.forEach.call(document.querySelectorAll('.content,.option,#idD,.topText input,.cle'), function(element) {
 		element.addEventListener('mousedown', function(e) {
 			e.stopPropagation();
 		})
@@ -3542,7 +3524,7 @@ function main(){
 	}});
 
 
-	forEach(document.getElementsByClassName('localeCmdKey'), function(elem) {
+	Array.prototype.forEach.call(document.getElementsByClassName('localeCmdKey'), function(elem) {
 		elem.innerText = locale.cmdKey;
 	});
 	forEach(document.getElementsByClassName('localeTitle'), function() {
@@ -3552,12 +3534,12 @@ function main(){
 
 
 	// Function to update overlay to match iframe
-	function overlayUpdate (initialCall) {
+	function overlayUpdate (skipListeners) {
 		if (preventUpdates) return;
 		if (!document.getElementById('frame').contentWindow.document.body) {
 			var doc = document.getElementById('frame').contentWindow.document, body = doc.createElement('body');
 			doc.documentElement.appendChild(body);
-			frameoverlay.contentWindow.document.body.alias = body;
+			document.getElementById('frameoverlay').alias = body;
 			body.innerHTML = 'The <span style="color: #00acc1; font-family: Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">&lt;body&gt;</span> element should not be deleted.<br>All content in the document should be kept as children of the <span style="color: #00acc1; font-family: Consolas,Monaco,\'Ubuntu Mono\',\'Courier New\',Courier,monospace;">&lt;body&gt;</span> element.';
 			body.style.margin = '0';
 			body.style.textAlign = 'center';
@@ -3574,8 +3556,9 @@ function main(){
 			}
 		});
 
-		var elements = framewindow.document.body.childNodes, overlay = overlayframe.contentWindow.document.body, body = framewindow.document.body;
-		framewindow.document.documentElement.style.overflowY = framewindow.document.body.style.overflowY = overlay.style.overflowY = overlay.parentNode.style.overflowY = "hidden";
+		framewindow.document.documentElement.style.overflowY = "hidden";
+
+		var elements = framewindow.document.body.childNodes, overlay = document.getElementById('frameoverlay'), body = framewindow.document.body;
 		body.alias = overlay;
 		overlay.alias = body;
 		overlay.isOverlay = true;
@@ -3586,18 +3569,17 @@ function main(){
 		var contextmenuhandler = function(e){
 			if (e.shiftKey) return;
 			var clonednode = this;
-			if (selection.get.all().length) clonednode.preventClick = true;
+			if (document.querySelectorAll('[data-selected-element=selected]').length) clonednode.preventClick = true;
 			e.preventDefault();
 			e.stopPropagation();
-			var index = selection.get.all().length > 1 ? 1 : 0;
+			var index = document.querySelectorAll('[data-selected-element=selected]').length > 1 ? 1 : 0;
 			if (!index) clonednode.dispatchEvent(new MouseEvent('click'));
 			if ((e.target.className.baseVal == undefined ? e.target.className : e.target.className.baseVal).includes('contextmenu')) document.getElementsByClassName('contextmenu')[0].close();
 			closeHeaders();
 			contextmenus[index].open();
-			var style = contextmenus[index].node.getBoundingClientRect(),
-				clientY = e.clientY + document.getElementById('toolbarcontainer').getBoundingClientRect().height;
+			var style = contextmenus[index].node.getBoundingClientRect();
 			contextmenus[index].node.style.left = e.clientX - (style.width + e.clientX > window.innerWidth ? style.width - window.innerWidth + e.clientX : 0) + 'px';
-			contextmenus[index].node.style.top = clientY - (style.height + clientY > window.innerHeight ? style.height - window.innerHeight + clientY : 0) - em() + 'px';
+			contextmenus[index].node.style.top = e.clientY - (style.height + e.clientY > window.innerHeight ? style.height - window.innerHeight + e.clientY : 0) - em() + 'px';
 			contextmenus[index].node.originElement = clonednode
 		};
 		var dblclickhandler = function(e) {
@@ -3631,11 +3613,6 @@ function main(){
 		}));
 		overlay.style.fontSize = getComputedStyle(body).fontSize;
 
-
-		var printBody = document.createElement('div');
-		overlay.printAlias = printBody;
-
-
 		DOM = {
 			name: 'BODY',
 			node: body,
@@ -3648,14 +3625,12 @@ function main(){
 
 		for (var i = elements.length - 1; i >= 0; i--) {
 			function clone (parent, DOM) {
-				var clonednode = this.cloneNode(),
-					printNode = this.cloneNode();
+				var clonednode = this.cloneNode();
 				this.alias = clonednode;
 				forEach(this.boundRects, function() {
 					if (this.parentNode) this.parentNode.removeChild(this);
 				});
 				clonednode.alias = this;
-				clonednode.printAlias = printNode;
 				clonednode.isOverlay = true;
 				clonednode.stylePrecedence = {};
 				if (clonednode instanceof clonednode.ownerDocument.defaultView.Element || clonednode.nodeType == 1) {
@@ -3668,12 +3643,14 @@ function main(){
 					};
 					clonednode.DOM = DOMNodeObject;
 					DOM.children.unshift(DOMNodeObject);
-					// On right click pseudo element
-					clonednode.addEventListener('contextmenu', contextmenuhandler);
-					// On left click pseudo element
-					clonednode.addEventListener('click', clickhandler);
-					// Edit Text on dblclick
-					clonednode.addEventListener('dblclick', dblclickhandler);
+					if (!skipListeners) {
+						// On right click pseudo element
+						clonednode.addEventListener('contextmenu', contextmenuhandler);
+						// On left click pseudo element
+						clonednode.addEventListener('click', clickhandler);
+						// Edit Text on dblclick
+						clonednode.addEventListener('dblclick', dblclickhandler);
+					}
 
 					// Applies stylesheet rules to cloned node as style attribute
 					css.forEach(function(stylesheet) {
@@ -3697,15 +3674,13 @@ function main(){
 						return vh * $1 + 'px';
 					}));
 
-					printNode.setAttribute('style', clonednode.getAttribute('style'));
-
 					var comStyles = getComputedStyle(this);
-					clonednode.style.fontSize = printNode.style.fontSize = comStyles.fontSize;
+					clonednode.style.fontSize = comStyles.fontSize;
 					// Saves the computed styles as a hidden attribute of the original node
 					this.htmlStudioComputedStyles = clonednode.getAttribute('style') || '';
 					// Other styles to make them transparent (since they are just an overlay)
 					// And to keep the crosshair cursor throughout the entire document
-					clonednode.style.cursor = 'crosshair';
+					if (!skipListeners) clonednode.style.cursor = 'crosshair';
 					if ((clonednode instanceof this.ownerDocument.defaultView.SVGElement || clonednode.ownerSVGElement) && clonednode.nodeName.toLowerCase() != 'svg') {
 						clonednode.setAttribute('fill', clonednode.style.fill = 'rgba(0,0,0,0)');
 						clonednode.setAttribute('stroke', clonednode.style.stroke = 'rgba(0,0,0,0)');
@@ -3745,12 +3720,10 @@ function main(){
 					}
 					// Prevent conflicting ids and incorrect inheritance from non-user style sheets
 					clonednode.removeAttribute('id');
-					printNode.removeAttribute('id');
 					if (this.getAttribute('id') == '') this.removeAttribute('id');
 					if (this.getAttribute('class') == '') this.removeAttribute('class');
 					// Prevent incorrect inheritance from non-user stylesheets
 					clonednode.removeAttribute('class');
-					printNode.removeAttribute('class');
 					// Prevents the user from editting the inner text
 					clonednode.removeAttribute('contenteditable');
 				}
@@ -3766,8 +3739,6 @@ function main(){
 					parent.firstChild.alias.textContent = this.textContent + parent.firstChild.alias.textContent;
 					this.parentNode.removeChild(this);
 				} else parent.insertBefore(clonednode, parent.firstChild);
-				parent.printAlias.insertBefore(printNode, parent.printAlias.firstChild);
-
 			};
 			clone.call(elements[i], overlay, DOM);
 		}
@@ -3777,30 +3748,14 @@ function main(){
 				overlay.style[style] = framewindow.document.body.style[style];
 			} catch (_) {}
 		};
-
-		printDisplay.innerHTML = '';
-		forEach(overlay.attributes, function() {
-			printBody.setAttribute(this.name, this.value);
-		});
-		printDisplay.appendChild(printBody);
-
 		overlay.style.cursor = 'crosshair';
 		overlay.style.color = 'rgba(0,0,0,0)';
 		overlay.style.background = 'rgba(0,0,0,0)';
 		overlay.style.boxShadow = '';
 		overlay.style.fontFamily = (overlay.style.fontFamily || '') + ', serif';
 
-		iframe.style.position = 'initial';
-		setTimeout(function() {
-			iframe.style.position = '';
-			overlay.style.height = getComputedStyle(framewindow.document.body).height;
-			document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = framewindow.document.body.getBoundingClientRect().height + 'px';
-			if (initialCall) {
-				forEach(document.querySelectorAll('.headersection.loading, #title.loading'), function(element) {
-					element.className = 'headersection';
-				});
-			}
-		}, 500);
+		overlay.style.height = getComputedStyle(framewindow.document.body).height;
+		document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = Math.ceil(overlay.getBoundingClientRect().height) + 'px';
 
 		restoreSelection();
 		updateTree();
@@ -3818,13 +3773,13 @@ function main(){
 		return true;
 	}
 
-	// Iterates over `func` `num` times
 	function loop(num, func, thisVal) {
 		if (!num) return;
 		for (var i = 0; i < num; i++) {
 			if (func.call(thisVal || i,i,num) == 'break') return;
 		}
 	}
+
 
 	// Checks if a dialog is open
 	function dialogOpen() {
@@ -3860,7 +3815,7 @@ function main(){
 
 	// Closes all .topText <div>s
 	function closeTopTexts() {
-		forEach(document.getElementsByClassName('topText active'), function(element) {
+		Array.prototype.forEach.call(document.getElementsByClassName('topText active'), function(element) {
 			element.className = 'topText';
 		});
 	}
@@ -3869,7 +3824,7 @@ function main(){
 	function updateStylesheets() {
 		storage.set('stylesheets', storage.get('stylesheets') || []);
 		css = [];
-		forEach(framewindow.document.querySelectorAll('style'), function(stylesheet) {
+		Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet) {
 			stylesheet.parentNode.removeChild(stylesheet);
 		});
 		!function() {
@@ -3934,7 +3889,7 @@ function main(){
 	}
 	// Deselects all elements and set their background back to transparent
 	function deselect () {
-		forEach(selection.get.all(), function(element) {
+		Array.prototype.forEach.call(document.querySelectorAll('[data-selected-element=selected]'), function(element) {
 			element.removeAttribute('data-selected-element');
 			if ((element instanceof element.ownerDocument.defaultView.SVGElement || element.ownerSVGElement) && element.nodeName.toLowerCase() != 'svg') element.setAttribute('fill', element.style.fill = 'rgba(0,0,0,0)');
 			else element.style.background = 'rgba(0,0,0,0)';
@@ -3947,14 +3902,14 @@ function main(){
 				if (this.parentNode) this.parentNode.removeChild(this);
 			});
 		});
-		selection.update();
+		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		forEach(document.querySelectorAll('.rectX, .rectY, .rectXT, .rectYT'), function() {
 			if (this.parentNode) this.parentNode.removeChild(this);
 		});;
 	}
 	// Closes header context menus and sets the buttons to the correct background color
 	function closeHeaders() {
-		forEach(document.getElementsByClassName('headersection'), function(element) {
+		Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element) {
 			sectionopen = false;
 			contextmenus.forEach(function(context) {
 				context.close();
@@ -3965,7 +3920,7 @@ function main(){
 	// Closes dialogs and hides the background overlay
 	function closeDialogs() {
 		document.getElementById('dialogcover').style.display = '';
-		forEach(document.getElementsByClassName('dialog'), function(element) {
+		Array.prototype.forEach.call(document.getElementsByClassName('dialog'), function(element) {
 			element.style.display = '';
 		})
 	};
@@ -4054,7 +4009,7 @@ function main(){
 	}
 	// Updates the text shown in the tooltip
 	function updateTooltip(custom) {
-		var nodes = custom || selection.get.all();
+		var nodes = custom || document.querySelectorAll('[data-selected-element=selected]');
 		if (nodes.length > 1) {
 			document.getElementById('tooltiptext').innerHTML = nodes.length + ' nodes selected';
 			document.getElementById('tooltip').style.opacity = '';
@@ -4072,7 +4027,7 @@ function main(){
 	};
 	// Updates which nodes are selected in the HTML tree
 	function updateTreeSelections() {
-		forEach(document.querySelectorAll('#idq rect.html_editor'), function(rect) {
+		Array.prototype.forEach.call(document.querySelectorAll('#idq rect.html_editor'), function(rect) {
 			rect.style.fill = rect.DOM.node.alias.getAttribute('data-selected-element') == 'selected' ? '#00acc1' : '#456';
 		});
 	};
@@ -4162,20 +4117,20 @@ function main(){
 		} else {
 			if ((clonednode instanceof clonednode.ownerDocument.defaultView.SVGElement || clonednode.ownerSVGElement) && clonednode.nodeName.toLowerCase() != 'svg') clonednode.setAttribute('fill', clonednode.style.fill = 'rgba(0,0,0,0)');
 			else clonednode.style.background = 'rgba(0,0,0,0)';
-			var selected = clonednode.getAttribute('data-selected-element') == 'selected', length = selection.get.all().length;
+			var selected = clonednode.getAttribute('data-selected-element') == 'selected', length = document.querySelectorAll('[data-selected-element=selected]').length;
 			deselect();
 			clonednode.setAttribute('data-selected-element', length > 1 || !e.isTrusted ? 'selected' : selected ? '' : 'selected');
 		}
-		if (document.selection) overlay.ownerDocument.selection.empty(),iframewindow.document.selection.empty();
-		else if (getSelection) overlayframe.contentWindow.getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
+		if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
+		else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 		updateTreeSelections();
-		selection.update();
+		selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		updateTooltip();
 
 		if (contextmenus[0].node.parentNode || contextmenus[1].node.parentNode) {
 			var menu = contextmenus[0].node.parentNode ? contextmenus[0] : contextmenus[1];
 
-			if (selection.length == 0 || e.target && e.target.isOverlay) menu.close();
+			if (selection.length == 0) menu.close();
 			else if (selection.length == 1) {
 				contextmenus[0].open();
 				var style = menu.node.style,
@@ -4257,40 +4212,6 @@ function main(){
 		license.addEventListener('click', select);
 		license.addEventListener('keydown', keypress);
 	}();
-
-	document.getElementById('GIO4').addEventListener('click', function() {
-		if (!HTMLStudio.google.exists()) {
-			var noNetwork = document.getElementById('googNoNetwork');
-			if (noNetwork.timeout) clearTimeout(noNetwork.timeout);
-			noNetwork.className = 'active';
-			noNetwork.timeout = setTimeout(function() {
-				noNetwork.timeout = null;
-				noNetwork.className = '';
-			}, 3000);
-		}
-	});
-
-	document.getElementById('GII4').addEventListener('click', function() {
-		if (HTMLStudio.google.exists()) {
-			gapi.auth.signOut();
-		}
-	})
-
-	// Controls opening and closing of Google interface
-	document.getElementById('googOpen').addEventListener('click', function(e) {
-		e.stopPropagation();
-		var inter = document.getElementById('googInterface');
-		inter.className = HTMLStudio.google.exists() && HTMLStudio.google.signedIn ? 'signedIn' : 'signedOut';
-		inter.style.display = inter.style.display == '' ? 'block' : '';
-	});
-
-	// Prevent closing of Google interface if user is interacting with it
-	document.getElementById('googOpen').addEventListener('mousedown', function(e) {
-		e.isGoogleInterface = true;
-	});
-	document.getElementById('googInterface').addEventListener('mousedown', function(e) {
-		e.isGoogleInterface = true;
-	})
 
 	forEach(document.querySelectorAll('.edittextopt, #edittextbar'), function() {
 		function prevent(e) {
@@ -4575,35 +4496,35 @@ function main(){
 		e.stopPropagation();
 		e.preventDefault();
 		if (framewindow.document.queryCommandSupported('bold')) framewindow.document.execCommand('bold');
-		overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
 	});
 
 	document.getElementById('etopt_italic').addEventListener('click', function(e) {
 		e.stopPropagation();
 		e.preventDefault();
 		if (framewindow.document.queryCommandSupported('italic')) framewindow.document.execCommand('italic');
-		overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
 	});
 
 	document.getElementById('etopt_underline').addEventListener('click', function(e) {
 		e.stopPropagation();
 		e.preventDefault();
 		if (framewindow.document.queryCommandSupported('underline')) framewindow.document.execCommand('underline');
-		overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
 	});
 
 	document.getElementById('etopt_superscript').addEventListener('click', function(e) {
 		e.stopPropagation();
 		e.preventDefault();
 		if (framewindow.document.queryCommandSupported('superscript')) framewindow.document.execCommand('superscript');
-		overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
 	});
 
 	document.getElementById('etopt_subscript').addEventListener('click', function(e) {
 		e.stopPropagation();
 		e.preventDefault();
 		if (framewindow.document.queryCommandSupported('superscript')) framewindow.document.execCommand('subscript');
-		overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
+		document.querySelector('[data-html-studio-text-being-edited=true]').alias.dispatchEvent(new Event('keyup'));
 	});
 
 	document.getElementById('etopt_increase_font').addEventListener('click', function(e) {
@@ -4860,7 +4781,7 @@ function main(){
 					selection.addRange(range);
 				}
 			}
-		}.call(overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias);
+		}.call(document.querySelector('[data-html-studio-text-being-edited=true]').alias);
 	});
 
 	document.getElementById('etopt_decrease_font').addEventListener('click', function(e) {
@@ -5117,11 +5038,11 @@ function main(){
 					selection.addRange(range);
 				}
 			}
-		}.call(overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias);
+		}.call(document.querySelector('[data-html-studio-text-being-edited=true]').alias);
 	});
 
 	document.getElementById('etopt_justify_left').addEventListener('click', function() {
-		var editable = overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
 		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
 		node.style.textAlign = 'left';
 		node.alias.style.textAlign = 'left';
@@ -5129,7 +5050,7 @@ function main(){
 	});
 
 	document.getElementById('etopt_justify_center').addEventListener('click', function() {
-		var editable = overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
 		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
 		node.style.textAlign = 'center';
 		node.alias.style.textAlign = 'center';
@@ -5137,7 +5058,7 @@ function main(){
 	});
 
 	document.getElementById('etopt_justify_right').addEventListener('click', function() {
-		var editable = overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
 		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
 		node.style.textAlign = 'right';
 		node.alias.style.textAlign = 'right';
@@ -5145,7 +5066,7 @@ function main(){
 	});
 
 	document.getElementById('etopt_justify_full').addEventListener('click', function() {
-		var editable = overlay.ownerDocument.querySelector('[data-html-studio-text-being-edited=true]').alias;
+		var editable = document.querySelector('[data-html-studio-text-being-edited=true]').alias;
 		for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == editable); node = node.parentNode);
 		node.style.textAlign = 'justify';
 		node.alias.style.textAlign = 'justify';
@@ -5260,9 +5181,9 @@ function main(){
 	});
 
 	// On click for node name selector <div>s in [Right Click] > Insert Child...
-	forEach(document.querySelectorAll('.clf:not(input)'), function(element) {
+	Array.prototype.forEach.call(document.querySelectorAll('.clf:not(input)'), function(element) {
 		element.addEventListener('click', function() {
-			forEach(document.querySelectorAll('.clf.clg'), function(element) {
+			Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
 				element.className = 'clf';
 			});
 			element.className = 'clf clg';
@@ -5283,7 +5204,7 @@ function main(){
 
 	// On keyup for [Right Click] > Insert Child... > Custom HTML Element
 	document.getElementById('idc').addEventListener('keyup', function() {
-		forEach(document.querySelectorAll('.clf.clg'), function(element) {
+		Array.prototype.forEach.call(document.querySelectorAll('.clf.clg'), function(element) {
 			element.className = 'clf';
 		});
 		if (/^<?[a-zA-Z][a-zA-Z\d-]*>?$/.test(this.value.trim())) {
@@ -5321,9 +5242,15 @@ function main(){
 			var elements = framewindow.document.querySelectorAll(this.value.trim());
 			deselect();
 			var y = Math.round(em(4.45));
-			forEach(elements, function(element) {
+			Array.prototype.forEach.call(elements, function(element) {
 				if (element.alias) {
-					clickhandler.call(pseudoEvent.__extend__({set: true}));
+					clickhandler.call(element.alias, {
+						stopPropagation: function(){},
+						clientX: 0,
+						clientY: y,
+						isTrusted: true,
+						shiftKey: true
+					});
 				}
 			});
 			updateTooltip();
@@ -5394,8 +5321,7 @@ function main(){
 	});
 	document.getElementById('idR').addEventListener('keydown', onEnter);
 
-	// Close .topText parents on click of exit button
-	forEach(document.getElementsByClassName('cle'), function(element) {
+	Array.prototype.forEach.call(document.getElementsByClassName('cle'), function(element) {
 		element.addEventListener('click', function() {
 			element.parentNode.className = 'topText';
 		});
@@ -5516,12 +5442,11 @@ function main(){
 	// Scrolls iframe depending on #framecontainer's scrollTop
 	document.getElementById('framecontainer').addEventListener('scroll', Modernizr.csspositionsticky ? function() {
 		// Browser with support for position:sticky that might use asynchronous scrolling
-		framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = overlay.scrollTop = overlay.parentNode.scrollTop = this.scrollTop;
-		overlayframe.style.top = this.scrollTop + 'px';
+		framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
 	} : function() {
 		// Browsers with no support for position:sticky that probably doesn't use asynchronous scrolling
-		framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = overlay.scrollTop = overlay.parentNode.scrollTop = this.scrollTop;
-		iframe.style.top = overlayframe.style.top = this.scrollTop + 'px';
+		framewindow.document.documentElement.scrollTop = framewindow.document.body.scrollTop = this.scrollTop;
+		iframe.style.top = this.scrollTop + 'px';
 	});
 
 	// Can't be run on window because the event propogates and ends up toggling Inspect Element for developer tools
@@ -5537,7 +5462,7 @@ function main(){
 
 	// Controls opening and closing of header sections
 	var sectionopen = false;
-	forEach(document.getElementsByClassName('headersection'), function(element,index,array){
+	Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element,index,array){
 		function open(e) {
 			e.stopPropagation();
 			sectionopen = !sectionopen;
@@ -5549,7 +5474,7 @@ function main(){
 				dispatchEvent(new MouseEvent('mousedown'));
 				if (index == 3) contextmenus[5] = (function(){
 					var arg = {items: cssContextMenuArg.items.slice(), pseudoParent: cssContextMenuArg.pseudoParent};
-					forEach(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
+					Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 						arg.items.push({
 							name: (stylesheet.getAttribute('data-name') || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="font-style:italic">Unnamed Style Sheet</span>',
 							subcontext: {
@@ -5650,7 +5575,7 @@ function main(){
 					return new HTMLStudio.ContextMenu(arg);
 				})();
 				else if (index == 4) {
-					var elements = selection.get.all();
+					var elements = document.querySelectorAll('[data-selected-element=selected]');
 					contextmenus[6].getItem('selectChildren').disabled = (function() {
 						for (var i = elements.length - 1; i >= 0; i--) {
 							if (elements[i].children.length) return false;
@@ -5679,7 +5604,7 @@ function main(){
 				if (contextmenus[i + 2].node.parentNode) open = true;
 			}
 			if (!open) return;
-			forEach(array, function(element, index) {
+			Array.prototype.forEach.call(array, function(element, index) {
 				element.style.background = '';
 				try{
 					contextmenus[index + 2].close();
@@ -5688,7 +5613,7 @@ function main(){
 			dispatchEvent(new MouseEvent('mousedown'));
 			if (index == 3) contextmenus[5] = (function(){
 				var arg = {items: cssContextMenuArg.items.slice(), pseudoParent: cssContextMenuArg.pseudoParent};
-				forEach(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
+				Array.prototype.forEach.call(framewindow.document.querySelectorAll('style'), function(stylesheet, index) {
 					arg.items.push({
 						name: (stylesheet.getAttribute('data-name') || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '<span style="font-style:italic">Unnamed Style Sheet</span>',
 						subcontext: {
@@ -5699,7 +5624,7 @@ function main(){
 									editor.onQuerySelector = function(query) {
 										deselect();
 										var y = Math.round(em(4.45));
-										forEach(framewindow.document.querySelectorAll(query), function(element) {
+										Array.prototype.forEach.call(framewindow.document.querySelectorAll(query), function(element) {
 											if (!element.alias) return;
 											clickhandler.call(element.alias, {
 												stopPropagation: function(){},
@@ -5839,7 +5764,7 @@ function main(){
 			var width = document.getElementById('titlewidth');
 			width.innerHTML = '&nbsp;<i>Untitled HTML Document</i>&nbsp;';
 			this.style.minWidth = Math.min(innerWidth * .85, Math.max(innerWidth / 5, width.scrollWidth)) + 'px';
-			width.innerText = this.value.replace(/ /g, '\u00a0');
+			width.innerText = this.value;
 			document.getElementById('title').style.width = width.scrollWidth + em(.6) + 'px';
 			document.title = (this.value.trim() ? this.value.trim() + ' - ' : '') + 'HTML Studio \xb7 ChristianFigueroa.GitHub.io';
 			framewindow.document.querySelector('title').innerText = this.value;
@@ -5935,7 +5860,7 @@ function main(){
 		var firstChildren = Array.prototype.slice.call(template.content.children);
 		textarea.linkedElement.parentNode.insertBefore(template.content, textarea.linkedElement);
 		textarea.linkedElement.parentNode.removeChild(textarea.linkedElement);
-		overlayUpdate();
+		overlayUpdate(false, true);
 		history.update('Edit HTML');
 		deselect();
 		forEach(firstChildren, function() {
@@ -5945,7 +5870,7 @@ function main(){
 	});
 
 	// Top right exit button and Cancel button event listener
-	forEach(document.getElementsByClassName('exit'), function(element) {
+	Array.prototype.forEach.call(document.getElementsByClassName('exit'), function(element) {
 		element.addEventListener('click', function() {
 			if (!this.className.includes('disabled')) closeDialogs();
 		})
@@ -5961,24 +5886,24 @@ function main(){
 				if (children[i].children[0].children[0].value.trim()) element.setAttribute(children[i].children[0].children[0].value.trim(), children[i].children[1].children[0].value);
 			} catch (_) {};
 		};
-		overlayUpdate();
+		overlayUpdate(false, true);
 		history.update('Edit attributes');
 		closeDialogs();
 	});
 	// Save Styles button for [Right Click] > Edit Styles...
 	document.getElementById('idt').addEventListener('click', function() {
 		var styleAttr = '';
-		forEach(document.querySelectorAll('#idu .cl4:not(#idw)'), function(element) {
+		Array.prototype.forEach.call(document.querySelectorAll('#idu .cl4:not(#idw)'), function(element) {
 			if (element.children[0].children[0].value.trim() && element.children[1].children[0].value.trim()) styleAttr += element.children[0].children[0].value.trim() + ':' + element.children[1].children[0].value.trim() + ';';
 		});
 		document.getElementById('idu').linkedElement.setAttribute('style', styleAttr);
-		overlayUpdate();
+		overlayUpdate(false, true);
 		history.update('Edit styles');
 		closeDialogs();
 	});
 
 	// Allows for pressing enter on buttons to click them
-	forEach(document.querySelectorAll('.option,.exit'), function(element) {
+	Array.prototype.forEach.call(document.querySelectorAll('.option,.exit'), function(element) {
 		element.addEventListener('keypress', function(e) {
 			if (e.keyCode == 13) element.dispatchEvent(new MouseEvent('click'));
 		})
@@ -6035,7 +5960,7 @@ function main(){
 
 	// window event listeners
 	addEventListener('load', function() {
-		forEach(document.querySelectorAll('.cl5:not(#idy)'),function(element){
+		Array.prototype.forEach.call(document.querySelectorAll('.cl5:not(#idy)'),function(element){
 			element.contentWindow.addEventListener('click',function(){
 				element.parentNode.dispatchEvent(new MouseEvent('click'));
 			});
@@ -6043,25 +5968,22 @@ function main(){
 		});
 		document.getElementById('framecontainer').dispatchEvent(new Event('scroll'));
 	});
-	var windowMouseDown = function(e){
+	addEventListener('mousedown',function(e){
 		if (e.shiftKey && e.target.isOverlay) {
 			if (document.selection) document.selection.empty(),iframewindow.document.selection.empty();
 			else if (getSelection) getSelection().removeAllRanges(),framewindow.getSelection().removeAllRanges();
 			e.stopPropagation();
 			e.preventDefault();
 		}
-		if (!e.isGoogleInterface) document.getElementById('googInterface').style.display = '';
 		if (!document.getElementsByClassName('contextmenu')[0] || (e.target.className && e.target.className.baseVal == undefined && e.target.className.includes('contextmenu'))) return;
 		document.getElementsByClassName('contextmenu')[0].close();
 		if (sectionopen) {
-			forEach(document.getElementsByClassName('headersection'), function(element, index) {
+			Array.prototype.forEach.call(document.getElementsByClassName('headersection'), function(element, index) {
 				element.style.background = '';
 			});
 			sectionopen = false;
 		}
-	};
-	addEventListener('mousedown', windowMouseDown);
-	overlayframe.contentWindow.addEventListener('mousedown', windowMouseDown);
+	});
 	framewindow.addEventListener('load', function() {
 		document.getElementById('framecontainer').dispatchEvent(new Event('scroll'));
 	});
@@ -6117,7 +6039,7 @@ function main(){
 		// Text nodes and comments and other stuff are always copied however since they can't be selected in the editor
 		clipboard.value = (function() {
 			// Convert selected nodes into array
-			var html = '', nodes = selection.get.all();
+			var html = '', nodes = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 			// Function to add children to a parent node only if they are selected
 			function addChildren(clone, node) {
 				// Iterate over the childnodes of a parent element
@@ -6175,13 +6097,12 @@ function main(){
 		else if (e.keyCode == 65 && locale.cmdKeyPressed(e) && !dialogOpen() && (!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA') {
 			e.preventDefault();
 			e.stopPropagation();
-			forEach(overlay.querySelectorAll('*'), function() {
+			forEach(document.querySelectorAll('#frameoverlay, #frameoverlay *'), function() {
 				clickhandler.call(this, pseudoEvent.__extend__({set: true}));
 			});
-			clickhandler.call(overlay, pseudoEvent.__extend__({set: true}));
 			updateTooltip();
 			updateTreeSelections();
-			selection.update;
+			selection = Array.prototype.slice.call(document.querySelectorAll('[data-selected-element=selected]'));
 		// Ctrl + D
 		} else if (e.keyCode == 68 && locale.cmdKeyPressed(e) && !e.shiftKey && !dialogOpen()) {
 			e.preventDefault();
@@ -6264,7 +6185,7 @@ function main(){
 		} else if (e.keyCode == 56 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			var nodes = selection.get.all();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
 			if (nodes.length == 1) {
 				if (!contextmenus[0].getItem('editSrc').execute(false, true)) return;
 				if (!contextmenus[0].getItem('editHref').execute(false, true)) return;
@@ -6278,7 +6199,7 @@ function main(){
 		} else if (e.keyCode == 72 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			var nodes = selection.get.all();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
 			if (nodes.length == 1) contextmenus[0].getItem('editHTML').dispatchEvent(new MouseEvent('click'));
 			else if (nodes.length > 1) document.getElementById('htmlNoEdit').className = 'topText active';
 		// Ctrl + Shift + D
@@ -6295,13 +6216,13 @@ function main(){
 		} else if (e.keyCode == 81 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			var nodes = selection.get.all();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
 			if (nodes.length == 1) contextmenus[0].getItem('editStyle').execute(false, true);
 		// Ctrl + E
 		} else if (e.keyCode == 69 && locale.cmdKeyPressed(e) && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			var nodes = selection.get.all();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
 			if (nodes.length == 1) contextmenus[0].getItem('editAttributes').execute(false, true);
 		// Alt + F
 		} else if (e.keyCode == 70 && e.altKey && !dialogOpen()) {
@@ -6335,7 +6256,7 @@ function main(){
 		} else if (e.keyCode == 73 && locale.cmdKeyPressed(e) && e.shiftKey && !dialogOpen()) {
 			e.stopPropagation();
 			e.preventDefault();
-			var nodes = selection.get.all();
+			var nodes = document.querySelectorAll('[data-selected-element=selected]');
 			if (nodes.length == 1) contextmenus[0].getItem('insertChild').execute(false, true);
 		// Ctrl + U
 		} else if (e.keyCode == 85 && locale.cmdKeyPressed(e) && !dialogOpen()) {
@@ -6349,7 +6270,6 @@ function main(){
 	}
 	addEventListener('keydown', windowkeydown);
 	framewindow.addEventListener('keydown', windowkeydown);
-	overlayframe.contentWindow.addEventListener('keydown', windowkeydown);
 	// Controls fullscreen
 	if ('onfullscreenchange' in window || 'onmozfullscreenchange' in window || 'onwebkitfullscreenchange' in window) {
 		window.addEventListener('onfullscreenchange' in window ? 'fullscreenchange' : 'onmozfullscreenchange' in window ? 'mozfullscreenchange' : 'webkitfullscreenchange', function() {
@@ -6377,7 +6297,7 @@ function main(){
 	addEventListener('paste', function(e) {
 		var target = document.activeElement == iframe ? framewindow.document.activeElement : document.activeElement, re = /^Copy_\d+_of_/;
 		if (!(target == clipboard || ((!target.hasAttribute('contenteditable') || target.getAttribute('contenteditable') == 'false') && target.nodeName != 'INPUT' && target.nodeName != 'TEXTAREA'))) return;
-		var selection = selection.get.all();
+		var selection = document.querySelectorAll('[data-selected-element=selected]');
 		try {
 			var type = Array.prototype.slice.call(e.clipboardData.types);
 			var type = ~type.indexOf('text/html') ? 'text/html' : ~type.indexOf('text/plain') ? 'text/plain' : ~type.indexOf('text') ? 'text' : false;
@@ -6399,14 +6319,14 @@ function main(){
 			}
 			changeId(fragment.content);
 
-			var selectedElements = selection.get.all();
-			forEach(selectedElements, function(element) {
+			var selectedElements = document.querySelectorAll('[data-selected-element=selected]');
+			Array.prototype.forEach.call(selectedElements, function(element) {
 				element.alias.appendChild(fragment.cloneNode(true).content);
 				changeId(fragment.content);
 			});
 			overlayUpdate();
 			history.update('Paste HTML');
-			forEach(selectedElements, function(element) {
+			Array.prototype.forEach.call(selectedElements, function(element) {
 				clickhandler.call(element.alias.alias, {
 					stopPropagation: function(){},
 					clientX: 0,
@@ -6437,14 +6357,14 @@ function main(){
 				}
 				changeId(fragment.content);
 
-				var selectedElements = selection.get.all();
-				forEach(selectedElements, function(element) {
+				var selectedElements = document.querySelectorAll('[data-selected-element=selected]');
+				Array.prototype.forEach.call(selectedElements, function(element) {
 					element.alias.appendChild(fragment.cloneNode(true).content);
 					changeId(framement.content);
 				});
 				overlayUpdate();
 				history.update('Paste HTML');
-				forEach(selectedElements, function(element) {
+				Array.prototype.forEach.call(selectedElements, function(element) {
 					clickhandler.call(element.alias.alias, {
 						stopPropagation: function(){},
 						clientX: 0,
@@ -6462,7 +6382,7 @@ function main(){
 		setTimeout(function() {
 			frame.style.position = '';
 			overlay.style.height = getComputedStyle(framewindow.document.body).height;
-			document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = framewindow.document.body.getBoundingClientRect().height + 'px';
+			document.getElementById('overlaygrid').style.height = document.getElementById('rectDisplays').style.height = document.getElementById('frameback').style.height = overlay.getBoundingClientRect().height + 'px';
 			framecontainer.dispatchEvent(new Event('scroll'));
 		}, 500);
 		var oldSelection = selection.slice();
@@ -6486,6 +6406,11 @@ function main(){
 	});
 	addEventListener('selectstart', function(e) {
 		if (e.target.root && HTMLStudio.ContextMenu.isInstance(e.target.root)) e.preventDefault();
+	});
+
+
+	forEach(document.querySelectorAll('.headersection.loading, #title.loading'), function(element) {
+		element.className = 'headersection';
 	});
 
 
@@ -6527,14 +6452,14 @@ function main(){
 			tempColor = gradient(document.querySelector('#Ide div:first-child').userColor || userPrefs.nodeSelectionColor[0], document.querySelector('#Ide div:last-child').userColor || userPrefs.nodeSelectionColor[1]);
 
 		document.getElementById('Idg').style.background = 'rgba(' + tempColor[0] + ',' + tempColor[1] + ',' + tempColor[2] + ',' + tempColor[3] + ')';
-		forEach(overlay.ownerDocument.querySelectorAll('[data-selected-element=selected]:not(tr):not(thead):not(tbody):not(tfoot), tr[data-selected-element=selected] td, thead[data-selected-element=selected] td, tbody[data-selected-element=selected] td, tfoot[data-selected-element=selected] td'), function(element) {
+		forEach(document.querySelectorAll('[data-selected-element=selected]:not(tr):not(thead):not(tbody):not(tfoot), tr[data-selected-element=selected] td, thead[data-selected-element=selected] td, tbody[data-selected-element=selected] td, tfoot[data-selected-element=selected] td'), function(element) {
 			if ((element instanceof element.ownerDocument.defaultView.SVGElement || element.ownerSVGElement) && element.nodeName.toLowerCase() != 'svg') element.setAttribute('fill', element.style.fill = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')');
 			else element.style.background = 'rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + selectionColor[3] + ')';
 		});
-		forEach(overlay.ownerDocument.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
+		forEach(document.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
 			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + progress * userPrefs.nodeSelectionColor[0][3] + ')';
 		});
-		forEach(overlay.ownerDocument.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
+		forEach(document.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
 			element.style.color = 'rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 			element.style.textShadow = '0 0 1px rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 		});
@@ -6561,12 +6486,13 @@ function main(){
 	if (imgs.length) {
 		forEach(imgs, function(img,_,array) {
 			// If img is already loaded
-			if (img.complete && ++completeimgs == array.length) overlayUpdate(true);
+			// Includes a second kinda-if statement to test if it was the last img
+			if (img.complete) ++completeimgs == array.length && overlayUpdate();
 			// If the img has yet to be loaded
-			else if (!img.complete) {
+			else {
 				function func(e) {
 					// If the img was the last to be loaded
-					if (++completeimgs == array.length) overlayUpdate(true);
+					if (++completeimgs == array.length) overlayUpdate();
 					// Remove event listeners
 					this.removeEventListener('load', func);
 					this.removeEventListener('error', func);
@@ -6577,7 +6503,7 @@ function main(){
 			}
 		})
 	// Runs if no imgs are present
-	} else overlayUpdate(true);
+	} else overlayUpdate();
 	// Ensure history has at least one entry to start from
 	if (!history.entries.length) history.update();
 	!function(idq){
@@ -6590,7 +6516,7 @@ function main(){
 
 
 (function waitUntilLoaded() {
-	if (window.HTMLStudio && HTMLStudio.CSSEditor && HTMLStudio.ContextMenu && HTMLStudio.saveAs && HTMLStudio.ColorSelector && HTMLStudio.DraggableElement && HTMLStudio.google && window.Blob && !HTMLStudio.initiated) {
+	if (window.HTMLStudio && HTMLStudio.CSSEditor && HTMLStudio.ContextMenu && HTMLStudio.saveAs && HTMLStudio.ColorSelector && HTMLStudio.DraggableElement && window.Blob && !HTMLStudio.initiated) {
 		main();
 		HTMLStudio.initiated = true;
 	} else if (!HTMLStudio.initiated) setTimeout(waitUntilLoaded, 50);
