@@ -12,7 +12,7 @@
 		connected: null,
 		disconnected: null,
 		lastPing: 0,
-		__force__: true
+		__force__: null
 	};
 
 	setInterval(test, 3000);
