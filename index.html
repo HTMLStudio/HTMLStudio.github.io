@@ -7,7 +7,7 @@
 	<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 		ga('create', 'UA-91403443-1', 'auto');
 		ga('send', 'pageview');</script>
 		<link rel="apple-touch-icon" sizes="180x180" href="/HTML-Studio/icon/apple-touch-icon.png">
@@ -20,7 +20,58 @@
 		<meta name="application-name" content="HTML Studio">
 		<meta name="msapplication-config" content="/HTML-Studio/icon/browserconfig.xml">
 		<meta name="theme-color" content="#dddddd">
+		<meta name="author" content="Christian Figueroa">
+		<meta name="description" content="A web app to create custom HTML files by interacting directly with the document and its nodes">
+		<meta name="keywords" content="HTML,Studio,HTML Studio,webpage,webpage builder,website builder,web development,web app,css,javascript">
 	<style type="text/css">
+		@keyframes loadingLogo {
+			0% {
+				-webkit-box-shadow: 0 0 0 0 #00acc1;
+				box-shadow: 0 0 0 0 #00acc1;
+			}
+		
+			100% {
+				-webkit-box-shadow: 0 0 1em 1em transparent;
+				box-shadow: 0 0 1em 1em transparent;
+			}
+		}
+		
+		@-webkit-keyframes loadingLogo {
+			0% {
+				-webkit-box-shadow: 0 0 0 0 #00acc1;
+				box-shadow: 0 0 0 0 #00acc1;
+			}
+
+			100% {
+				-webkit-box-shadow: 0 0 1em 1em transparent;
+				box-shadow: 0 0 1em 1em transparent;
+			}
+		}
+
+		@-webkit-keyframes noNetworkBorder {
+			0%, 100% {
+				border-bottom-width: calc(.066 * (4.45rem - 1px;));
+				border-left-width: calc(.11 * (4.45rem - 1px));
+			}
+
+			50% {
+				border-bottom-width: calc(.33 * (4.45rem - 1px));
+				border-left-width: calc(.55 * (4.45rem - 1px));
+			}
+		}
+
+		@keyframes noNetworkBorder {
+			0%, 100% {
+				border-bottom-width: calc(.066 * (4.45rem - 1px;));
+				border-left-width: calc(.11 * (4.45rem - 1px));
+			}
+
+			50% {
+				border-bottom-width: calc(.33 * (4.45rem - 1px));
+				border-left-width: calc(.55 * (4.45rem - 1px));
+			}
+		}
+
 		body, html {
 			margin: 0;
 			height: 100%;
@@ -28,19 +79,64 @@
 			overflow: hidden;
 		}
 
-		#overwrite_warning, #mobile_warning {
+		body.hide > *:not(noscript):not(#mobilewarning):not(#printDisplay):not(#loadingScreen):not(#loadDriveSignIn):not(#loadSelectDoc):not(#deferred-styles ~ *) {
+			display: none;
+		}
+
+		#loadingScreen {
+			z-index: 9;
+			background: #F5F5F5;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+
+		#loadDriveSignIn, #loadSelectDoc {
+			z-index: 8;
+			background: #F5F5F5;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: none;
+			background: #CCC;
+			text-align: center;
+			overflow-y: auto;
+		}
+
+		#loadSelectDoc {
+			background: #F5F5F5;
+		}
+
+		#loadingScreen img {
+			height: 60vh;
+			border-radius: 50%;
+			background: #DDD;
+			display: block;
+			margin: 20vh auto 0;
+			-webkit-animation: loadingLogo 1.5s linear infinite;
+			animation: loadingLogo 1.5s linear infinite;
+			max-width: 60vw;
+			max-height: 60vw;
+			border: 1px solid #AAA;
+		}
+
+		#mobile_warning {
 			position: fixed;
 			height: 100vh;
 			width: 100vw;
 			display: none;
-			z-index: 9999998;
+			z-index: 8;
 			background: #F5F5F5;
 			top: 0;
 			left: 0;
 			overflow-y: auto;
 		}
 
-		#overwrite_continue, #mobile_continue {
+		#mobile_continue {
 			background: #00acc1;
 			border: 0;
 			padding: .7em 1.2em;
@@ -49,12 +145,14 @@
 			border-radius: .8em;
 			margin: 2em 0;
 			cursor: pointer;
+			-webkit-box-shadow: 0 .3em .5em 0 rgba(80,80,80,.8);
 			box-shadow: 0 .3em .5em 0 rgba(80,80,80,.8);
 		}
 
-		#overwrite_continue:active, #mobile_continue:active {
+		#mobile_continue:active {
 			position: relative;
 			top: .3em;
+			-webkit-box-shadow: initial;
 			box-shadow: initial;
 		}
 
@@ -70,7 +168,7 @@
 		}
 
 		#dialogcover {
-			z-index: 9999997;
+			z-index: 7;
 			background: rgba(0,0,0,.7);
 			height: 100vh;
 			width: 100vw;
@@ -84,40 +182,39 @@
 			height: calc(100% - 4.45rem);
 			width: auto;
 			position: relative;
-			overflow-y: auto;
+			overflow: auto;
 			-webkit-transition: height .3s ease-out;
 			transition: height .3s ease-out;
+			background: #90A4AE;
+			background-image: url('svg/back.svg');
+			background-size: contain;
 		}
 
 		#framecontainer > * {
 			min-height: 100%;
-			width: 100%;
+			min-width: 100%;
 			position: absolute;
 			top: 0;
 			left: 0;
 		}
 
 		#frameback {
-			background: #90A4AE;
-			background-image: url("svg/back.svg");
-			background-size: contain;
+			background: transparent;
 		}
 
-		#frame {
+		#frame, #frameoverlay {
 			border: 0;
 			overflow-y: hidden;
 			margin-bottom: -4px;
 		}
 
-		.csspositionsticky #frame {
-			height: calc(100vh - 4.45rem);
-			position: -webkit-sticky;
-			position: sticky;
+		.csspositionsticky #frame, .csspositionsticky #frameoverlay {
+			height: 100%;
 		}
 
-		#frameoverlay {
-			overflow: hidden;
-			font-family: initial;
+		.csspositionsticky #frame {
+			position: -webkit-sticky;
+			position: sticky;
 		}
 
 		#overlaygrid {
@@ -132,22 +229,34 @@
 			height: calc(4.45rem - 1px);
 			background: #F0F0F0;
 			border-bottom: 1px solid #888;
-			z-index: 9999994;
+			z-index: 4;
 			position: relative;
+			-webkit-box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
 			box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
 			overflow-x: auto;
 			overflow-y: hidden;
 			width: 100vw;
 			-webkit-transition: height .3s ease-out,
-				box-shadow .3s ease-out,
-				border-width .3s ease-out;
+			box-shadow .3s ease-out,
+			border-width .3s ease-out;
+			-webkit-transition: height .3s ease-out,
+			border-width .3s ease-out,
+			-webkit-box-shadow .3s ease-out;
 			transition: height .3s ease-out,
-				box-shadow .3s ease-out,
-				border-width .3s ease-out;
+			border-width .3s ease-out,
+			-webkit-box-shadow .3s ease-out;
+			transition: height .3s ease-out,
+			box-shadow .3s ease-out,
+			border-width .3s ease-out;
+			transition: height .3s ease-out,
+			box-shadow .3s ease-out,
+			border-width .3s ease-out,
+			-webkit-box-shadow .3s ease-out;
 		}
 
 		#toolbarcontainer.inactive {
 			height: 0;
+			-webkit-box-shadow: initial;
 			box-shadow: initial;
 			border: 0;
 		}
@@ -160,6 +269,12 @@
 			margin-top: -4.45rem;
 		}
 
+		#toolbarcontainer:not(.inactive) ~ #framecontainer #rectDisplays .rectX,
+		#toolbarcontainer:not(.inactive) ~ #framecontainer #rectDisplays .rectXT,
+		#toolbarcontainer:not(.inactive) ~ #framecontainer #rectDisplays .rectYT {
+			margin-top: calc(4.45rem - 1px);
+		}
+
 		#headersectionbar {
 			padding-left: 8%;
 			font-size: 0;
@@ -167,7 +282,7 @@
 			top: calc(1% + 2.2rem);
 		}
 
-		.headersection {
+		.headersection, .pseudoheadersection {
 			display: inline-block;
 			font-family: Arial, sans-serif;
 			padding: .3em .55em;
@@ -184,6 +299,14 @@
 		.headersection.loading {
 			pointer-events: none;
 			color: #AAA;
+		}
+
+		#section_saved_to_drive {
+			color: #888;
+		}
+
+		.pseudoheadersection {
+			pointer-events: none;
 		}
 
 		#titlebar {
@@ -209,6 +332,7 @@
 
 		#title:hover, #title:focus {
 			background: #FFF;
+			-webkit-box-shadow: 0 0 5px 2px rgba(0,172,193,.4);
 			box-shadow: 0 0 5px 2px rgba(0,172,193,.4);
 			border: 1px solid #00acc1;
 			margin: -1px;
@@ -226,6 +350,7 @@
 			max-width: 85%;
 			left: 0;
 			font-size: 1.2rem;
+			white-space: pre-line;
 		}
 
 		.placeholder {
@@ -241,17 +366,17 @@
 			background: #00acc1;
 			position: absolute;
 			-webkit-transition: width .6s ease-out,
-				min-width .6s ease-out;
+			min-width .6s ease-out;
 			transition: width .6s ease-out,
-				min-width .6s ease-out;
-			overflow-x: hidden;
-			overflow-y: hidden;
+			min-width .6s ease-out;
+			overflow: hidden;
 			white-space: nowrap;
 		}
 
 		#logo:hover {
 			width: 100%;
 			min-width: 672px;
+			z-index: 2;
 		}
 
 		#tooltip {
@@ -262,6 +387,7 @@
 			position: absolute;
 			top: 90%;
 			left: 25%;
+			-webkit-box-shadow: .3rem .3rem .6rem 0 rgba(0,0,0,.6);
 			box-shadow: .3rem .3rem .6rem 0 rgba(0,0,0,.6);
 			border: 1px solid #CCC;
 			margin: -1px;
@@ -279,6 +405,7 @@
 			min-width: calc(1.2em - 1vh);
 			border-radius: 50%;
 			background: url("svg/tooltip_icon.svg");
+			-webkit-box-shadow: 0 0 3px 1.5px rgba(0,0,0,.3);
 			box-shadow: 0 0 3px 1.5px rgba(0,0,0,.3);
 			background-size: contain;
 			top: 1vh;
@@ -303,10 +430,6 @@
 			vertical-align: middle;
 			text-align: center;
 			font-family: Arial, sans-serif;
-		}
-
-		#open_file_html {
-			display: none;
 		}
 
 		#clipboard {
@@ -356,11 +479,12 @@
 			margin-top: calc(4.45rem - 1px);
 			top: 0;
 			border: 1px solid #999;
-			border-top-left-radius: .6em;
+			border-top-left-radius: .3em;
 			border-top-right-radius: .2em;
 			cursor: pointer;
+			-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 			box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
-			z-index: 9999995;
+			z-index: 2;
 			display: none;
 		}
 
@@ -372,10 +496,11 @@
 			border-top-left-radius: inherit;
 			border-top-right-radius: inherit;
 			border-bottom: 1px solid #999;
+			padding: .2em 0;
 		}
 
 		#idp {
-			height: calc(40vh - 1.2em);
+			height: calc(40vh - 1.6em);
 			border-bottom-left-radius: inherit;
 			border-bottom-right-radius: inherit;
 			position: relative;
@@ -401,7 +526,7 @@
 		#idD {
 			position: absolute;
 			right: .15em;
-			top: .15em;
+			top: .25em;
 			width: 1em;
 			height: 1em;
 			background: #FFF url("svg/exit.svg") 50% 50%/70% 70% no-repeat;
@@ -502,7 +627,8 @@
 			display: initial;
 		}
 
-		a:hover .pseudoContextMenuItem {
+		a:hover .pseudoContextMenuItem,
+		a:focus .pseudoContextMenuItem {
 			background: #10bcd1;
 			border-color: #10bcd1;
 		}
@@ -528,7 +654,7 @@
 			position: absolute;
 			top: calc(4.45rem - 1px);
 			left: 100vw;
-			z-index: 9999994;
+			z-index: 4;
 			padding: .5rem .6rem;
 			cursor: -webkit-grab;
 			cursor: grab;
@@ -547,6 +673,7 @@
 			display: none;
 			pointer-events: none;
 			overflow: hidden;
+			width: 100%;
 		}
 
 		#toolbarcontainer:not(.inactive) ~ #toolbargrabber {
@@ -555,6 +682,7 @@
 
 		#toolbarcontainer.inactive ~ #toolbargrabber {
 			height: 2.5vw;
+			-webkit-box-shadow: 0 0 5px 3px rgba(0,0,0,.18);
 			box-shadow: 0 0 5px 3px rgba(0,0,0,.18);
 			border: 1px solid #AAA;
 			width: 10%;
@@ -590,13 +718,14 @@
 
 		#toolbargrabber, div#toolbargrabber#toolbargrabber.inactive:not([data-draggable-element-being-dragged="1"]) {
 			height: 0;
+			-webkit-box-shadow: initial;
 			box-shadow: initial;
 			border: 0;
 			text-align: center;
 			width: 40%;
 			margin-left: 30%;
 			position: absolute;
-			z-index: 9999995;
+			z-index: 5;
 			background: #F0F0F0;
 			border-bottom-left-radius: .5vw;
 			border-bottom-right-radius: .5vw;
@@ -621,12 +750,566 @@
 			top: -2.5vw;
 			position: relative;
 		}
+
+		#googOpenCont {
+			position: relative;
+			left: 93%;
+			width: 7%;
+			height: 100%;
+		}
+
+		#googOpen {
+			height: 55%;
+			width: calc(4.45em * .55);
+			top: 22.5%;
+			position: relative;
+			margin: auto;
+			background: #DDD;
+			border-radius: 50%;
+			-webkit-box-shadow: .1em .1em .4em 0 #888;
+			box-shadow: .1em .1em .4em 0 #888;
+			cursor: pointer;
+			-webkit-transition: opacity 0.7s linear;
+			transition: opacity 0.7s linear;
+		}
+
+		#googOpen:hover, #googOpen:focus {
+			background: #D0D0D0;
+		}
+
+		#driveLogo {
+			height: 73%;
+			position: relative;
+			top: 13.5%;
+			display: block;
+			margin: auto;
+		}
+
+		#googInterface {
+			display: none;
+			width: 300px;
+			max-width: 98vw;
+			height: 500px;
+			max-height: calc(100vh - 4.45em - 2vw);
+			background: #DDD;
+			border-radius: 4px;
+			position: absolute;
+			right: 1vw;
+			top: calc(4.45em + 1vw);
+			border: 1px solid #AAA;
+			-webkit-box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+			box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+			overflow-y: auto;
+			font-family: "Open Sans",Arial,sans-serif;
+			z-index: 2;
+		}
+
+		#googOpenNoNetwork {
+			display: none;
+			opacity: 0;
+			pointer-events: none;
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			text-align: center;
+			z-index: 1;
+			-webkit-transition: opacity 0.7s linear;
+			transition: opacity 0.7s linear;
+		}
+
+		#IdG {
+			background: url('svg/logo_color.svg') 50% 50% / auto 80% no-repeat scroll #DDD;
+			height: 15em;
+		}
+
+		.clm {
+			max-width: 95%;
+			min-width: 85%;
+			width: 650px;
+			text-align: left;
+			margin: auto;
+			border-radius: .3rem;
+		}
+
+		.cll {
+			padding: .2em .5em;
+			background: #00acc1;
+			color: #FFF;
+			font-family: "Roboto Slab", Arial, sans-serif;
+			font-size: 2rem;
+			border-top-right-radius: inherit;
+			border-top-left-radius: inherit;
+			font-weight: bold;
+		}
+
+		.cll + div {
+			border: 2px solid #00acc1;
+			border-bottom-right-radius: inherit;
+			border-bottom-left-radius: inherit;
+			padding: 1em 2.5em;
+			font-family: "Open Sans";
+			background: #F9F9F9;
+			text-align: center;
+		}
+
+		#docSelectLocal {
+			margin: 3em auto 2em;
+		}
+
+		#docSelectDriveContainer, #docSelectLocalContainer {
+			line-height: 4;
+		}
+
+		.docSelect {
+			font-family: Arial, sans-serif;
+			width: 200px;
+			padding: .4em .8em;
+			line-height: initial;
+			vertical-align: middle;
+			display: inline-block;
+			background: #F0F0F0;
+			border-radius: .3em;
+			cursor: pointer;
+			margin: .6em .3em;
+			text-align: left;
+			border: 1px solid #AAA;
+			-webkit-box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+			box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+		}
+
+		.docSelect:hover, .docSelect:focus {
+			background: #DDD;
+		}
+
+		.docSelect.e1 {
+			background: #FCC;
+		}
+
+		.docSelect.e1:hover, .docSelect.e1:focus {
+			background: #ECB9B9;
+		}
+
+		.docSelect.e2 {
+			background: #FBB
+		}
+
+		.docSelect.e2:hover, .docSelect.e2:focus {
+			background: #ECA9A9;
+		}
+
+		.docSelect.e3 {
+			background: #F99;
+		}
+
+		.docSelect.e3:hover, .docSelect.e3:focus {
+			background: #EC8989;
+		}
+
+		.docSelect.e3 .clo, .docSelect.e3 .clp {
+			color: #555;
+		}
+
+		.docSelect.e4 {
+			background: #F66;
+		}
+
+		.docSelect.e4:hover, .docSelect.e4:focus {
+			background: #EC5959;
+		}
+
+		.docSelect.e4 .clo, .docSelect.e4 .clp {
+			color: #333;
+		}
+
+		.docSelect.active.active.active {
+			background: #00acc1;
+			-webkit-box-shadow: initial;
+			box-shadow: initial;
+			top: .2em;
+			left: .2em;
+			position: relative;
+		}
+
+		.docSelect.active .clo, .docSelect.active .clp {
+			color: #E5E5E5;
+		}
+
+		.docSelect.active .cln {
+			color: #FFF;
+		}
+
+		.cln, .clo, .clp {
+			white-space: pre;
+			font-style: italic;
+			overflow: hidden;
+			color: #777;
+			text-overflow: ellipsis;
+		}
+
+		.cln {
+			font-weight: bold;
+			font-style: initial;
+			color: #000;
+		}
+
+		#IdK, #IdS {
+			line-height: initial;
+		}
+
+		.clq {
+			display: -webkit-box;
+			display: -ms-flexbox;
+			display: flex;
+			background: #EEE;
+			border-top: 1px solid #CCC;
+			margin: 1em -2.5em -1em;
+			padding: 1em 2.5em;
+			position: relative;
+		}
+
+		.clq div:not(#iDw), .clr div {
+			-webkit-box-flex: 1;
+			-ms-flex-positive: 1;
+			flex-grow: 1;
+			-ms-flex-preferred-size: 0px;
+			flex-basis: 0px;
+			background: #05e;
+			color: #FFF;
+			font-family: "Open Sans", Arial, sans-serif;
+			font-weight: 600;
+			border-radius: 6px;
+			border: 1px solid #03b;
+			-webkit-box-shadow: .1em .1em .3em 0 rgba(80,80,80,.8);
+			box-shadow: .1em .1em .3em 0 rgba(80,80,80,.8);
+			padding: .2em .5em;
+			font-size: 1.15em;
+			cursor: pointer;
+			line-height: initial;
+		}
+
+		.clq div:first-child, .clq div:nth-child(2):not(:last-child) {
+			margin-right: 2.5em;
+		}
+
+		.clq div:not(#iDw):hover, .clq div:not(#iDw):focus, .clr div:hover:not(:first-child), .clr div:focus:not(:first-child) {
+			background: #27f;
+		}
+
+		.clq div.inactive {
+			background: #05e;
+			opacity: .5;
+			pointer-events: none;
+		}
+
+		#IdP, .clr, #iDm, #iDo, #printDisplay, #section_saved_to_drive.inactive, #iDi, #iDj {
+			display: none;
+		}
+
+		#driveDocsSelect.active ~ .clr, #localDocsSelect.active ~ .clr {
+			margin-top: 1em;
+			display: -webkit-box;
+			display: -ms-flexbox;
+			display: flex;
+		}
+
+		.clr :first-child {
+			background: #e33;
+			border-color: #b11;
+			margin-right: 2.5em;
+		}
+
+		.clr :first-child:hover, .clr :first-child:focus {
+			background: #F55;
+		}
+
+		#temporaryStorageInfo {
+			text-align: justify;
+			max-width: 95%;
+			min-width: 85%;
+			width: 650px;
+			font-family: "Open Sans", Arial, sans-serif;
+			margin: 0 auto 2em;
+			font-size: 90%;
+		}
+
+		#IdX {
+			font-family: "Roboto Slab", Arial, sans-serif;
+			font-size: 3em;
+			margin: .3em auto;
+			font-weight: bold;
+			width: 650px;
+			max-width: 95%;
+			min-width: 85%;
+		}
+
+		#iDk {
+			display: none;
+			position: fixed;
+			left: 0;
+			top: 0;
+			background: rgba(0,0,0,.7);
+			height: 100vh;
+			width: 100vw;
+		}
+
+		#noNetworkContainer {
+			width: calc(.55 * (4.45rem - 1px));
+			margin: auto;
+			position: relative;
+			top: 66.5%;
+		}
+
+		#noNetworkBack {
+			border-bottom-color: #005c71;
+			border-left-color: transparent;
+			border-style: solid;
+			border-width: 0 0 calc(.33 * (4.45rem - 1px)) calc(.55 * (4.45rem - 1px));
+			width: 0;
+			position: absolute;
+			bottom: 0;
+			-webkit-box-shadow: .15rem .15rem 0 0 rgba(80,80,80,.4);
+			box-shadow: .15rem .15rem 0 0 rgba(80,80,80,.4);
+		}
+
+		#noNetworkFront {
+			-webkit-animation: noNetworkBorder 1.0s ease-in-out infinite;
+			animation: noNetworkBorder 1.0s ease-in-out infinite;
+			border-bottom-color: #00acc1;
+			border-left-color: transparent;
+			border-style: solid;
+			border-width: 0;
+			width: 0;
+			position: absolute;
+			bottom: 0;
+		}
+
+		#iDw {
+			position: absolute;
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		.dialog { 
+			width: 50%;
+			min-width: 50vw;
+			max-width: 100vw;
+			max-height: 75vh;
+			background: #F5F5F5;
+			text-align: center;
+			border-radius: .3em;
+			left: calc(25% - 1px);
+			margin-top: calc(12.5vh - 1px);
+			border: 1px solid #AAA;
+			-webkit-box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
+			box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
+			font-family: Arial, sans-serif;
+			position: relative;
+			display: none;
+			cursor: -webkit-grab;
+			cursor: grab;
+			padding-bottom: 2.2em;
+		}
+
+		.dialog > span {
+			font-size: 1.1em;
+			display: block;
+			padding: .4rem .5rem;
+			text-align: left;
+			font-family: "Open Sans";
+			position: relative;
+			z-index: 1;
+		}
+
+		.dialog > .content {
+			max-height: calc(75vh - 5.9em - 1px);
+			width: calc(100% - 4.5em);
+			position: relative;
+			left: .5em;
+			border-radius: inherit;
+			background: #FFF;
+			border: 1px solid #AAA;
+			margin: -1px -1px .5em;
+			padding: .75em 1.75em;
+			overflow: auto;
+			cursor: initial;
+		}
+
+		.dialog > .exit {
+			height: 1.2em;
+			width: 1.2em;
+			position: absolute;
+			top: .5em;
+			right: .5em;
+			background: #F5F5F5 url("svg/exit.svg") 50% 50%/70% 70% no-repeat;
+			border: 1px solid #AAA;
+			margin: -1px;
+			border-radius: .3em;
+			cursor: pointer;
+			z-index: 1;
+		}
+
+		.dialog > .exit.disabled {
+			background: #F0F0F0;
+			cursor: default;
+		}
+
+		.dialog .optioncontainer {
+			float: right;
+		}
+
+		.dialog .option {
+			background: #FFF;
+			display: inline-block;
+			padding: .3em .5em;
+			font-family: Arial, sans-serif;
+			border-radius: .3em;
+			border: 1px solid #AAA;
+			margin: -1px .5em -1px -1px;
+			cursor: pointer;
+			position: static;
+			width: initial;
+			float: left;
+			-webkit-transition: all .15s linear;
+			transition: all .15s linear;
+		}
+
+		.dialog .option:hover, .dialog .option:focus {
+			background: -webkit-gradient(linear, left top, left bottom, from(#EEE),to(#CCC));
+			background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
+		}
+
+		.dialog .option:active {
+			background: -webkit-gradient(linear, left top, left bottom, from(#BBB),to(#DDD));
+			background: linear-gradient(to bottom, #BBB 0%,#DDD 100%);
+			-webkit-box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
+			box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
+		}
+
+		.dialog .option.disabled {
+			background: #F0F0F0;
+			color: #999;
+			-webkit-box-shadow: initial;
+			box-shadow: initial;
+			cursor: default;
+			pointer-events: none;
+		}
+
+		.dialog > .content h3 {
+			font-weight: normal;
+			font-family: "Open Sans", Arial, sans-serif;
+			margin: 0;
+		}
+
+		.dialog > .content > h4 {
+			font-weight: normal;
+			font-family: "Open Sans", Arial, sans-serif;
+			margin: 0;
+			font-size: 1rem;
+			text-align: justify;
+		}
+
+		.dialog > .content h3 strong {
+			font-weight: 600;
+		}
+
+		@media print {
+			#printDisplay {
+				display: block;
+			}
+
+			body > *:not(noscript):not(#mobile_warning):not(#printDisplay):not(#loadingScreen):not(#loadDriveSignIn):not(#loadSelectDoc) {
+				display: none;
+			}
+
+			body, html {
+				overflow: initial;
+			}
+		}
 	</style>
 </head>
-<body>
-	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration:underline}noscript{z-index:9999999;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='http://enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='http://enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
+<body class='hide'>
+	<noscript><style>a{text-decoration:none;color:#00acc1}a:hover{text-decoration:underline}noscript{z-index:9;position:fixed;height:100vh;width:100vw;background:#F5F5F5;top:0;left:0;overflow-y:auto}</style><div class='nojscrossstripes'></div><div class='nojs'><a href='//enable-javascript.com/'><img class='nojsico' src='/assets/no_js.svg'></a><span>Your broswer settings have your JavaScript disabled. Unfortunately, this page requires JavaScript to work properly. Please <a href='//enable-javascript.com'>enable JavaScript</a> and refresh to continue.</span></div></noscript>
+	<div id='loadingScreen'>
+		<img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20300%20300%22%3E%3Cpath%20style%3D%22fill%3A%2300acc1%22%20d%3D%22m186.45%20200h-15.29l-2.66-13.96q-2.65-1.68-7.75-2.94-5.1-1.25-10.82-1.25-8.38%200-12.99%203.56-4.53%203.49-4.53%209.07%200%205.18%204.74%208.52%204.82%203.28%2016.55%206.98%2016.83%204.69%2025.48%2012.36%208.73%207.68%208.73%2020.18%200%2013.06-10.33%2020.6t-27.23%207.54q-12.08%200-21.85-3.84-9.71-3.84-16.2-10.62v-21.22h15.78l2.16%2014.45q3.07%202.52%208.31%204.19%205.3%201.61%2011.8%201.61%208.38%200%2012.71-3.43%204.4-3.41%204.4-9.14%200-5.87-4.2-9.42-4.11-3.56-14.52-6.71-18.08-5.24-27.37-12.43-9.28-7.19-9.28-19.68%200-12.36%2010.47-20.18%2010.48-7.89%2026.32-8.1%2011.73%200%2021.37%203.56%209.63%203.56%2016.2%209.49v20.81z%22%2F%3E%3Cpath%20style%3D%22fill%3A%2300acc1%22%20d%3D%22m100.67%2041.012v-11.672h39.98v11.672l-10.35%201.989v27.859h39.39v-27.859l-10.34-1.989v-11.672h10.34%2019.3%2010.35v11.672l-10.35%201.989v69.299l10.35%201.98v11.61h-39.99v-11.61l10.34-1.98v-26.52h-39.39v26.52l10.35%201.98v11.61h-39.98v-11.61l10.27-1.98v-69.299l-10.27-1.989z%22%2F%3E%3Cpath%20style%3D%22fill%3A%23456%22%20d%3D%22m72.562%2029.34-26.514%2053.02%2038.444%2076.89h116.76c1.01%200%201.94.57%202.39%201.48l27.85%2055.69c.37.76.37%201.64%200%202.4l-25.92%2051.82h21.88l26.5-53.02-38.44-76.89h-116.75c-1.01%200-1.95-.57-2.4-1.48l-27.838-55.69c-.38-.76-.38-1.64%200-2.39l25.91-51.83z%22%2F%3E%3C%2Fsvg%3E">
+	</div>
 	<div id='mobile_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/mobile_device.svg'><span>This webpage wasn't built with mobile devices in mind since it's a lot harder to actually accomplish anything on small touch screen devices. There are probably tons of bugs and stuff will definitely look weird but you can still continue to the site by clicking the button below. Just know that this webpage will look and work a lot better on a computer.</span><button id='mobile_continue' title='Hide this message'>Continue to Site</button></div></div>
-	<div id='overwrite_warning'><div class='nojscrossstripes'></div><div class='nojs'><img class='nojsico' src='svg/open_windows.svg'><span>This page may be open in another tab. It is dangerous to have two different documents open at once because any changes made on one document may overwrite the other document and screw up some stuff. Even editing two different versions of the same document may have the same affect. If you think this is a mistake and you want to continue (sometimes happens when your browser crashes), click the button below to hide this message.</span><button id='overwrite_continue' title='Hide this message'>Continue to Site</button></div></div>
+	<div id='loadDriveSignIn'>
+		<div id='IdE'>It looks like you are trying to open a file from <span style='font-family:Roboto,"Open Sans",Arial,sans-serif'>Google Drive</span>&#153;. Sign in to Drive below to open the file or press Cancel to open another document.</div>
+		<div id='IdH'>Connect <span>HTML Studio</span> to Google Drive</div>
+		<div id='IdF'>
+			<ul>
+				<li>Open and edit HTML files in Google Drive</li>
+				<li>Save documents to Google Drive</li>
+				<li>Access Drive documents on other computers</li>
+			</ul>
+		</div>
+		<div id='iDg'>There was a problem getting this document from Google Drive. Either this file doesn't exist, or the account you used to sign in doesn't have access to the file. Try logging into another account with access to the file, or press Cancel to edit another document.</div>
+		<div id='loadDriveSignInBtn' role='button' class='btn'>Sign In</div>
+		<div id='IdL' role='button' class='btn'>Cancel</div>
+	</div>
+	<div id='loadSelectDoc'>
+		<div id='IdG'></div>
+		<div id='IdX'>Select a document to edit.</div>
+		<div id='docSelectDrive' class='clm'>
+			<div id='IdJ' class='cll'>Saved in Google Drive&#153;</div>
+			<div id='docSelectDriveContainer'>
+				<div id='driveDocsSelect'>
+					<div id='IdK'>Sign into Google Drive below to access files from Drive.</div>
+				</div>
+				<div id='iDr'></div>
+				<div class='clr'>
+					<div id='IdQ' title='Hide this document from your recent documents.' role='button'>Hide from Recents</div>
+					<div id='IdR' title='Edit this document in HTML Studio' role='button'>Open Document</div>
+				</div>
+				<div id='iDm'>There was a problem retrieving information for Document Title. Make sure you have an Internet connection and try again, or select another document.</div>
+				<div id='iDo'>There was a problem creating the document in Drive. Make sure you have an Internet connection and try again, or open another document.</div>
+				<div class='clq'>
+					<div id='IdM' class='inactive' title='Open a file from Google Drive' role='button' data-no-tab>Open New File</div>
+					<div id='IdO' class='inactive' title='Create a new blank file in Google Drive' role='button' data-no-tab>Create New File</div>
+					<div id='IdN' title='Sign into Google Drive' role='button'>Loading...<!--Changes to say Sign In once Google has loaded--></div>
+					<div id='IdP' title='Sign out of Google Drive' role='button'>Sign Out</div>
+					<div id='iDw'>
+						<span>Could not connect to Google</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id='docSelectLocal' class='clm'>
+			<div id='IdI' class='cll'>Saved in Temporary Storage*</div>
+			<div id='docSelectLocalContainer'>
+				<div id='localDocsSelect'>
+					<div id='IdS'>No recent documents in Temporary Storage.</div>
+				</div>
+				<div id='iDq'></div>
+				<div class='clr'>
+					<div id='IdT' title='Delete this document from Temporary Storage' role='button'>Delete Document</div>
+					<div id='IdU' title='Edit this document in HTML Studio' role='button'>Open Document</div>
+				</div>
+				<div id='iDj'>The file format for filename.extension is not allowed. Only HTML and plain text files can be opened.</div>
+				<div class='clq'>
+					<div id='IdV' title='Open a file from your computer to Temporary Storage' role='button'>Open New File</div>
+					<div id='IdW' title='Create a new blank file in Temporary Storage' role='button'>Create New File</div>
+				</div>
+				<input type="file" id='iDi' accept='text/*'>
+			</div>
+		</div>
+		<div id='temporaryStorageInfo'>*Documents in Temporary Storage have an expiration date 30 days after their last modification. After 30 days of inactivity on a document, it will be deleted to save space (unless it is the <i>only</i> file in Temporary Storage). If Temporary Storage begins to run low on space (only 5 MB of data can be saved), the oldest document(s) will be deleted until there is enough space for the newest ones. Typically, this isn't an issue since script-less HTML files <i>rarely</i> exceed 5 MB. To save documents permanently and without a data limit, save them into Google Drive.</div>
+		<div id='iDk'>
+			<div class='dialog' id='dialog_delete_storage_file'>
+				<span>Delete Document</span>
+				<div class='content'>
+					<h3 style='text-align:justify'>Are you sure you want to delete the selected document from Temporary Storage? This cannot be undone and all the data for this file will be permanently deleted. Save documents to Google Drive to be able to re-open documents later.</h3>
+				</div>
+				<div class='exit'></div>
+				<div class='optioncontainer'>
+					<div role='button' class='option' id='iDl'><img src="svg/warning.svg">Permanently Delete</div>
+					<div role='button' class='option exit'>Cancel</div>
+				</div>
+				<div class='dialog_resizer_left'></div>
+				<div class='dialog_resizer_right'></div>
+			</div>
+		</div>
+	</div>
 	<div id='measurementReference'></div>
 	<div id='toolbarcontainer'>
 		<div id='titlebar'>
@@ -639,6 +1322,7 @@
 			<div class='headersection loading' id='section_view' tabindex='0'>View</div>
 			<div class='headersection loading' id='section_stylesheets' tabindex='0'>Style Sheets</div>
 			<div class='headersection loading' id='section_selection' tabindex='0'>Select</div>
+			<div class='pseudoheadersection inactive' id='section_saved_to_drive'>Changes saved to Drive</div>
 		</div>
 		<div id='logo'>
 			<table>
@@ -646,10 +1330,61 @@
 			</table>
 			<div id='logoDivider'></div>
 			<div id='logoContextHolder'>
-				<a href='#' id='meta_about' tabindex='0'><div class='pseudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
-				<a href='help' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
-				<a href='https://github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
-				<a href='documentation' target='_blank'><div class='pseudoContextMenuItem'><img src='svg/documentation.svg'><span>Documentation</span></div></a>
+				<a href='javascript:void(0);' id='meta_about' title='About HTML Studio'><div class='pseudoContextMenuItem'><img src='svg/about.svg'><span>About</span></div></a>
+				<a href='help' target='_blank' title='HTML Studio Help Page'><div class='pseudoContextMenuItem'><img src='svg/help.svg'><span>Help</span></div></a>
+				<a href='//github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank' title='View the source code in GitHub'><div class='pseudoContextMenuItem'><img src='svg/github.svg'><span>Source Code</span></div></a>
+			</div>
+		</div>
+		<div id='googOpenCont'>
+			<div id='googOpenNoNetwork' title='No Network Connection. Attempting to Reconnect...'>
+				<div id='noNetworkContainer'>
+					<div id='noNetworkBack'></div>
+					<div id='noNetworkFront'></div>
+				</div>
+			</div>
+			<div id='googOpen' title='Connect to Google Drive' class='signedOut' role='button'>
+				<img src='png/drive128.png' id='driveLogo'>
+			</div>
+		</div>
+	</div>
+	<div id='googInterface' class='signedOut'>
+		<div id='GIhead'>
+			<div id='googProfileContainer'>
+				<div id='googProfileOutline'>
+					<img id='googProfileIcon'>
+				</div>
+			</div>
+			<div id='GIO1'>Connect to<br>
+				<span>Google Drive</span>
+			</div>
+		</div>
+		<div id='GIbody'>
+			<div id='GIbodyI'>
+				<div id='GII1'>Signed in as</div>
+				<div id='GII2'>User Name</div>
+				<div id='GII3'>(User Email)</div>
+				<table id='GII6'>
+					<tr>
+						<td><button role='button' id='GII4'>Sign Out</button></td>
+					</tr>
+					<tr>
+						<td><button role='button' id='GII5'>Switch Account</button></td>
+					</tr>
+				</table>
+			</div>
+			<div id='GIbodyO'>
+				<div id='GIO2'>Connect <span>HTML Studio</span> to Google Drive&#153;</div>
+				<div id='GIO3'>
+					<ul style='margin:0'>
+						<li>Open and edit HTML files in Google Drive</li>
+						<li>Save documents to Google Drive</li>
+						<li>Access Drive documents on other computers</li>
+					</ul>
+				</div>
+				<div id='googNoNetwork'>
+					<span>Could not connect to Google</span>
+				</div>
+				<button role='button' id='GIO4'>Sign In</button>
 			</div>
 		</div>
 	</div>
@@ -674,7 +1409,7 @@
 	<div id='framecontainer'>
 		<div id='frameback'></div>
 		<iframe id='frame'></iframe>
-		<div id='frameoverlay'></div>
+		<iframe id='frameoverlay'></iframe>
 		<div id='overlaygrid'></div>
 		<div id='rectDisplays'></div>
 	</div>
@@ -686,24 +1421,118 @@
 			</div>
 		</div>
 	</div>
+	<div id='notices'>
+		<div class='notice error' id='deletedWarning'>
+			<div>
+				<div id='ido'>WARNING</div>
+				<div id='idy'>This document was just deleted somewhere else and all changes made to this document are <strong>not</strong> being saved. Do you want to re-save this document or permanently delete it?</div>
+				<div id='iD6'>
+					<div id='iD7'>Hide from Recents</div>
+					<div id='iDf'>Re-add to Recents</div>
+				</div>
+				<div id='idz'>
+					<div id='Idi'>Delete Document</div>
+					<div id='idA'>Re-save Document</div>
+				</div>
+				<div id='Idj'>
+					<div id='iD4'>No, Don't Delete</div>
+					<div id='iD5'>Yes, Delete</div>
+				</div>
+			</div>
+		</div>
+		<div class='notice success' id='restored_doc'>
+			<table>
+				<tr>
+					<td><img src="svg/success.svg"></td>
+					<td>Document Recovered</td>
+				</tr>
+			</table>
+		</div>
+		<div class='notice error' id='error_saving_to_drive'>
+			<div id='iDx'>There was an error while uploading the document to Google Drive. It is now being saved in Temporary Storage instead.</div>
+			<div id='iDy'>Attempts made: #</div>
+			<div id='driveSaveErrorCode'>Error code: ###</div>
+			<div id='iDs'>
+				<div id='iDt' role='button'>Try Again</div>
+				<div id='iDu' role='button'>Close</div>
+			</div>
+		</div>
+		<div class='notice error' id='error_resaving'>
+			<div id='iDB'>Something went wrong. This file's Google document could not be found. It is still saved in Temporary Storage. To re-save to a Google document, use File > Save > Google Drive.</div>
+			<div id='iDv'>
+				<div id='iDn' role='button'>Okay</div>
+			</div>
+		</div>
+		<div class='notice success' id='success_saving_to_drive'>
+			<table>
+				<tr>
+					<td><img src="svg/success.svg"></td>
+					<td>Saved to Drive</td>
+				</tr>
+			</table>
+		</div>
+		<div class='notice error' id='no_network_editing'>
+			<div id='iDC'>You are no longer connected to the Internet. Your document has automatically been moved to Temporary Storage so you can continue editing offline. All changes will be uploaded to Drive after you reconnect.</div>
+			<div id='iDD'>
+				<div id='iDE' role='button'>Okay</div>
+			</div>
+		</div>
+	</div>
 	<div id='dialogcover'>
 		<div id='dialog_open_file_html' class='dialog'>
 			<span>Open File</span>
 			<div class='content' id='idb'>
-				<h3>Select a file to replace the current document. Keep in mind <strong style='text-decoration:underline'>this action cannot be undone</strong> and any unsaved changes will be deleted.</h3>
+				<h3>Open a file from your computer or Google Drive to edit in a new tab.</h3>
+				<div id='id0' class='local'>
+					<div role='button' class='active' data-focus>Local File</div>
+					<div role='button' style='font-family:Roboto,Arial,sans-serif'>Google Drive</div>
+				</div>
 				<form id='id2'>
+					<input type="file" id='Id0' accept="text/*">
+					<div id='Id1' role='button'>Click to open a file</div>
 					<div id='id1' ondragover='return this.className="active",false' ondragend='return this.className="",false' ondragleave='return this.className="",false'>
-						<div id='id4'>
-							<span id='id3'>Drop a file here</span>
-							<span id='id5'>or click to select one</span>
-						</div>
+						<table style='width:100%;height:100%'>
+							<td>or drag and drop one in here</td>
+						</table>
 					</div>
 				</form>
+				<div id='Id5'>
+					<div id='Id6'>Connect to <span style='font-size:1.2em'>Google Drive</span>&#153;</div>
+					<div id='Id7'>
+						<div id='Id8'>Connect <span>HTML Studio</span> to Google Drive</div>
+						<div id='Id9'>
+							<ul>
+								<li>Open and edit HTML files in Google Drive</li>
+								<li>Save document to Google Drive</li>
+								<li>Access Drive documents on other computers</li>
+							</ul>
+						</div>
+						<div id='iD0'>
+							<span>Could not connect to Google</span>
+						</div>
+						<div id='iD1' role='button'>Sign In</div>
+					</div>
+				</div>
+				<form id='id3'>
+					<div id='Id2'>Select a file from Drive</div>
+				</form>
+				<div id='id7'>This file format is not allowed. Only HTML and plain text files can be opened.</div>
+				<div id='id8'>The file could not be read. Try switching/updating your browser.</div>
+				<div id='Id3'>There was a problem connecting to Google. Make sure you have an Internet connection and try again.</div>
+				<div id='Id4'>You can only open files you are allowed to edit. Request edit access from the document's owner (Owner Name owner_email@gmail.com) to edit in <span>HTML Studio</span>.</div>
+				<div id='iD2'>There was a problem retrieving information for this file. Make sure you have an Internet connection and try again, or open another file.</div>
+				<div id='id4'>
+					<div id='id5'>Selected File:</div>
+					<div id='id6'>
+						<h4>No File Selected</h4>
+						<div>Open a file above</div>
+					</div>
+				</div>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option disabled' tabindex='0' id='id9'>Open File</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option disabled' id='id9'>Open File</div>
+				<div role='button' class='option exit'>Close</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -715,15 +1544,15 @@
 					<tr>
 						<td id='Idl'></td>
 						<td style='height:100%;padding:0'>
-							<textarea id='idf' spellcheck='false'></textarea>
+							<textarea id='idf' spellcheck='false' data-focus></textarea>
 						</td>
 					</tr>
 				</table>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit''></div>
 			<div class='optioncontainer'>
-				<div class='option' tabindex='0' id='idd'>Save</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='idd'>Save</div>
+				<div role='button' class='option exit'>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -733,10 +1562,10 @@
 			<div class='content' id='idg'>
 				<table id='idi'></table>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option' tabindex='0' id='idh'>Save</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='idh'>Save</div>
+				<div role='button' class='option exit'>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -744,22 +1573,35 @@
 		<div id='dialog_new_file' class='dialog'>
 			<span>Create New File</span>
 			<div class='content'>
-				<h3>This will create a new document to replace the current one. Keep in mind <strong style='text-decoration:underline'>this action cannot be undone</strong> and any unsaved changes will be deleted. Choose a preset below to replace the document and then select "Create New File".</h3>
-				<table id='idm'>
-					<tr>
-						<td><iframe src='./presets/1.html' class='cl5'></iframe><h4 class='cl6'>Blank</h4></td>
-						<td><iframe src='./presets/2.html' class='cl5'></iframe><h4 class='cl6'>Picture Strips</h4></td>
-					</tr>
-					<tr>
-						<td><iframe src='./presets/3.html' class='cl5 cl7'></iframe><h4 class='cl6'>Image w/ Content</h4></td>
-						<td id='ido'><iframe src='./presets/add.html' class='cl5' id='idn'></iframe><h4 class='cl6'>Create New Preset&#133;</h4></td>
-					</tr>
-				</table>
+				<h3>Create a new file to edit in another tab.</h3>
+				<input type="text" id='iD3' placeholder='index.html' data-focus>
+				<div id='iD8'>
+					<div id='iD9'>Connect to <span style='font-size:1.2em'>Google Drive</span>&#153;</div>
+					<div id='iDa'>
+						<div id='iDb'>Connect <span>HTML Studio</span> to Google Drive</div>
+						<div id='iDc'>
+							<ul>
+								<li>Open and edit HTML files in Google Drive</li>
+								<li>Save document to Google Drive</li>
+								<li>Access Drive documents on other computers</li>
+							</ul>
+						</div>
+						<div id='iDd'>
+							<span>Could not connect to Google</span>
+						</div>
+						<div id='iDe' role='button'>Sign In</div>
+					</div>
+				</div>
+				<div id='idm'>
+					<label><input type="checkbox" id='idn' checked> Create as document in Google Drive</label>
+				</div>
+				<div id='iDI'>There was a problem connecting to Google. Make sure you have an Internet connection and try again.</div>
+				<div id='iDJ'>There was a problem retrieving information for the new file. Make sure you have an Internet connection and try again, or create another file.</div>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit''></div>
 			<div class='optioncontainer'>
-				<div class='option disabled' tabindex='0' id='idl'>Create New File</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='idl'>Create New File</div>
+				<div role='button' class='option exit'>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -769,28 +1611,10 @@
 			<div class='content' id='idv'>
 				<table id='idu'></table>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option' tabindex='0' id='idt'>Save Styles</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
-			</div>
-			<div class='dialog_resizer_left'></div>
-			<div class='dialog_resizer_right'></div>
-		</div>
-		<div id='dialog_new_preset' class='dialog'>
-			<span>Create New Preset</span>
-			<div class='content'>
-				<h3>A new preset will be created from the current document being edited. Give your preset a name below and select "Create Preset".</h3>
-				<div id='Idi'>
-					<iframe id='idy'></iframe>
-				</div>
-				<input type='text' id='idA' placeholder='Name your preset'>
-			</div>
-			<div class='exit' tabindex='0'></div>
-			<div class='optioncontainer'>
-				<div class='option' tabindex='0' id='idz'>Create Preset</div>
-				<div class='option' tabindex='0' id='Idj'>Back</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='idt'>Save Styles</div>
+				<div role='button' class='option exit''>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -813,9 +1637,9 @@
 				<br>
 				<h3><label><input type='checkbox' id='idB'> Don't show this message again.</label></h3>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option exit' tabindex='0'>Close</div>
+				<div role='button' class='option exit'>Close</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -841,9 +1665,9 @@
 					</tr>
 				</table>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option exit' tabindex='0'>Close</div>
+				<div role='button' class='option exit'>Close</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -853,26 +1677,29 @@
 			<div class='content'>
 				<table id='idF'>
 					<tr>
-						<td rowspan='6' id='idG'><img src='svg/logo_color.svg'></td>
+						<td rowspan='7' id='idG'><img src='svg/logo_color.svg'></td>
 						<td><h1>HTML Studio</h1></td>
 					</tr>
 					<tr>
-						<td><h3>Version 1.4.1.3</h3></td>
+						<td><h3>Version 2.0 <span style="color:rgba(0,0,0,.6);font-style:italic">beta</span></h3></td>
 					</tr>
 					<tr>
-						<td><h3>Made by Christian Figueroa<br><span class='cla'>&#8195;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&#8195;<<a href='https://github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
+						<td><h3>Made by Christian Figueroa<br><span class='cla'>&nbsp;&nbsp;&nbsp;&nbsp;<<a href='/'>https://ChristianFigueroa.github.io</a>></span><br><span class='cla'>&nbsp;&nbsp;&nbsp;&nbsp;<<a href='//github.com/ChristianFigueroa'>https://github.com/ChristianFigueroa</a>></span></h3></td>
 					</tr>
 					<tr>
-						<td><h3><a href='#' id='meta_license' tabindex='0'>License</a></h3></td>
+						<td><h3><a href='javascript:void(0);' id='meta_license'>License</a></h3></td>
 					</tr>
 					<tr>
-						<td><h3><a href='https://github.com/ChristianFigueroa/HTML-Studio/issues' target='_blank'>Report an Issue</a></h3></td>
+						<td><h3><a href='//github.com/ChristianFigueroa/HTML-Studio/issues' target='_blank'>Report an Issue</a></h3></td>
+					</tr>
+					<tr>
+						<td><h3><a href='//github.com/ChristianFigueroa/HTML-Studio/tree/gh-pages' target='_blank'>Contribute</a></h3></td>
 					</tr>
 				</table>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option exit' tabindex='0'>Close</div>
+				<div role='button' class='option exit'>Close</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -886,9 +1713,9 @@
 				<br>
 				<a href='license-plain.txt' target='_blank'>Plain Text</a>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option exit' tabindex='0'>Close</div>
+				<div role='button' class='option exit'>Close</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -896,15 +1723,15 @@
 		<div id='dialog_new_stylesheet' class='dialog'>
 			<span>Create New Style Sheet</span>
 			<div class='content' id='idH'>
-				<h3>Create CSS rules below, give your new style sheet a name to remember it by, and save it.</h3>
+				<h4 style='text-align:center'>Create CSS rules below, give your new style sheet a name to remember it by, and save it.</h4>
 				<br>
-				<input type='text' id='idK' placeholder='Style Sheet Name'>
+				<input type='text' id='idK' placeholder='Style Sheet Name' data-focus>
 				<!-- CSS Editor goes here -->
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option' id='idI' tabindex='0'>Save Style Sheet</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='idI'>Save Style Sheet</div>
+				<div role='button' class='option exit'>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -912,15 +1739,15 @@
 		<div id='dialog_edit_stylesheet' class='dialog'>
 			<span>Edit Style Sheet</span>
 			<div class='content' id='idL'>
-				<h3>Edit the style sheet styles below or click a <img class='cld' src='svg/select_from_selector.svg' style='cursor:initial'> to select all elements matching the corresponding CSS selector.</h3>
+				<h4 style='text-align:center'>Edit the style sheet styles below or click a <img class='cld' src='svg/select_from_selector.svg' style='cursor:initial'> to select all elements matching the corresponding CSS selector.</h4>
 				<br>
-				<input type='text' id='idM'>
+				<input type='text' id='idM' placeholder='Style Sheet Name' data-focus>
 				<!-- CSS Editor goes here -->
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option' id='idN' tabindex='0'>Save Style Sheet</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='idN'>Save Style Sheet</div>
+				<div role='button' class='option exit'>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -930,12 +1757,12 @@
 			<div class='content' id='ida'>
 				<h3>Select the name of the node to insert.</h3>
 				<br>
-				<input type='text' id='idc' class='clf' placeholder='Custom HTML Element'>
-				<div class='clf' tabindex='0'>&lt;div&gt;</div>
-				<div class='clf' tabindex='0'>&lt;p&gt;</div>
-				<div class='clf' tabindex='0'>&lt;span&gt;</div>
-				<div class='clf' tabindex='0'>&lt;a&gt;</div>
-				<div class='clf' tabindex='0'>#text</div>
+				<input type='text' id='idc' class='clf' placeholder='Custom HTML Element' data-focus>
+				<div class='clf' role='button'>&lt;div&gt;</div>
+				<div class='clf' role='button'>&lt;p&gt;</div>
+				<div class='clf' role='button'>&lt;span&gt;</div>
+				<div class='clf' role='button'>&lt;a&gt;</div>
+				<div class='clf' role='button'>#text</div>
 				<br>
 				<br>
 				<div id='idW'>
@@ -954,27 +1781,87 @@
 					<br>
 				</div>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option disabled' id='idS' tabindex='0'>Insert Node</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option disabled' id='idS'>Insert Node</div>
+				<div role='button' class='option exit'>Cancel</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
 		</div>
 		<div id='dialog_download' class='dialog'>
-			<span>Download File</span>
+			<span>Save File</span>
 			<div class='content'>
-				<h3>Download the current document as an HTML file.</h3>
+				<h3>Download the current document as an HTML or PDF file or save it to Google Drive.</h3>
 				<br>
-				<input type='text' id='Ida' placeholder='index.html'>
-				<button id='idY'>Minified</button>
-				<button id='Idb'>Unchanged</button>
-				<button id='idZ' tabindex='-1'>Prettified</button>
+				<form id='Idm'>
+					<div class='clj'>Name</div>
+					<input type='text' id='Ida' title='Change the name of the file' placeholder='index.html' data-focus>
+					<div class='clj'>File Format</div>
+					<table class='clk'>
+						<tr>
+							<td><label title='Save the file as an HTML text file'><input type="radio" checked name='saveFileFormat' value='html'>HTML</label></td>
+							<td><label title='Work in Progress' style="color:rgba(0,0,0,.35);cursor:default"><input type="radio" name='saveFileFormat' value='pdf' disabled>PDF</label></td>
+						</tr>
+					</table>
+					<div class='clj'>Text Format</div>
+					<table class='clk'>
+						<tr>
+							<td><label title="Prettify the HTML for better readability"><input type="radio" checked name='saveTextFormat' value='prettify' id='Idy'>Pretty Print</label></td>
+							<td><label title="Compress the HTML for a smaller file size"><input type="radio" name='saveTextFormat' value='minify' id='Idx'>Minified</label></td>
+						</tr>
+					</table>
+					<div class='clj'>Extra Options</div>
+					<table class='clk'>
+						<tr><td><label title="Replace non-ASCII characters with their respective HTML entity"><input type="checkbox" name='saveEscape' id='Idz'>Escape non-ASCII characters</label></td></tr>
+						<tr><td><label title='Remove the "data-name" attribute from named stylesheets'><input type="checkbox" name='saveNoStyle' id='IdC'>Exclude style sheet names</label></td></tr>
+						<tr><td><label title="Work in Progress" style="color:rgba(0,0,0,.35);cursor:default"><input type="checkbox" disabled name='saveCollapseCSS' style='pointer-events:none' id='IdD'>Collapse CSS</label></td></tr>
+						<tr><td id='Idw' title="Change the level of indentation">
+							<span><input type="checkbox" disabled tabindex='-1' style="opacity:0;pointer-events:none">Indentation</span>
+							<select id='IdB'>
+								<option value='	'>Tab</option>
+								<option value=' '>Space &times; 1</option>
+								<option value='  '>Space &times; 2</option>
+								<option value='   '>Space &times; 3</option>
+								<option value='    '>Space &times; 4</option>
+								<option value='     '>Space &times; 5</option>
+								<option value='      '>Space &times; 6</option>
+								<option value='       '>Space &times; 7</option>
+								<option value='        '>Space &times; 8</option>
+							</select>
+						</td></tr>
+					</table>
+					<div id='Idn' class='local'>
+						<div role='button' class='active'>Local File</div>
+						<div role='button' style='font-family:Roboto,Arial,sans-serif'>Google Drive</div>
+					</div>
+					<div id='IdY'>An error occurred while saving to Google Drive. Make sure you have an Internet connection and try again.</div>
+					<div id='IdZ'>The file was successfully saved in Drive.</div>
+					<button id='IdA'>Download File to Computer</button>
+					<button id='idY'>Save to New File in Drive</button>
+					<button id='Idb'>Save to Existing File in Drive</button>
+					<div id='Idp'>
+						<div id='Idq'>Connect to <span style='font-size:1.2em'>Google Drive</span>&#153;</div>
+						<div id='Idr'>
+							<div id='Ids'>Connect <span>HTML Studio</span> to Google Drive</div>
+							<div id='Idt'>
+								<ul>
+									<li>Open and edit HTML files in Google Drive</li>
+									<li>Save document to Google Drive</li>
+									<li>Access Drive documents on other computers</li>
+								</ul>
+							</div>
+							<div id='Idv'>
+								<span>Could not connect to Google</span>
+							</div>
+							<div role='button' id='Idu'>Sign In</div>
+						</div>
+					</div>
+				</form>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option exit' tabindex='0'>Close</div>
+				<div role='button' class='option exit'>Close</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -982,10 +1869,10 @@
 		<div id='dialog_pref_selected_elem_color' class='dialog'>
 			<span>Edit Selected Element Color</span>
 			<div class='content' id='Idc'>
-				<h3>Change the selected element color.</h3>
+				<h3>Change the color of selected elements.</h3>
 				<div id='Ide'>
-					<div tabindex='0'>Color #1</div>
-					<div tabindex='0'>Color #2</div>
+					<div role='button' data-focus>Color #1</div>
+					<div role='button'>Color #2</div>
 				</div>
 				<div id='Idd'></div>
 				<br>
@@ -995,11 +1882,36 @@
 					<div id='Idg'></div>
 				</div>
 			</div>
-			<div class='exit' tabindex='0'></div>
+			<div class='exit'></div>
 			<div class='optioncontainer'>
-				<div class='option' id='Idf' tabindex='0'>Save</div>
-				<div class='option' id='Idh' tabindex='0'>Restore Default</div>
-				<div class='option exit' tabindex='0'>Cancel</div>
+				<div role='button' class='option' id='Idf'>Save</div>
+				<div role='button' class='option' id='Idh'>Restore Default</div>
+				<div role='button' class='option exit'>Cancel</div>
+			</div>
+			<div class='dialog_resizer_left'></div>
+			<div class='dialog_resizer_right'></div>
+		</div>
+		<div id='dialog_ex_drive_file' class='dialog'>
+			<span>Move File to Drive Storage?</span>
+			<div class='content'>
+				<h4>This document is in Temporary Storage, but was previously being saved to a document in Google Drive. Do you want to keep this document in Temporary Storage or move it back into Google Drive Storage?</h4>
+			</div>
+			<div class='exit'></div>
+			<div class='optioncontainer'>
+				<div role='button' class='option' id='iDz'>Move to Drive Storage</div>
+				<div role='button' class='option' id='iDA'>Keep in Temporary Storage</div>
+			</div>
+			<div class='dialog_resizer_left'></div>
+			<div class='dialog_resizer_right'></div>
+		</div>
+		<div id='dialog_full_storage' class='dialog'>
+			<span>Full Storage</span>
+			<div class='content'>
+				<h4>Your storage is full! Only 5 MB of data are allowed in your storage. Any changes you make to the document might not be saved. <span id='iDF'>Save the current document to Google Drive to save space in storage and continue editing. (---OR---) Nothing will be uploaded to Google Drive until you reconnect to the Internet.</span></h4>
+			</div>
+			<div class='optioncontainer'>
+				<div role='button' class='option' id='iDG'>Save to Drive</div>
+				<div role='button' class='option' id='iDH'>Continue without Saving</div>
 			</div>
 			<div class='dialog_resizer_left'></div>
 			<div class='dialog_resizer_right'></div>
@@ -1009,7 +1921,7 @@
 		<span id='ids'>HTML Tree<div id='idD'></div></span>
 		<div id='idp'>
 			<svg id='idq' viewBox='0 0 180 120'></svg>
-			<div id='idr' title='Drag to move &#183; Scroll to zoom &#183; Click to select node' class='cursorgrab'></div>
+			<div id='idr' title='Drag to move &#183; Scroll to zoom &#183; Click or Right Click to select node' class='cursorgrab'></div>
 		</div>
 	</div>
 	<div id='querySelector' class='topText'>
@@ -1036,15 +1948,14 @@
 		<span>You can only edit the HTML of one element at a time.</span>
 		<div class='cle'></div>
 	</div>
-	<input type='file' id='open_file_html'>
 	<textarea id='clipboard' class='hidden'></textarea>
 	<iframe id='cssTest' class='hidden'></iframe>
+	<div id='printDisplay'></div>
 	<noscript id='deferred-styles' style="z-index:-1">
 		<link href='css/ContextMenu.css' rel='stylesheet' type='text/css'>
-		<link href='css/dialog.css' rel='stylesheet' type='text/css'>
 		<link href='css/editTextBar.css' rel='stylesheet' type='text/css'>
 		<link href='css/deferredElements.css' rel='stylesheet' type='text/css'>
-		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,600,700,700italic|Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
+		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700,700italic|Roboto+Slab:400,700|Roboto:400' rel='stylesheet' type='text/css'>
 		<link href='css/CSSEditor.css' rel='stylesheet' type='text/css'>
 		<link href='css/topText.css' rel='stylesheet' type='text/css'>
 		<link href='css/ColorSelector.css' rel='stylesheet' type='text/css'>
@@ -1056,6 +1967,7 @@
 			var loadDeferredStyles = function() {
 				var addStylesNode = document.getElementById("deferred-styles");
 				var replacement = document.createElement("div");
+				replacement.id = 'deferred-styles';
 				replacement.innerHTML = addStylesNode.textContent;
 				document.body.appendChild(replacement)
 				addStylesNode.parentElement.removeChild(addStylesNode);
@@ -1065,8 +1977,20 @@
 			if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
 			else window.addEventListener('load', loadDeferredStyles);
 		}();
+		window.HTMLStudio = {
+			google: {
+				loaded: function() {
+					setTimeout(function() {
+						// Waits until actual HTMLStudio.google.loaded (script/google.js) is actually loaded
+						HTMLStudio.google.loaded();
+					}, 50);
+				}
+			}
+		}
 	</script>
+	<script type='text/javascript' src='script/google.js' defer></script>
 	<script type='text/javascript' src='script/DraggableElements.js' defer></script>
+	<script type="text/javascript" src='script/network.js' defer></script>
 	<script type="text/javascript" src='script/ContextMenu.js' defer></script>
 	<script type="text/javascript" src='script/autoFill.js' defer></script>
 	<script type="text/javascript" src='script/CSSEditor.js' defer></script>

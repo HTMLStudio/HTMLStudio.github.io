@@ -6,13 +6,27 @@
 var eventArray = ['afterprint','beforeprint','beforeunload','hashchange','languagechange','message','offline','online','pageshow','pagehide','popstate','storage','unload','copy','cut','paste','abort','blur','focus','canplay','canplaythrough','change','click','contextmenu','dblclick','drag','dragend','dragenter','dragexit','dragleave','dragover','dragstart','drop','durationchange','emptied','ended','input','invalid','keydown','keypress','keyup','load','loadeddata','loadedmetadata','loadend','loadstart','mousedown','mouseenter','mouseleave','mousemove','mouseout','mouseover','mouseup','pause','play','playing','progress','ratechange','reset','resize','scroll','seeked','seeking','select','show','stalled','submit','suspend','timeupdate','volumechange','waiting','selectstart','toggle','mozfullscreenchange','mozfullscreenerror','animationend','animationiteration','animationstart','transitionend','webkitanimationend','webkitanimationiteration','webkitanimationstart','webkittransitionend','error','wheel','rejectionhandled','unhandledrejection','cancel','close','cuechange','mousewheel','auxclick','pointercancel','pointerdown','pointerenter','pointerleave','pointermove','pointerout','pointerover','pointerup','beforecopy','beforecut','beforepaste','search','webkitfullscreenchange','webkitfullscreenerror','gotpointercapture','lostpointercapture','activate','beforeactivate','deactivate','beforedeactivate','mscontentzoom','msmanipulationstatechanged','ariarequest','command','msgesturechange','msgesturedoubletap','msgestureend','msgesturehold','msgesturestart','msgesturetap','msinertiastart'],
 	attrArray = [['class'],['id'],['style'],['title'],['lang'],['dir'],['span',1,'colgroup'],['colspan',1,'td'],['colspan',1,'th'],['rowspan',1,'td'],['rowspan',1,'th'],['method','get','form'],['type','text','input'],['type','list','menu'],['type','text/javascript','script'],['type','text/css','style']],
 	newLineRegex = /\n(?=.*?\n)/g,
+	entityRegex = /[^\w \t\n~!@#$%^&*()`\-_=+{0}[\]|\/\\:;"'<,>.?]/,
+	encodeEntities = function(node, bool) {
+		if (node.parentNode.nodeName in {STYLE:0,SCRIPT:0}) return node.textContent;
+		var textcontent = node.textContent
+		textcontent = textcontent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+		if (!bool) return textcontent;
+		textcontent = textcontent.replace(/\u00a0/g, '&nbsp;');
+		var match;
+		while (match = textcontent.match(entityRegex)) {
+			match = [match[0].charCodeAt(0)];
+			match[1] = match[0].toString(16);
+			textcontent = textcontent.replace(new RegExp('\\u' + ('0000' + match[1]).substring(match[1].length), 'g'), '&#' + match[0] + ';');
+		}
+		return textcontent;
+	},
 	trim = function(string) {
 		return string.replace(/^[ \t\n]*/,'').replace(/[ \t\n]*$/,'');
 	};
 
-HTMLStudio.formatHTML.minify=function(){
-	var win = document.getElementById('frame').contentWindow,
-		html = win.document.documentElement,
+HTMLStudio.formatHTML.minify=function(encodeEntitiesBool, node){
+	var html = node || document.getElementById('frame').contentWindow.document.documentElement,
 		frag = document.createDocumentFragment(),
 		string = '';
 
@@ -77,7 +91,13 @@ HTMLStudio.formatHTML.minify=function(){
 
 	function stringify(node) {
 		string += '<' + node.nodeName.toLowerCase();
-		for (var i = node.attributes.length - 1; i >= 0; i--) {
+		// Sorts attrs so that they are always revere-alphabetically ordered
+		// Helps with comparing strings since attribute order won't be considered like this
+		var attrs = Array.prototype.slice.call(node.attributes);
+		attrs.sort(function(a,b) {
+			return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
+		});
+		for (var i = attrs.length - 1; i >= 0; i--) {
 			if (node.attributes[i].name == 'style') {
 				string += ' style="' + node.attributes[i].value.trim().replace(/;$/,'').replace(/&/g,'&amp;').replace(/"/g,'&#34;') + '"';
 				continue;
@@ -93,7 +113,7 @@ HTMLStudio.formatHTML.minify=function(){
 
 		for (var children = node.childNodes, i = 0; i < children.length; i++) {
 			if (children[i].nodeType == 1) stringify(children[i]);
-			else if (children[i].nodeType == 3) string += escape(children[i]);
+			else if (children[i].nodeType == 3) string += encodeEntities(children[i], encodeEntitiesBool);
 		}
 
 		return string += '</' + node.nodeName.toLowerCase() + '>';
@@ -101,13 +121,20 @@ HTMLStudio.formatHTML.minify=function(){
 	return stringify(minify(html, frag)).trim();
 }
 
-HTMLStudio.formatHTML.prettify=function(node,onlyChildren){
-	if (node) {
+HTMLStudio.formatHTML.prettify=function(node,onlyChildren,encodeEntitiesBool,indentationStr){
+	if (node && typeof node === 'object') {
+		if (!node.ownerDocument || !(node instanceof node.ownerDocument.defaultView.Element || node instanceof Element)) {
+			indentationStr = node.indentation;
+			encodeEntitiesBool = node.encodeEntities;
+			onlyChildren = node.onlyChildren;
+			node = node.node;
+		}
+		if (!node) return HTMLStudio.formatHTML.prettify(document.getElementById('frame').contentWindow.document.documentElement, onlyChildren, encodeEntitiesBool, indentationStr);
 		// Return normal outerHTML if there are no children
 		if (!node.childNodes.length) return onlyChildren ? '' : node.outerHTML;
 		// Find indentation based on the node's first child (if it's a text node)
-		var indentation = '\t';
-		if (node.firstChild.nodeType == 3) indentation = node.firstChild.textContent.replace(/(.|\n)*?[ \t]*?(?=(?: {1,4}|\t)$)/g,'') || indentation;
+		var indentation = indentationStr || '\t';
+		if (node.firstChild.nodeType == 3 && !indentationStr) indentation = node.firstChild.textContent.match(/^(?:\t|    |  |)/)[0] || indentation;
 
 		// Set up string to add on to
 		var html = '';
@@ -183,6 +210,29 @@ HTMLStudio.formatHTML.prettify=function(node,onlyChildren){
 			}
 			// Stringify text nodes
 			else if (node.nodeType == 3) {
+				// Special case for <style> and <script> text nodes
+				if (node.parentNode.nodeName in {STYLE:0,SCRIPT:0}) {
+					if (node.parentNode.nodeName == 'SCRIPT') {
+						html += node.textContent;
+						return false;
+					} else if (node.parentNode.sheet) {
+						var sheet = node.parentNode.sheet,
+							text = '';
+						for (var i = sheet.cssRules.length - 1; i >= 0; i--) {
+							if (sheet.cssRules[i].style.length == 0) continue;
+							text =  '}' + text;
+							for (var n = sheet.cssRules[i].style.length - 1; n >= 0; n--) {
+								text = '\t' + sheet.cssRules[i].style[n] + ': ' + sheet.cssRules[i].style[sheet.cssRules[i].style[n]] + ';\n' + indentation.repeat(indentLvl) + text;
+							}
+							text = (i ? '\n\n' : '\n') + indentation.repeat(indentLvl) + sheet.cssRules[i].selectorText + ' {\n' + indentation.repeat(indentLvl) + text;
+						}
+						html += text;
+						return true;
+					} else {
+						html += node.textContent;
+						return false;
+					}
+				}
 				var ws = node.parentNode.style.whiteSpace || getComputedStyle(node.parentNode).whiteSpace;
 				// Allow formatting of text
 				if (ws == 'normal' || ws == 'nowrap') {
@@ -200,13 +250,13 @@ HTMLStudio.formatHTML.prettify=function(node,onlyChildren){
 					// Continue if the text node has actual non-whitespace content
 					// If the text is surrounded by whitespace, give it it's own line
 					if (!trim(node.textContent[0]) && !trim(node.textContent[node.textContent.length - 1])) {
-						html += '\n' + indentation.repeat(indentLvl) + trim(node.textContent).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\u00a0/g,'&nbsp;').replace(new RegExp('\\n(' + indentation.repeat(indentLvl) + '|)','g'), '\n' + indentation.repeat(indentLvl));
+						html += '\n' + indentation.repeat(indentLvl) + trim(encodeEntities(node, encodeEntitiesBool)).replace(new RegExp('\\n(' + indentation.repeat(indentLvl) + '|)','g'), '\n' + indentation.repeat(indentLvl));
 						return true;
 					}
 					// Continue if the text node isn't surrounded by whitespace
 					// Collapse surroundng whitespace (present on only one side of the text, or none)
 					if (!trim(node.textContent[0])) html += trim(node.textContent).includes('\n') ? '\n' + indentation.repeat(indentLvl) : ' ';
-					html += trim(node.textContent).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\u00a0/g,'&nbsp;').replace(new RegExp('\\n(' + indentation.repeat(indentLvl) + '|)','g'), '\n' + indentation.repeat(indentLvl));
+					html += trim(encodeEntities(node, encodeEntitiesBool)).replace(new RegExp('\\n(' + indentation.repeat(indentLvl) + '|)','g'), '\n' + indentation.repeat(indentLvl));
 					if (!trim(node.textContent[node.textContent.length - 1])) {
 						if (trim(node.textContent).includes('\n')) return true;
 						html += ' ';
@@ -214,11 +264,11 @@ HTMLStudio.formatHTML.prettify=function(node,onlyChildren){
 					return false;
 				// Pre white-space doesn't allow for text formatting; keep exactly as-is
 				} else if (ws == 'pre-wrap' || ws == 'pre') {
-					html += node.textContent.replace(/\u00a0/g, '&nbsp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+					html += encodeEntities(node, encodeEntitiesBool);
 					return false;
 				// White-space == 'pre-line'; keep same line-breaks, format indentation
 				} else {
-					html += node.textContent.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/^[ \t]*/,'').replace(/\n[ \t]*/g,'\n' + indentation.repeat(indentLvl)).replace(/[ \t]*($|\n)/g,'$1').replace(/\u00a0/g, '&nbsp;');
+					html += encodeEntities(node, encodeEntitiesBool).replace(/^[ \t]*/,'').replace(/\n[ \t]*/g,'\n' + indentation.repeat(indentLvl)).replace(/[ \t]*($|\n)/g,'$1');
 					return false;
 				}
 			}
@@ -233,10 +283,18 @@ HTMLStudio.formatHTML.prettify=function(node,onlyChildren){
 				return (ws == 'normal' || ws == 'nowrap') && node.nextSibling && node.nextSibling.nodeType == 3 && node.nextSibling.textContent;
 			}
 		}
+
+		var forcePrettyPrint = node.querySelectorAll('html head, html body, head *');
+		for (var i = forcePrettyPrint.length - 1; i >= 0; i--) {
+			if (forcePrettyPrint[i].previousSibling && forcePrettyPrint[i].previousSibling.nodeType == 3 && trim(forcePrettyPrint[i].previousSibling.textContent[forcePrettyPrint[i].previousSibling.textContent.length - 1])) continue;
+			if (forcePrettyPrint[i].previousSibling && forcePrettyPrint[i].previousSibling.nodeType == 3) forcePrettyPrint[i].previousSibling.textContent += ' ';
+			else forcePrettyPrint[i].parentNode.insertBefore(document.createTextNode(' '), forcePrettyPrint[i]);
+		}
+
 		stringify(node, 0, true);
 
 		return trim(html);
-	}
+	} else return HTMLStudio.formatHTML.prettify(document.getElementById('frame').contentWindow.document.documentElement, onlyChildren, typeof node == 'boolean' ? node : false);
 }
 
 }();

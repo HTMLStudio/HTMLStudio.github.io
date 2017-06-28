@@ -2,6 +2,7 @@
 	opacity: 0;
 	pointer-events: none;
 	left: 7vw;
+	-webkit-box-shadow: 0 0 0 0 #00acc1;
 	box-shadow: 0 0 0 0 #00acc1;
 }
 
@@ -12,7 +13,11 @@
 .topText.active {
 	opacity: 1;
 	pointer-events: initial;
+	-webkit-transition: -webkit-box-shadow 1.0s ease-out;
+	transition: -webkit-box-shadow 1.0s ease-out;
 	transition: box-shadow 1.0s ease-out;
+	transition: box-shadow 1.0s ease-out, -webkit-box-shadow 1.0s ease-out;
+	-webkit-box-shadow: 0 0 20px 20px rgba(0, 172, 193, 0);
 	box-shadow: 0 0 20px 20px rgba(0, 172, 193, 0);
 }
 

@@ -1,6 +1,7 @@
 .colorSelectorRectContainer {
 	width: 100%;
 	height: 8em;
+	-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	border-radius: 3px;
 	border: 1px solid #AAA;
@@ -22,6 +23,7 @@
 	height: 1.75em;
 	cursor: pointer;
 	position: relative;
+	-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	border: 1px solid #AAA;
 	border-radius: 3px;
@@ -30,6 +32,7 @@
 .colorSelectorDisplay {
 	width: 100%;
 	height: 1.75em;
+	-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	border: 1px solid #AAA;
 	border-radius: 3px;
@@ -71,6 +74,7 @@
 	font-family: Consolas,Monaco,"Ubuntu Mono","Courier New",Courier,monospace;
 	text-align: center;
 	border: 1px solid #AAA;
+	-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80,.8);
 	padding: .3rem 0;
 	border-radius: 3px;
@@ -79,6 +83,7 @@
 
 .colorSelectorInput:hover, .colorSelectorInput:focus {
 	border-color: #00acc1;
+	-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(0,172,193,.8);
 	box-shadow: .2rem .2rem .4rem 0 rgba(0,172,193,.8);
 }
 

@@ -21,13 +21,34 @@
 		function keyEvents(e) {
 			if (e.keyCode == 40) {
 				e.stopPropagation();
-				(this.nextElementSibling ? this.nextElementSibling.nodeName == 'LI' ? this.nextElementSibling : this.nextElementSibling.nextElementSibling : this.parentNode.firstElementChild).focus();
+				// Get items in context menu that are focusable (i.e. discard elements that are display:none from `hideOnDisabled`)
+				var focusable = [];
+				for (var i = this.root.context.items.length - 1; i >= 0; i--) {
+					if (!this.root.context.items[i].disabled || !this.root.context.items[i].arg.hideOnDisabled) focusable.push(this.root.context.items[i]);
+				}
+				// Get the current focused element
+				var index = focusable.indexOf(this);
+				if (!~index) return;
+				// Focus the next one, the pseudoParent, or the first item in the context menu
+				(focusable[index + 1] || this.root.context.argument.pseudoParent || focusable[0]).focus();
 			} else if (e.keyCode == 38) {
 				e.stopPropagation();
-				(this.previousElementSibling ? this.previousElementSibling.nodeName == 'LI' ? this.previousElementSibling : this.previousElementSibling.previousElementSibling : args.pseudoParent || this.parentNode.lastElementChild).focus();
+				var focusable = [];
+				for (var i = this.root.context.items.length - 1; i >= 0; i--) {
+					if (!this.root.context.items[i].disabled || !this.root.context.items[i].arg.hideOnDisabled) focusable.push(this.root.context.items[i]);
+				}
+				var index = focusable.indexOf(this);
+				if (!~index) return;
+				(focusable[index - 1] || this.root.context.argument.pseudoParent || focusable[focusable.length - 1]).focus();
 			} else if (e.keyCode == 39 && this.arg.subcontext) {
+				if (!this.subcontext) return;
 				e.stopPropagation();
-				this.lastElementChild.firstElementChild.focus();
+				for (var i = this.subcontext.items.length - 1; i >= 0; i--) {
+					if (!this.subcontext.items[i].disabled) return this.subcontext.items[i].focus();
+				}
+				for (var i = this.subcontext.items.length - 1; i >= 0; i--) {
+					if (!this.subcontext.items[i].arg.hideOnDisabled) return this.subcontext.items[i].focus();
+				}
 			} else if (e.keyCode == 37 && this.root.parent && this.root.parent.className.includes('contextmenuitem')) {
 				e.stopPropagation();
 				this.root.parent.focus();
@@ -47,6 +68,7 @@
 		this.node.style.position = 'absolute';
 		this.node.style.left = this.node.style.top = 0;
 		this.node.style.zIndex = 9999996;
+		this.node.context = this;
 		this.items = [];
 		for (var i = args.items.length - 1; i >= 0; i--) (function(){
 			var li = document.createElement('li'),
@@ -63,6 +85,8 @@
 			li.id = this.id + '-item-' + i;
 			li.tabIndex = 0;
 			li.root = this.node;
+			li.subcontext = args.items[i].subcontext ? new ContextMenu(args.items[i].subcontext) : null;
+			if (li.subcontext) li.subcontext.node.className += ' subcontextmenu';
 			if (args.items[i].separate) li.separator = separator;
 
 			this.items.push(li);
@@ -87,9 +111,9 @@
 					set: function(v) {
 						disabled = !!v;
 						(li.children[1] || li.firstChild).style.color = v ? '#AAA' : '';
-						li.title = itemplaceholder[v && itemplaceholder.disabledtitle ? 'disabledtitle' : 'title'];
-						if (v && itemplaceholder.disabledimage && li.children[0].className.includes('contextmenuitemimage')) li.children[0].style.backgroundImage = 'url("' + itemplaceholder.disabledimage + '")';
-						else if (itemplaceholder.image && li.children[0].className.includes('contextmenuitemimage')) li.children[0].style.backgroundImage = 'url("' + itemplaceholder.image + '")';
+						li.title = itemplaceholder[v && itemplaceholder.disabledtitle ? 'disabledtitle' : 'title'] || '';
+						if (v && itemplaceholder.disabledimage && li.children[0].className.includes('contextmenuitemimage')) itemplaceholder.disabledimage instanceof Element ? li.children[0].appendChild(itemplaceholder.disabledimage) : (li.children[0].style.backgroundImage = 'url("' + itemplaceholder.disabledimage + '")');
+						else if (itemplaceholder.image && li.children[0].className.includes('contextmenuitemimage')) itemplaceholder.image instanceof Element ? li.children[0].appendChild(itemplaceholder.image) : (li.children[0].style.backgroundImage = 'url("' + itemplaceholder.image + '")');
 						if (itemplaceholder.hideOnDisabled) li.style.display = v ? 'none' : '';
 						if (itemplaceholder.hideSeparatorOnDisabled) separator.style.display = v ? 'none' : '';
 					},
@@ -100,7 +124,8 @@
 					get: function() {return toggled},
 					set: function(v) {
 						toggled = !!v;
-						if (itemplaceholder.toggle && !nopad) (li.firstChild).style.backgroundImage = 'url("' + (v ? itemplaceholder.image || '' : itemplaceholder.imageoff || itemplaceholder.image || '') + '")'
+						if (itemplaceholder.toggle && !nopad && (v ? itemplaceholder.image : itemplaceholder.imageoff) instanceof Element) li.firstChild.appendChild(v ? itemplaceholder.image : itemplaceholder.imageoff);
+						else if (itemplaceholder.toggle && !nopad) li.firstChild.style.backgroundImage = 'url("' + (v ? itemplaceholder.image || '' : itemplaceholder.imageoff || itemplaceholder.image || '') + '")'
 					}
 				}
 			})
@@ -111,9 +136,9 @@
 			if (nopad) {
 				li.style.width = 'calc(12rem + 1.7em)';
 			} else {
-				if (args.items[i].toggle) image.style.backgroundImage = args.items[i].toggled ? 'url("' + args.items[i].image || '' + '")' : 'url("' + (args.items[i].imageoff || args.items[i].image || '') + '")';
-				else if (args.items[i].image && (!args.items[i].disabled || !args.items[i].disabledimage)) image.style.backgroundImage = 'url("' + args.items[i].image + '")';
-				else if (args.items[i].disabledimage && args.items[i].disabled) image.style.backgroundImage = 'url("' + args.items[i].disabledimage + '")';
+				if (args.items[i].toggle) args.items[i].toggled ? args.items[i].image instanceof Element ? image.appendChild(args.items[i].image) : (image.style.backgroundImage = 'url("' + args.items[i].image + '")') : (args.items[i].imageoff || args.items[i].image) instanceof Element ? image.appendChild(args.items[i].image) : (image.style.backgroundImage = 'url("' + (args.items[i].imageoff || args.items[i].image || '') + '")');
+				else if (args.items[i].image && (!args.items[i].disabled || !args.items[i].disabledimage)) args.items[i].image instanceof Element ? image.appendChild(args.items[i].image) : (image.style.backgroundImage = 'url("' + args.items[i].image + '")');
+				else if (args.items[i].disabledimage && args.items[i].disabled) args.items[i].image instanceof Element ? image.appendChild(args.items[i].image) : (image.style.backgroundImage = 'url("' + args.items[i].disabledimage + '")');
 				// Sets image styles
 				image.className = 'contextmenuitemimage'
 				image.style.width = '1.4em';
@@ -163,7 +188,7 @@
 					});
 				});
 				li.addEventListener('keydown', function(e) {
-					if (e.keyCode == 13 && !disabled) li.func.call(this, e, function() {
+					if (e.keyCode == 13 || e.keyCode == 32 && !disabled) li.func.call(this, e, function() {
 						li.style.background = '#F5F5F5';
 						close.call(li.root);
 					})
@@ -176,9 +201,8 @@
 					this.style.whiteSpace = 'pre-line';
 					this.style.height = '';
 					if (itemplaceholder.subcontext) {
-						var context = new ContextMenu(itemplaceholder.subcontext), rect = li.getBoundingClientRect();
+						var context = this.subcontext, rect = li.getBoundingClientRect();
 						context.node.parent = li;
-						context.node.className += ' subcontextmenu';
 						context.node.style.top = em(-.2) - 1 + 'px';
 						context.node.style.left = rect.width + 'px';
 						context.node.style.position = 'absolute';

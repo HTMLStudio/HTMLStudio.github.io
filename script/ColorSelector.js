@@ -366,7 +366,7 @@
 		} else if (match = str.trim().match(/^rgba?\s*\(\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*(?:,\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*)?\)?$/i)) {
 			// rgba( [# | #%] , [# | #%] , [# | #%] [ , [# | #%] | ] )
 			return [Math.round(match[2] ? Math.min(match[1], 100) * 2.55 : Math.min(match[1], 255)), Math.round(match[4] ? Math.min(match[3], 100) * 2.55 : Math.min(match[3], 255)), Math.round(match[6] ? Math.min(match[5], 100) * 2.55 : Math.min(match[5], 255)), isNaN(match[7]) ? 1 : match[8] ? Math.min(match[7], 100) / 100 : Math.min(match[7], 1)];
-		} else if (match = str.trim().match(/^\(?\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*[^a-z\d.]\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*[^a-z\d.]\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*(?:[^a-z\d.]\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*)?\)?$/i)) {
+		} else if (match = str.trim().match(/^\(?\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*[^a-z\d.%]\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*[^a-z\d.%]\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*(?:[^a-z\d.%]\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*)?\)?$/i)) {
 			// [# | #%], [# | #%], [# | #%]
 			return [Math.round(match[2] ? Math.min(match[1], 100) * 2.55 : Math.min(match[1], 255)), Math.round(match[4] ? Math.min(match[3], 100) * 2.55 : Math.min(match[3], 255)), Math.round(match[6] ? Math.min(match[5], 100) * 2.55 : Math.min(match[5], 255)), isNaN(match[7]) ? 1 : match[8] ? Math.min(match[7], 100) / 100 : Math.min(match[7], 1)];
 		} else if (match = str.trim().match(/^hsla?\s*\(\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*(?:,\s*(\d+(?:\.\d+)?|\.\d+)(%?)\s*)?\)?$/i)) {

@@ -1,39 +1,33 @@
-@font-face {
-	font-family: 'BPreplay';
-	font-style: italic;
-	font-weight: 700;
-	src: local('BPreplay Bold Italic'),
-		 local('BPreplay-BoldItalic'),
-		 url('/assets/BPreplay-BoldItalics.woff2') format('woff2'),
-		 url('/assets/BPreplay-BoldItalics.woff') format('woff'),
-		 url('/assets/BPreplay-BoldItalics.ttf') format('truetype');
-}
-
 .dialog { 
 	width: 50%;
 	min-width: 50vw;
+	max-width: 100vw;
 	max-height: 75vh;
-	background: #F0F0F0;
+	background: #F5F5F5;
 	text-align: center;
-	border-radius: .6em;
+	border-radius: .3em;
 	left: calc(25% - 1px);
 	margin-top: calc(12.5vh - 1px);
 	border: 1px solid #AAA;
+	-webkit-box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
 	box-shadow: .3rem .3rem 5px 4px rgba(0,0,0,.5);
 	font-family: Arial, sans-serif;
 	position: relative;
 	display: none;
-	cursor: pointer;
+	cursor: -webkit-grab;
+	cursor: grab;
 	padding-bottom: 2.2em;
 }
 
-.dialog>span {
+.dialog > span {
 	font-size: 1.1em;
 	display: block;
-	margin: .2em 0;
+	padding: .4rem .5rem;
+	text-align: left;
+	font-family: "Open Sans";
 }
 
-.dialog>.content {
+.dialog > .content {
 	max-height: calc(75vh - 5.9em - 1px);
 	width: calc(100% - 4.5em);
 	position: relative;
@@ -47,7 +41,7 @@
 	cursor: initial;
 }
 
-.dialog>.exit {
+.dialog > .exit {
 	height: 1.2em;
 	width: 1.2em;
 	position: absolute;
@@ -60,7 +54,7 @@
 	cursor: pointer;
 }
 
-.dialog>.exit.disabled {
+.dialog > .exit.disabled {
 	background: #F0F0F0;
 	cursor: default;
 }
@@ -86,30 +80,40 @@
 }
 
 .dialog .option:hover, .dialog .option:focus {
-	background: -webkit-linear-gradient(top, #EEE 0%,#CCC 100%);
+	background: -webkit-gradient(linear, left top, left bottom, from(#EEE),to(#CCC));
 	background: linear-gradient(to bottom, #EEE 0%,#CCC 100%);
 }
 
 .dialog .option:active {
-	background: -webkit-linear-gradient(top, #BBB 0%,#DDD 100%);
+	background: -webkit-gradient(linear, left top, left bottom, from(#BBB),to(#DDD));
 	background: linear-gradient(to bottom, #BBB 0%,#DDD 100%);
+	-webkit-box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
 	box-shadow: 0 0 5px 2px rgba(0,0,0,.2) inset;
 }
 
 .dialog .option.disabled {
 	background: #F0F0F0;
 	color: #999;
+	-webkit-box-shadow: initial;
 	box-shadow: initial;
 	cursor: default;
 	pointer-events: none;
 }
 
-.dialog>.content h3 {
+.dialog > .content h3 {
 	font-weight: normal;
 	font-family: "Open Sans", Arial, sans-serif;
 	margin: 0;
 }
 
-.dialog>.content h3 strong {
+.dialog > .content > h4 {
+	font-weight: normal;
+	font-family: "Open Sans", Arial, sans-serif;
+	margin: 0;
+	font-size: 1rem;
+	text-align: justify;
+}
+
+.dialog > .content h3 strong {
 	font-weight: 600;
 }

@@ -267,12 +267,12 @@
 
 				var context = this.value.substring(0, position);
 				if (context) {
-					var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
+					var match = context.match(/^(?:[^'"]|"(?:\\.|[^"])*"|'(?:\\.[^'])*')+/);
 					if (!match || match[0].length != context.length) return;
 				}
 			} else if (e.keyCode == 13) {
 				testForComma: { 
-					if (!e.shiftKey) {
+					if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
 						var position = 0;
 						if (document.selection) {
 							this.select();
@@ -283,8 +283,8 @@
 
 						var context = this.value.substring(0, position);
 						if (context) {
-							var match = context.match(/^(?:[^'"]|("|')(((?!\1).(?=\1|\\))?((?=\1)|\\.((?!\1)[^\\](?=\1|\\))?|(.(?!\\|\1))+.)*?)\1)+/);
-							if (!match || match[0].length != context.length || context.trim()[context.trim().length - 1] != ',') break testForComma;
+							var match = context.match(/^(?:[^'"]|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/);
+							if (match && match[0].length == context.length && context.trim()[context.trim().length - 1] != ',') break testForComma;
 						} else {
 							break testForComma;
 						}

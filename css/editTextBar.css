@@ -6,6 +6,7 @@
 	transition: all .3s ease-out;
 	height: 0;
 	border: 0;
+	-webkit-box-shadow: initial;
 	box-shadow: initial;
 	overflow-y: hidden;
 	overflow-x: auto;
@@ -23,6 +24,7 @@
 #toolbarcontainer:not(.inactive) ~ #edittextbar.active {
 	height: 2.5em;
 	border-bottom: 1px solid #AAA;
+	-webkit-box-shadow: 0 2px 3px 3px rgba(0,0,0,.18);
 	box-shadow: 0 2px 3px 3px rgba(0,0,0,.18)
 }
 
@@ -43,7 +45,9 @@
 	margin-left: .75em;
 	background-position: .125em .125em;
 	background-repeat: no-repeat;
+	-webkit-box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
 	box-shadow: .2em .2em .4em 0 rgba(80,80,80,.8);
+	cursor: pointer;
 }
 
 .edittextopt:first-of-type {

@@ -243,8 +243,8 @@
 			},
 			dependents: {
 				get: function () {return element.draggableElement[settings].dependents},
-				set: function () {
-					Array.isArray(v) ? v.filter(function (val) {return val instanceof HTMLElement}) : v instanceof HTMLCollection || v instanceof NodeList ? (function (v) {
+				set: function (v) {
+					element.draggableElement[settings].dependents = Array.isArray(v) ? v.filter(function (val) {return val instanceof HTMLElement}) : v instanceof HTMLCollection || v instanceof NodeList ? (function (v) {
 						for (var i = 0, l = v.length, arr = []; i < l; i++) {
 							arr[i] = v[i];
 						}
