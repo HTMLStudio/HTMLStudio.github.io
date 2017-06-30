@@ -20,7 +20,7 @@
 
 	function test() {
 		var xhr = new XMLHttpRequest();
-		xhr.open('HEAD', 'help.html?t=' + new Date().getTime());
+		xhr.open('HEAD', '/help.html?t=' + new Date().getTime());
 		xhr.addEventListener('readystatechange', function() {
 			if (this.readyState == 4) {
 				var connection = HTMLStudio.network.__force__ === true ? true : HTMLStudio.network.__force__ === false ? false : this.status >= 200 && this.status < 304,

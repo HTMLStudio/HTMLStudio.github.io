@@ -150,7 +150,7 @@ input:checked ~ .cssEditContainer .cssRule > input:focus + .cssSelectorDisplay {
 }
 
 .clb, .clc {
-	background: #FFF url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	background: #FFF url("/svg/exit.svg") 50% 50%/70% 70% no-repeat;
 	border: 1px solid #AAA;
 	margin: -1px;
 	border-radius: .3rem;

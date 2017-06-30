@@ -36,7 +36,7 @@
 }
 
 .cle {
-	background: #FFF url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	background: #FFF url("/svg/exit.svg") 50% 50%/70% 70% no-repeat;
 	height: 1.2rem;
 	width: 1.2rem;
 	display: inline-block;

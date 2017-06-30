@@ -26,7 +26,7 @@ var cssProperties
 
 !function() {
 	var request = new XMLHttpRequest();
-	request.open('GET', 'script/CSS_properties.json', true);
+	request.open('GET', '/script/CSS_properties.json', true);
 
 	request.onreadystatechange = function() {
 		if (this.readyState === 4) cssProperties = this.status >= 200 && this.status < 400 ? JSON.parse(this.responseText) : [];
@@ -409,7 +409,7 @@ function main(){
 						this.title = 'Opens the link in a new tab (' + node.alias.href + ')';
 						return node.alias.nodeName in {a:0,A:0} && node.alias.href && node.alias.getAttribute('href').trim()[0] != '#';
 					},
-					image: 'svg/open_in.svg',
+					image: '/svg/open_in.svg',
 					id: 'openLink'
 				},{
 					name: 'Copy Element',
@@ -420,7 +420,7 @@ function main(){
 						else openDialog('pseudo_paste');
 					},
 					title: '(' + locale.cmdKey + ' + C) Copies the selected element\n(' + locale.cmdKey + ' + Shift + C) Copies the selected element without its descendants',
-					image: 'svg/copy.svg',
+					image: '/svg/copy.svg',
 					id: 'copy'
 				},{
 					name: 'Cut Element',
@@ -435,7 +435,7 @@ function main(){
 						if (document.activeElement == clipboard) userClipboard = clipboard.value;
 					},
 					title: '(' + locale.cmdKey + ' + X) Cuts the selected element\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected element without its descendants',
-					image: 'svg/cut.svg',
+					image: '/svg/cut.svg',
 					id: 'cut'
 				},{
 					name: 'Paste into Element',
@@ -445,7 +445,7 @@ function main(){
 						} else openDialog('pseudo_paste');
 					},
 					title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected node',
-					image: 'svg/paste.svg',
+					image: '/svg/paste.svg',
 					separate: true,
 					id: 'paste'
 				},{
@@ -472,8 +472,8 @@ function main(){
 						clickhandler.call(clone.alias, pseudoEvent);
 					},
 					title: '(' + locale.cmdKey + ' + Shift  + D) Create a duplicate of the selected element as a sibling',
-					image: 'svg/duplicate.svg',
-					disabledimage: 'svg/duplicate_disabled.svg',
+					image: '/svg/duplicate.svg',
+					disabledimage: '/svg/duplicate_disabled.svg',
 					disabledtitle: '(' + locale.cmdKey + ' + Shift + D) This element cannot be duplicated',
 					separate: true,
 					id: 'duplicate',
@@ -763,8 +763,8 @@ function main(){
 					id: 'insertColRight'
 				},{
 					name: 'Edit Text',
-					image: 'svg/edit_text.svg',
-					disabledimage: 'svg/edit_text_disabled.svg',
+					image: '/svg/edit_text.svg',
+					disabledimage: '/svg/edit_text_disabled.svg',
 					func: function(_,close) {
 						close();
 						var element = selection.get.first();
@@ -1030,7 +1030,7 @@ function main(){
 								if (clone != elementAlias.alias) clone.removeAttribute('data-html-studio-text-being-edited');
 								if (clone.nodeName == 'A') clone.removeAttribute('href');
 								if (clone.nodeName == 'IMG') {
-									if (node.getAttribute('src')) clone.setAttribute('src','svg/transparent.svg')
+									if (node.getAttribute('src')) clone.setAttribute('src','/svg/transparent.svg')
 									clone.setAttribute('width', Math.round(clone.alias.getAttribute('width') || clone.alias.getBoundingClientRect().width));
 									clone.setAttribute('height', Math.round(clone.alias.getAttribute('height') || clone.alias.getBoundingClientRect().height));
 								}
@@ -1381,7 +1381,7 @@ function main(){
 					id: 'editText'
 				},{
 					name: 'Edit as HTML&#133;',
-					image: 'svg/edit_as_html.svg',
+					image: '/svg/edit_as_html.svg',
 					func: function(_,close) {
 						close();
 						var element = selection.get.first();
@@ -1420,7 +1420,7 @@ function main(){
 						}
 					},
 					title: '(' + locale.cmd + ' + Shift + 8) Lets you quickly edit the element\'s src attribute',
-					image: 'svg/edit_attr_s.svg',
+					image: '/svg/edit_attr_s.svg',
 					disabled: true,
 					hideOnDisabled: true,
 					condition: function() {
@@ -1448,7 +1448,7 @@ function main(){
 						}
 					},
 					title: '(' + locale.cmdKey + ' + Shift + 8) Lets you quickly edit the element\'s href attribute',
-					image: 'svg/edit_attr_h.svg',
+					image: '/svg/edit_attr_h.svg',
 					disabled: true,
 					hideOnDisabled: true,
 					condition: function() {
@@ -1525,7 +1525,7 @@ function main(){
 						document.querySelector('#idg tr:first-child input').focus();
 					},
 					title: '(' + locale.cmdKey + ' + E) Lets you edit the element\'s attributes',
-					image: 'svg/edit_attributes.svg',
+					image: '/svg/edit_attributes.svg',
 					id: 'editAttributes'
 				},{
 					name: 'Edit Styles&#133;',
@@ -1629,7 +1629,7 @@ function main(){
 						});
 						document.querySelector('#idv tr:first-child input').focus();
 					},
-					image: 'svg/edit_styles.svg',
+					image: '/svg/edit_styles.svg',
 					title: '(' + locale.cmdKey + ' + Q) Lets you edit the element\'s CSS',
 					separate: true,
 					id: 'editStyle'
@@ -1667,7 +1667,7 @@ function main(){
 						idQ.focus();
 					},
 					title: '(' + locale.cmdKey + ' + . ) Lets you quickly edit the element\'s classes',
-					image: 'svg/edit_class.svg',
+					image: '/svg/edit_class.svg',
 					id: 'editClass'
 				},{
 					name: 'Edit ID&#133;',
@@ -1687,12 +1687,12 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + Shift + 3) Lets you quickly edit the element\'s ID',
 					separate: true,
-					image: 'svg/edit_id.svg',
+					image: '/svg/edit_id.svg',
 					id: 'editId'
 				},{
 					name: 'Select Parent',
-					image: 'svg/select_parent.svg',
-					disabledimage: 'svg/select_parent_disabled.svg',
+					image: '/svg/select_parent.svg',
+					disabledimage: '/svg/select_parent_disabled.svg',
 					func: function(e,close) {
 						close();
 						if (selection.get.first() == overlay) {
@@ -1723,8 +1723,8 @@ function main(){
 					}
 				},{
 					name: 'Select Children',
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
+					image: '/svg/select_children.svg',
+					disabledimage: '/svg/select_children_disabled.svg',
 					func: function(e,close) {
 						close();
 						var element = selection.get.first();
@@ -1824,12 +1824,12 @@ function main(){
 						}
 					},
 					title: '(' + locale.cmdKey + ' + Shift + I) Inserts a child node into the selected node',
-					image: 'svg/insert_child.svg',
+					image: '/svg/insert_child.svg',
 					separate: true,
 					id: 'insertChild'
 				},{
 					name: 'Unwrap Element',
-					image: 'svg/transparent.svg',
+					image: '/svg/transparent.svg',
 					func: function(_,close) {
 						close();
 						var element = selection.get.first();
@@ -1861,8 +1861,8 @@ function main(){
 					title: '(' + locale.cmdKey + ' + U) Replaces the element with all its child nodes',
 					disabledtitle: '(' + locale.cmdKey + ' + U) This element cannot be unwrapped',
 					separate: true,
-					image: 'svg/unwrap.svg',
-					disabledimage: 'svg/unwrap_disabled.svg',
+					image: '/svg/unwrap.svg',
+					disabledimage: '/svg/unwrap_disabled.svg',
 					id: 'unwrap',
 					condition: function() {
 						var node = selection.get.first();
@@ -1876,7 +1876,7 @@ function main(){
 						close();
 					},
 					title: '(Backspace) or (Delete) Removes the element from the document',
-					image: 'svg/delete.svg',
+					image: '/svg/delete.svg',
 					id: 'delete'
 				}]
 			}),
@@ -1900,7 +1900,7 @@ function main(){
 						} else openDialog('pseudo_paste');
 					},
 					title: '(' + locale.cmdKey + ' + C) Copies the selected elements\n(' + locale.cmdKey + ' + Shift + C) Copies the selected elements without their descendants',
-					image: 'svg/copy.svg',
+					image: '/svg/copy.svg',
 					id: 'copy'
 				},{
 					name: 'Cut Elements',
@@ -1915,7 +1915,7 @@ function main(){
 						if (document.activeElement == clipboard) userClipboard = clipboard.value;
 					},
 					title: '(' + locale.cmdKey + ' + X) Cuts the selected elements\n(' + locale.cmdKey + ' + Shift + X) Cuts the selected elements without their their descendants',
-					image: 'svg/cut.svg',
+					image: '/svg/cut.svg',
 					id: 'cut'
 				},{
 					name: 'Paste into Elements',
@@ -1925,7 +1925,7 @@ function main(){
 						} else openDialog('pseudo_paste');
 					},
 					title: '(' + locale.cmdKey + ' + V) Pastes any copied HTML into the selected nodes',
-					image: 'svg/paste.svg',
+					image: '/svg/paste.svg',
 					separate: true,
 					id: 'paste'
 				},{
@@ -2608,7 +2608,7 @@ function main(){
 						close();
 						updateTooltip();
 					},
-					image: 'svg/delete.svg',
+					image: '/svg/delete.svg',
 					separate: true,
 					title: '(Backspace) or (Delete) Removes the elements from the document',
 					id: 'delete'
@@ -2620,12 +2620,12 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + . ) Lets you quickly edit the elements\' classes',
 					separate: true,
-					image: 'svg/edit_class.svg',
+					image: '/svg/edit_class.svg',
 					if: 'editClass'
 				},{
 					name: 'Select Parent(s)',
-					image: 'svg/select_parent.svg',
-					disabledimage: 'svg/select_parent_disabled.svg',
+					image: '/svg/select_parent.svg',
+					disabledimage: '/svg/select_parent_disabled.svg',
 					func: function(e,close) {
 						if (selection.get.all().length == 1) return contextmenus[0].getItem('selectParent').dispatchEvent(new MouseEvent('click', {shiftKey: e.shiftKey}));
 						else if (!selection.get.first()) return;
@@ -2663,8 +2663,8 @@ function main(){
 						updateTreeSelections();
 						selection.update();
 					},
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
+					image: '/svg/select_children.svg',
+					disabledimage: '/svg/select_children_disabled.svg',
 					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects all immediate children of the nodes',
 					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
 					id: 'selectChildren',
@@ -2686,7 +2686,7 @@ function main(){
 					},
 					title: 'Open this document in Google Drive',
 					id: 'driveOpen',
-					image: 'png/drive_mono_445566.png',
+					image: '/png/drive_mono_445566.png',
 					hideOnDisabled: true,
 					disabled: true,
 					separate: true,
@@ -2700,7 +2700,7 @@ function main(){
 						closeHeaders();
 					},
 					title: '(' + locale.cmdKey + ' + N) Create a new document to replace the current one',
-					image: 'svg/new.svg',
+					image: '/svg/new.svg',
 					id: 'new'
 				},{
 					name: 'Open&#133;',
@@ -2712,7 +2712,7 @@ function main(){
 						closeHeaders();
 					},
 					title: '(' + locale.cmdKey + ' + O) Opens another HTML file to edit',
-					image: 'svg/open.svg',
+					image: '/svg/open.svg',
 					id: 'open'
 				},{
 					name: 'Save&#133;',
@@ -2728,7 +2728,7 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + S) Lets you download the document or save it to Google Drive',
 					separate: true,
-					image: 'svg/save.svg',
+					image: '/svg/save.svg',
 					id: 'download'
 				},{
 					name: 'Print&#133;',
@@ -2738,7 +2738,7 @@ function main(){
 						print();
 					},
 					title: 'Prints the document',
-					image: 'svg/print.svg',
+					image: '/svg/print.svg',
 					separate: true,
 					id: 'print'
 				},{
@@ -2760,7 +2760,7 @@ function main(){
 						}
 					},
 					title: '(' + locale.cmdKey + ' + Shift + O) Opens the document by itself in a new tab',
-					image: 'svg/open_in.svg',
+					image: '/svg/open_in.svg',
 					separate: true,
 					id: 'viewInTab'
 				},{
@@ -2783,7 +2783,7 @@ function main(){
 					title: '(' + locale.cmdKey + ' + Z) Reverts most recent change',
 					disabledtitle: '(' + locale.cmdKey + '+Z) There are no changes to be undone',
 					disabled: true,
-					image: 'svg/undo.svg',
+					image: '/svg/undo.svg',
 					id: 'undo'
 				},{
 					name: 'Redo',
@@ -2791,7 +2791,7 @@ function main(){
 					title: '(' + locale.cmdKey + ' + Y) Restores most recent change',
 					disabledtitle: '(' + locale.cmdKey + '+Y) There are no changes to be redone',
 					disabled: true,
-					image: 'svg/redo.svg',
+					image: '/svg/redo.svg',
 					id: 'redo'
 				},{
 					name: 'Preferences',
@@ -2846,7 +2846,7 @@ function main(){
 										}
 									]
 								},
-								image: 'svg/edit_styles.svg',
+								image: '/svg/edit_styles.svg',
 								id: 'colors'
 							},{
 								name: 'Grid',
@@ -2864,51 +2864,51 @@ function main(){
 											toggle: true,
 											toggled: true,
 											disabled: true,
-											image: 'svg/checkmark.svg',
-											imageoff: 'svg/css_unit_px.svg',
+											image: '/svg/checkmark.svg',
+											imageoff: '/svg/css_unit_px.svg',
 											disabledtitle: 'Work in Progress',
 											id: 'px'
 										},{
 											name: 'Points (pt)',
 											toggle: true,
 											disabled: true,
-											image: 'svg/checkmark.svg',
-											imageoff: 'svg/css_unit_pt.svg',
+											image: '/svg/checkmark.svg',
+											imageoff: '/svg/css_unit_pt.svg',
 											disabledtitle: 'Work in Progress',
 											id: 'pt'
 										},{
 											name: 'Inches (in)',
 											toggle: true,
 											disabled: true,
-											image: 'svg/checkmark.svg',
-											imageoff: 'svg/css_unit_in.svg',
+											image: '/svg/checkmark.svg',
+											imageoff: '/svg/css_unit_in.svg',
 											disabledtitle: 'Work in Progress',
 											id: 'in'
 										},{
 											name: 'Centimeters (cm)',
 											toggle: true,
 											disabled: true,
-											image: 'svg/checkmark.svg',
-											imageoff: 'svg/css_unit_cm.svg',
+											image: '/svg/checkmark.svg',
+											imageoff: '/svg/css_unit_cm.svg',
 											disabledtitle: 'Work in Progress',
 											id: 'cm'
 										},{
 											name: 'Viewport Units (vh / vw)',
 											toggle: 'true',
 											disabled: true,
-											image: 'svg/checkmark.svg',
-											imageoff: 'svg/css_unit_hw.svg',
+											image: '/svg/checkmark.svg',
+											imageoff: '/svg/css_unit_hw.svg',
 											disabledtitle: 'Work in Progress',
 											id: 'vhvw'
 										}
 									]
 								},
 								id: 'cssUnits',
-								image: parseHTML('<div id="iDL" style="background-image:url(&quot;svg/css_unit_px.svg&quot;)"></div>')
+								image: parseHTML('<div id="iDL" style="background-image:url(&quot;/svg/css_unit_px.svg&quot;)"></div>')
 							}
 						]
 					},
-					image: 'svg/prefs.svg',
+					image: '/svg/prefs.svg',
 					id: 'prefs'
 				}],
 				pseudoParent: document.getElementById('section_edit')
@@ -2925,8 +2925,8 @@ function main(){
 					},
 					toggle: true,
 					toggled: true,
-					image: 'svg/checkmark.svg',
-					imageoff: 'svg/transparent.svg',
+					image: '/svg/checkmark.svg',
+					imageoff: '/svg/transparent.svg',
 					title: 'Toggles the display of this toolbar',
 					id: 'toolbar'
 				},{
@@ -2953,8 +2953,8 @@ function main(){
 					title: '(' + locale.cmdKey + ' + Shift + F) or (F11) Toggles fullscreen mode',
 					hideOnDisabled: true,
 					toggle: true,
-					image: 'svg/checkmark.svg',
-					imageoff: 'svg/transparent.svg',
+					image: '/svg/checkmark.svg',
+					imageoff: '/svg/transparent.svg',
 					id: 'fullscreen'
 				},{
 					name: 'HTML Tree',
@@ -2971,8 +2971,8 @@ function main(){
 					},
 					title: 'Toggles the display the document\'s HTML tree',
 					toggle: true,
-					image: 'svg/checkmark.svg',
-					imageoff: 'svg/transparent.svg',
+					image: '/svg/checkmark.svg',
+					imageoff: '/svg/transparent.svg',
 					id: 'htmlTree'
 				},{
 					name: 'Grid',
@@ -2985,8 +2985,8 @@ function main(){
 					},
 					title: 'Toggles the overlay grid for the document',
 					toggle: true,
-					image: 'svg/checkmark.svg',
-					imageoff: 'svg/transparent.svg',
+					image: '/svg/checkmark.svg',
+					imageoff: '/svg/transparent.svg',
 					id: 'grid'
 				},{
 					name: 'Tooltip',
@@ -3000,8 +3000,8 @@ function main(){
 					title: 'Toggles the display of the tooltip at the bottom of the screen',
 					toggle: true,
 					toggled: true,
-					image: 'svg/checkmark.svg',
-					imageoff: 'svg/transparent.svg',
+					image: '/svg/checkmark.svg',
+					imageoff: '/svg/transparent.svg',
 					id: 'tooltip'
 				},{
 					name: 'Bounding Boxes',
@@ -3046,8 +3046,8 @@ function main(){
 					},
 					title: 'Toggles the display of bounding box lines',
 					toggle: true,
-					image: 'svg/checkmark.svg',
-					imageoff: 'svg/transparent.svg',
+					image: '/svg/checkmark.svg',
+					imageoff: '/svg/transparent.svg',
 					id: 'boundingBox'
 				}],
 				pseudoParent: document.getElementById('section_view')
@@ -3077,7 +3077,7 @@ function main(){
 						selection.update();
 					},
 					title: '(' + locale.cmdKey + ' + A) Selects all elements in the document',
-					image: 'svg/select_all.svg',
+					image: '/svg/select_all.svg',
 					id: 'selectAll'
 				},{
 					name: 'Deselect All',
@@ -3089,7 +3089,7 @@ function main(){
 						updateTreeSelections();
 					},
 					title: '(' + locale.cmdKey + ' + D) Deselects all elements in the document',
-					image: 'svg/deselect_all.svg',
+					image: '/svg/deselect_all.svg',
 					separate: true,
 					id: 'deselectAll'
 				},{
@@ -3106,7 +3106,7 @@ function main(){
 						});
 					},
 					title: '(' + locale.cmdKey + ' + B) or (' + locale.cmdKey + ' + Shift + B) Selects the root <body> element',
-					image: 'svg/select_body.svg',
+					image: '/svg/select_body.svg',
 					separate: true,
 					id: 'selectBody'
 				},{
@@ -3123,7 +3123,7 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + I) Selects all not-selected elements',
 					separate: true,
-					image: 'svg/invert.svg',
+					image: '/svg/invert.svg',
 					id: 'invert'
 				},{
 					name: 'Select Parent(s)',
@@ -3133,8 +3133,8 @@ function main(){
 						contextmenus[1].getItem('selectParent').dispatchEvent(new MouseEvent('click'));
 					},
 					title: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) Selects the immediate parents of the nodes',
-					image: 'svg/select_parent.svg',
-					disabledimage: 'svg/select_parent_disabled.svg',
+					image: '/svg/select_parent.svg',
+					disabledimage: '/svg/select_parent_disabled.svg',
 					disabledtitle: '(' + locale.cmdKey + ' + Up) or (' + locale.cmdKey + ' + Shift + Up) None of the selected nodes have selectable parents',
 					id: 'selectParent'
 				},{
@@ -3187,8 +3187,8 @@ function main(){
 						updateTooltip();
 					},
 					title: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) Selects the elements\' previous siblings',
-					image: 'svg/select_previous.svg',
-					disabledimage: 'svg/select_previous_disabled.svg',
+					image: '/svg/select_previous.svg',
+					disabledimage: '/svg/select_previous_disabled.svg',
 					disabledtitle: '(' + locale.cmdKey + ' + Left) or (' + locale.cmdKey + ' + Shift + Left) No nodes are selected',
 					id: 'selectPreviousSibling'
 				},{
@@ -3241,8 +3241,8 @@ function main(){
 						updateTooltip();
 					},
 					title: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) Selects the elements\' next sibling',
-					image: 'svg/select_next.svg',
-					disabledimage: 'svg/select_next_disabled.svg',
+					image: '/svg/select_next.svg',
+					disabledimage: '/svg/select_next_disabled.svg',
 					disabledtitle: '(' + locale.cmdKey + ' + Right) or (' + locale.cmdKey + ' + Shift + Right) No nodes are selected',
 					id: 'selectNextSibling'
 				},{
@@ -3254,8 +3254,8 @@ function main(){
 					},
 					title: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) Selects the immediate children of the nodes',
 					disabledtitle: '(' + locale.cmdKey + ' + Down) or (' + locale.cmdKey + ' + Shift + Down) None of the selected nodes have any children',
-					image: 'svg/select_children.svg',
-					disabledimage: 'svg/select_children_disabled.svg',
+					image: '/svg/select_children.svg',
+					disabledimage: '/svg/select_children_disabled.svg',
 					separate: true,
 					id: 'selectChildren'
 				},{
@@ -3271,7 +3271,7 @@ function main(){
 						idP.dispatchEvent(new KeyboardEvent('keyup'));
 					},
 					title: 'Select element(s) using a CSS selector',
-					image: 'svg/select_by_selector.svg',
+					image: '/svg/select_by_selector.svg',
 					id: 'selectByCSS'
 				}],
 				pseudoParent: document.getElementById('section_selection')
@@ -3331,7 +3331,7 @@ function main(){
 				},
 				title: 'Creates a new style sheet',
 				id: 'createNew',
-				image: 'svg/new.svg'
+				image: '/svg/new.svg'
 			},{
 				name: 'Import from File&#133;',
 				disabled: true,
@@ -5220,7 +5220,7 @@ function main(){
 				// Prevent <img>s from blocking the actual nodes (their background was already changed, but not their src)
 				if (clonednode.nodeName == 'IMG') {
 					clonednode.style.verticalAlign = clonednode.style.verticalAlign || 'text-bottom';
-					clonednode.setAttribute('src',clonednode.alias.getAttribute('src') == '' ? '' : 'svg/transparent.svg');
+					clonednode.setAttribute('src',clonednode.alias.getAttribute('src') == '' ? '' : '/svg/transparent.svg');
 
 					var resize = function() {
 						var newStyles = getComputedStyle(clonednode.alias);
@@ -7340,7 +7340,7 @@ function main(){
 	});
 	document.getElementById('idQ').addEventListener('keydown', onEnter);
 
-	// Updates the element's attribute
+	// Updates the element's href/src attribute
 	document.getElementById('Idk').addEventListener('keyup', function() {
 		if (this.value.trim()) this.element.setAttribute(this.element.nodeName in {a:0,A:0} ? 'href' : 'src', this.value.trim());
 		else this.element.removeAttribute(this.element.nodeName in {a:0,A:0} ? 'href' : 'src');
@@ -7557,7 +7557,7 @@ function main(){
 											if (e.target.nodeName == 'INPUT' && e.charCode) this.modified = true;
 										});
 										editor.node.modified = true;
-										idL.innerHTML = '<h4 style="text-align:center">Edit the style sheet styles below or click a <img class="cld" src="svg/select_from_selector.svg" style="cursor:initial"> to select all elements matching the corresponding CSS selector.</h4><br><input type="checkbox" checked id="cssSyntaxHighlighter"> <label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idM" placeholder="Style Sheet Name">';
+										idL.innerHTML = '<h4 style="text-align:center">Edit the style sheet styles below or click a <img class="cld" src="/svg/select_from_selector.svg" style="cursor:initial"> to select all elements matching the corresponding CSS selector.</h4><br><input type="checkbox" checked id="cssSyntaxHighlighter"> <label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idM" placeholder="Style Sheet Name">';
 										idL.appendChild(editor.node);
 										openDialog('edit_stylesheet');
 										document.getElementById('idM').value = this.root.parentNode.stylesheet.name || this.root.parentNode.stylesheet.node.getAttribute('data-name') || '';
@@ -7594,7 +7594,7 @@ function main(){
 										closeHeaders();
 									},
 									id: 'edit',
-									image: 'svg/edit_attributes.svg'
+									image: '/svg/edit_attributes.svg'
 								},{
 									name: 'Delete',
 									func: function(_,close) {
@@ -7610,7 +7610,7 @@ function main(){
 										history.update('Delete style sheet');
 									},
 									id: 'delete',
-									image: 'svg/delete.svg'
+									image: '/svg/delete.svg'
 								}]
 							},
 							id: 'styleSheet' + index,
@@ -7699,7 +7699,7 @@ function main(){
 										if (e.target.nodeName == 'INPUT' && e.charCode) this.modified = true;
 									});
 									editor.node.modified = true;
-									idL.innerHTML = '<h4 style="text-align:center">Edit the style sheet styles below or click a <img class="cld" src="svg/select_from_selector.svg" style="cursor:initial"> to select all elements matching the corresponding CSS selector.</h4><br><input type="checkbox" checked id="cssSyntaxHighlighter"> <label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idM" placeholder="Style Sheet Name">';
+									idL.innerHTML = '<h4 style="text-align:center">Edit the style sheet styles below or click a <img class="cld" src="/svg/select_from_selector.svg" style="cursor:initial"> to select all elements matching the corresponding CSS selector.</h4><br><input type="checkbox" checked id="cssSyntaxHighlighter"> <label for="cssSyntaxHighlighter">Syntax Highlighting</label><br><br><input type="text" id="idM" placeholder="Style Sheet Name">';
 									idL.appendChild(editor.node);
 									openDialog('edit_stylesheet');
 									document.getElementById('idM').value = this.root.parentNode.stylesheet.name || this.root.parentNode.stylesheet.node.getAttribute('data-name') || '';
@@ -7736,7 +7736,7 @@ function main(){
 									closeHeaders();
 								},
 								id: 'edit',
-								image: 'svg/edit_attributes.svg'
+								image: '/svg/edit_attributes.svg'
 							},{
 								name: 'Delete',
 								func: function(_,close) {
@@ -7752,7 +7752,7 @@ function main(){
 									history.update('Delete style sheet');
 								},
 								id: 'delete',
-								image: 'svg/delete.svg'
+								image: '/svg/delete.svg'
 							}]
 						},
 						id: 'styleSheet' + index,

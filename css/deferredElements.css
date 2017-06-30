@@ -221,7 +221,7 @@
 	top: .2em;
 	width: 1.2em;
 	height: 1.2em;
-	background: #FFF url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	background: #FFF url("/svg/exit.svg") 50% 50%/70% 70% no-repeat;
 	border: 1px solid #AAA;
 	margin: -1px;
 	border-radius: .3em;
@@ -299,7 +299,7 @@
 .cli {
 	height: 3.5em;
 	width: 100%;
-	background: url("../svg/transparency_back.svg") 0px 0px / auto 50%;
+	background: url("/svg/transparency_back.svg") 0px 0px / auto 50%;
 	-webkit-box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80.8);
 	box-shadow: .2rem .2rem .4rem 0 rgba(80,80,80.8);
 	border: 1px solid #AAA;

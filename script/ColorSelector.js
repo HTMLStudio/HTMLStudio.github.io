@@ -55,7 +55,7 @@
 		// Create color displayer
 		this.colorDisplay = document.createElement('div');
 		this.colorDisplay.className = 'colorSelectorDisplay';
-		this.colorDisplay.style.background = 'url("svg/transparency_back.svg") 0 0 / auto 100%';
+		this.colorDisplay.style.background = 'url("/svg/transparency_back.svg") 0 0 / auto 100%';
 		this.node.appendChild(this.colorDisplay);
 		var colorDisplay = document.createElement('div');
 		colorDisplay.style.width = colorDisplay.style.height = '100%';
@@ -249,7 +249,7 @@
 		// Create opacity changer
 		this.opacitySlider = document.createElement('div');
 		this.opacitySlider.className = 'colorSelectorSlider colorSelectorOpacitySlider';
-		this.opacitySlider.style.background = 'url("svg/transparency_back.svg") 0 0 / auto 100%';
+		this.opacitySlider.style.background = 'url("/svg/transparency_back.svg") 0 0 / auto 100%';
 
 		function changeOpacity(e) {
 			var rect = this.getBoundingClientRect();

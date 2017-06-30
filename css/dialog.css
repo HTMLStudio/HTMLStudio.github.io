@@ -47,7 +47,7 @@
 	position: absolute;
 	top: .26em;
 	right: .5em;
-	background: rgba(0, 0, 0, 0) url("../svg/exit.svg") 50% 50%/70% 70% no-repeat;
+	background: rgba(0, 0, 0, 0) url("/svg/exit.svg") 50% 50%/70% 70% no-repeat;
 	border: 1px solid #AAA;
 	margin: -1px;
 	border-radius: .3em;

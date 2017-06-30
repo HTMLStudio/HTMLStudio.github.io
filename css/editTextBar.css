@@ -63,81 +63,81 @@
 }
 
 #etopt_bold {
-	background-image: url('../svg/bold.svg');
+	background-image: url('/svg/bold.svg');
 }
 
 #etopt_bold.active {
-	background-image: url('../svg/bold_active.svg');
+	background-image: url('/svg/bold_active.svg');
 }
 
 #etopt_italic {
-	background-image: url('../svg/italic.svg');
+	background-image: url('/svg/italic.svg');
 }
 
 #etopt_italic.active {
-	background-image: url('../svg/italic_active.svg');
+	background-image: url('/svg/italic_active.svg');
 }
 
 #etopt_underline {
-	background-image: url('../svg/underline.svg');
+	background-image: url('/svg/underline.svg');
 }
 
 #etopt_underline.active {
-	background-image: url('../svg/underline_active.svg');
+	background-image: url('/svg/underline_active.svg');
 }
 
 #etopt_superscript {
-	background-image: url('../svg/superscript.svg');
+	background-image: url('/svg/superscript.svg');
 }
 
 #etopt_superscript.active {
-	background-image: url('../svg/superscript_active.svg');
+	background-image: url('/svg/superscript_active.svg');
 }
 
 #etopt_subscript {
-	background-image: url('../svg/subscript.svg');
+	background-image: url('/svg/subscript.svg');
 }
 
 #etopt_subscript.active {
-	background-image: url('../svg/subscript_active.svg');
+	background-image: url('/svg/subscript_active.svg');
 }
 
 #etopt_justify_left {
-	background-image: url('../svg/justify_left.svg');
+	background-image: url('/svg/justify_left.svg');
 }
 
 #etopt_justify_left.active {
-	background-image: url('../svg/justify_left_active.svg');
+	background-image: url('/svg/justify_left_active.svg');
 }
 
 #etopt_justify_center {
-	background-image: url('../svg/justify_center.svg');
+	background-image: url('/svg/justify_center.svg');
 }
 
 #etopt_justify_center.active {
-	background-image: url('../svg/justify_center_active.svg');
+	background-image: url('/svg/justify_center_active.svg');
 }
 
 #etopt_justify_right {
-	background-image: url('../svg/justify_right.svg');
+	background-image: url('/svg/justify_right.svg');
 }
 
 #etopt_justify_right.active {
-	background-image: url('../svg/justify_right_active.svg');
+	background-image: url('/svg/justify_right_active.svg');
 }
 
 #etopt_justify_full {
-	background-image: url('../svg/justify_full.svg');
+	background-image: url('/svg/justify_full.svg');
 }
 
 #etopt_justify_full.active {
-	background-image: url('../svg/justify_full_active.svg');
+	background-image: url('/svg/justify_full_active.svg');
 }
 
 #etopt_increase_font {
-	background-image: url('../svg/increase_font.svg');
+	background-image: url('/svg/increase_font.svg');
 }
 
 #etopt_decrease_font {
-	background-image: url('../svg/decrease_font.svg');
+	background-image: url('/svg/decrease_font.svg');
 }

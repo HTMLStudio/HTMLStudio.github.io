@@ -190,7 +190,7 @@
 				opener.title = status ? 'Signed in as ' + HTMLStudio.google.user.email() : 'Connect to Google Drive';
 				opener.className = opener.className.replace(/\s*signed(?:In|Out)\s*/g,'') + ' signed' + (status ? 'In' : 'Out');
 				document.getElementById('googInterface').className = status ? 'signedIn' : 'signedOut';
-				document.getElementById('driveLogo').src = status ? 'png/drive_mono_ffffff.png' : 'png/drive128.png';
+				document.getElementById('driveLogo').src = status ? '/png/drive_mono_ffffff.png' : '/png/drive128.png';
 				document.getElementById('googProfileIcon').src = HTMLStudio.google.user.image();
 				document.getElementById('GII2').innerText = HTMLStudio.google.user.name();
 				document.getElementById('GII3').innerText = '(' + HTMLStudio.google.user.email() + ')';

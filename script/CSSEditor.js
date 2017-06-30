@@ -6,7 +6,7 @@
 	var properties;
 	!function() {
 		var request = new XMLHttpRequest();
-		request.open('GET', 'script/CSS_properties.json', true);
+		request.open('GET', '/script/CSS_properties.json', true);
 
 		request.onreadystatechange = function() {
 			if (this.readyState === 4) properties = this.status >= 200 && this.status < 400 ? JSON.parse(this.responseText) : [];
@@ -146,7 +146,7 @@
 			this.docSelector.addEventListener('keydown', selectorKeypress);
 			this.docSelector.title = 'Find elements with this selector'
 			this.docSelector.CSSRuleObject = this;
-			this.docSelector.src = 'svg/select_from_selector.svg';
+			this.docSelector.src = '/svg/select_from_selector.svg';
 			this.docSelector.className = 'cld';
 			rule.appendChild(this.docSelector);
 		} else this.docSelector = null;
