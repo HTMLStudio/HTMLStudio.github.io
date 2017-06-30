@@ -140,7 +140,7 @@ function main(){
 		 - Support export to Google Doc
 		 - Better titles
 		 - Find (Ctrl + F)
-		 - Better .topText
+		 - Better .topText and notices
 		 - Draggable dialogs from header span only
 		 - Fix Draggable Elements stopping on top of overlay iframe
 		 - Separate bounding boxes and bounding box size options
@@ -806,7 +806,11 @@ function main(){
 							opacity = -Math.abs(currentFrame - 25) + 25,
 							vh = framewindow.innerHeight / 100,
 							vw = framewindow.innerWidth / 100,
-							scrollTop = document.getElementById('framecontainer').scrollTop;
+							scrollTop = document.getElementById('framecontainer').scrollTop,
+							symbol = {
+								entity: Symbol(),
+								element: Symbol()
+							};
 						pseudoEmptyNodes = [];
 						// Update tooltip to show what user is editing
 						updateTooltip('Editing text of ' + formatElementInfo(element.alias), true);
@@ -982,6 +986,18 @@ function main(){
 							clone.alias = node;
 							node.alias = clone;
 							if (clone.nodeType == 1 && node.nodeType == 1) {
+								// Combine adjacent child text nodes
+								for (var child = node.firstChild; child; child = child.nextSibling) {
+									if (child.nodeType == 3 && child.nextSibling && child.nextSibling.nodeType == 3) {
+										// Add to current node's text content
+										child.textContent += child.nextSibling.textContent;
+										// Remove other text node
+										child.parentNode.removeChild(child.nextSibling);
+										// Do this again in case there are 3+ adjacent nodes
+										child = {nextSibling: child};
+									}
+								}
+
 								clone.stylePrecedence = {};
 								css.forEach(function(stylesheet) {
 									stylesheet[1].forEach(function(query) {
@@ -1009,6 +1025,8 @@ function main(){
 
 								clone.removeAttribute('data-selected-element');
 								clone.removeAttribute('data-html-studio-placeholder');
+								clone.removeAttribute('data-html-studio-entity-replacer');
+								clone.removeAttribute('data-html-studio-element-replacer');
 								if (clone != elementAlias.alias) clone.removeAttribute('data-html-studio-text-being-edited');
 								if (clone.nodeName == 'A') clone.removeAttribute('href');
 								if (clone.nodeName == 'IMG') {
@@ -1024,6 +1042,7 @@ function main(){
 							}
 
 							if (clone.style && node.style) clone.style.fontSize = getComputedStyle(node).fontSize;
+
 							// Iterate over all the element's childNodes
 							// Slice the NodeList to prevent it from changing length as it is iterated upon
 							forEach(Array.prototype.slice.call(clone.childNodes), function(child, index) {
@@ -1064,8 +1083,12 @@ function main(){
 												array[ind] = document.createTextNode(str.val);
 												array[ind].alias = node.childNodes[index];
 											} else {
-												// Create a <html-entity-replacer> custom tag
-												var replacer = document.createElement('html-entity-replacer'), character;
+												// Create a replacer element
+												var replacer = document.createElement('span'), character;
+												replacer.setAttribute('data-html-studio-entity-replacer', '');
+												replacer[symbol.entity] = true;
+												replacer.style.pointerEvents = 'initial';
+												replacer.style.cursor = 'pointer';
 												// Store it in the array
 												array[ind] = replacer
 												// Set the innerText to the original sequence
@@ -1097,8 +1120,12 @@ function main(){
 											}
 										// If the array element is a tag
 										} else if (str.tag) {
-											// Create a <html-element-replacer> custom tag
-											var replacer = document.createElement('html-element-replacer');
+											// Create a replacer element
+											var replacer = document.createElement('span');
+											replacer.setAttribute('data-html-studio-element-replacer','')
+											replacer[symbol.element] = true;
+											replacer.style.pointerEvents = 'initial';
+											replacer.style.cursor = 'pointer';
 											// Store it in the array
 											array[ind] = replacer;
 											// Set the innerText to the original sequence
@@ -1107,7 +1134,7 @@ function main(){
 											replacer.alias = node.childNodes[index];
 											replacer.charIndex = charIndex;
 											replacer.tagLength = str.val.length;
-											replacer.tag_name = str.val.match(regex.tag_name)[1];
+											replacer.tag_name = str.val.match(regex.tag_name)[1].replace(/\\(.)/g,'$1');
 											replacer.attr_symbol = Symbol();
 											replacer.tag_attrs = (function() {
 												// Keeps track of attributes using name-value pairs
@@ -1139,7 +1166,7 @@ function main(){
 
 											// Configures the replacer
 											// Adds a title so the user can see which tag it will be replaced with
-											replacer.title = 'Click to replace with a ' + replacer.tag_name + ' element';
+											replacer.title = 'Click to replace with <' + replacer.tag_name + '>';
 											// Adds styles now so that it doesn't have to wait until the next interval loop
 											// Without this, the text appears transparent for an instant before being updated
 											replacer.style.color = 'rgba(0,172,193,' + (.03 * opacity + .25) + ')';
@@ -1186,19 +1213,31 @@ function main(){
 
 							opacity = -Math.abs(currentFrame - 25) + 25;
 
-							// fragment and clone are used as opposed to the actual DOM since DocumentFragments run faster
-							var fragment = document.createDocumentFragment();
+							// Combine adjacent child text nodes
+							for (var child = element.alias.firstChild; child; child = child.nextSibling) {
+								if (child.nodeType == 3 && child.nextSibling && child.nextSibling.nodeType == 3) {
+									// Add to current node's text content
+									child.textContent += child.nextSibling.textContent;
+									// Remove other text node
+									child.parentNode.removeChild(child.nextSibling);
+									// Do this again in case there are 3+ adjacent nodes
+									child = {nextSibling: child};
+								}
+							}
 							if (element == overlay) {
 								// Can't get a speed boost from using a document fragment
-								// since we are recycling the same element each time
+								// since we are reusing the same base element (overlay <body>) each time
 								element.innerHTML = element.alias.innerHTML;
 								createReplacers(element, element.alias);
 							} else {
+								// fragment and clone are used as opposed to the actual DOM since DocumentFragments run faster
+								var fragment = document.createDocumentFragment();
+
 								if (!element.parentNode) return;
 								var clone = element.cloneNode(true);
 								fragment.appendChild(clone);
-								// Runs a more efficient overlayUpdate() for the element being edited only
-								// The rest of the overlay is unaffected
+								// Runs a more efficient overlayUpdate() that starts from the element being edited
+								// The rest of the overlay is unaffected since it's not being edited
 								clone.innerHTML = element.alias.innerHTML;
 								createReplacers(clone, element.alias);
 								
@@ -1241,7 +1280,7 @@ function main(){
 								});
 
 								// If the node is a <html-(entity|element)-replacer>, simulate a click
-								focusedNode.nodeName.toLowerCase() == 'html-entity-replacer' && onClickEntityReplacer.call(focusedNode, pseudoEvent) || focusedNode.nodeName.toLowerCase() == 'html-element-replacer' && onClickTagReplacer.call(focusedNode, pseudoEvent);
+								focusedNode[symbol.entity] && onClickEntityReplacer.call(focusedNode, pseudoEvent) || focusedNode[symbol.element] && onClickTagReplacer.call(focusedNode, pseudoEvent);
 							// Ctrl + I
 							} else if (e.type == 'keydown' && e.keyCode == 73 && locale.cmdKeyPressed(e)) {
 								if (framewindow.document.queryCommandSupported('italic')) framewindow.document.execCommand('italic');
@@ -1258,22 +1297,22 @@ function main(){
 							} else if (e.type == 'keydown' && e.keyCode == 187 && locale.cmdKeyPressed(e)) {
 								if (framewindow.document.queryCommandSupported('subscript')) framewindow.document.execCommand('subscript');
 							// Ctrl + Shift + L
-							} else if (e.type == 'keydown' && e.keyCode == 76 && locale.cmdKeyPressed(e) && e.shiftKey) {
+							} else if (e.type == 'keyup' && e.keyCode == 76 && locale.cmdKeyPressed(e) && e.shiftKey) {
 								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
 								node.style.textAlign = 'left';
 								node.alias.style.textAlign = 'left';
 							// Ctrl + Shift + E
-							} else if (e.type == 'keydown' && e.keyCode == 69 && locale.cmdKeyPressed(e) && e.shiftKey) {
+							} else if (e.type == 'keyup' && e.keyCode == 69 && locale.cmdKeyPressed(e) && e.shiftKey) {
 								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
 								node.style.textAlign = 'center';
 								node.alias.style.textAlign = 'center';
 							// Ctrl + Shift + R
-							} else if (e.type == 'keydown' && e.keyCode == 82 && locale.cmdKeyPressed(e) && e.shiftKey) {
+							} else if (e.type == 'keyup' && e.keyCode == 82 && locale.cmdKeyPressed(e) && e.shiftKey) {
 								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
 								node.style.textAlign = 'right';
 								node.alias.style.textAlign = 'right';
 							// Ctrl + Shift + J
-							} else if (e.type == 'keydown' && e.keyCode == 74 && locale.cmdKeyPressed(e) && e.shiftKey) {
+							} else if (e.type == 'keyup' && e.keyCode == 74 && locale.cmdKeyPressed(e) && e.shiftKey) {
 								for (var node = framewindow.document.getSelection().anchorNode.parentNode; !(node.style.display in {block:0,'inline-block':0} || getComputedStyle(node).display in {block:0,'inline-block':0} || node == this); node = node.parentNode);
 								node.style.textAlign = 'justify';
 								node.alias.style.textAlign = 'justify';
@@ -1289,7 +1328,7 @@ function main(){
 
 						function keyPressWrapper(e) {
 							scrollTop = document.getElementById('framecontainer').scrollTop;
-							if (e.keyCode == 9 && !e.shiftKey || e.keyCode == 73 && locale.cmdKeyPressed(e) || e.keyCode == 66 && locale.cmdKeyPressed(e) || e.keyCode == 74 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 82 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 187 && locale.cmdKeyPressed(e) || e.keyCode == 85 && locale.cmdKeyPressed(e)) { 
+							if (e.keyCode == 9 && !e.shiftKey || e.keyCode == 66 && locale.cmdKeyPressed(e) || e.keyCode == 69 && locale.cmdKeyPressed && e.shiftKey || e.keyCode == 73 && locale.cmdKeyPressed(e) || e.keyCode == 74 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 76 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 82 && locale.cmdKeyPressed(e) && e.shiftKey || e.keyCode == 187 && locale.cmdKeyPressed(e) || e.keyCode == 85 && locale.cmdKeyPressed(e)) { 
 								e.preventDefault();
 								e.stopPropagation();
 							}
@@ -5174,6 +5213,8 @@ function main(){
 				clonednode.removeAttribute('data-selected-element');
 				clonednode.removeAttribute('data-html-studio-placeholder');
 				clonednode.removeAttribute('data-html-studio-text-being-edited');
+				clonednode.removeAttribute('data-html-studio-element-replacer');
+				clonednode.removeAttribute('data-html-studio-entity-replacer');
 				// Prevent actually clicking on links, instead just selecting them
 				if (clonednode.nodeName == 'A') clonednode.removeAttribute('href');
 				// Prevent <img>s from blocking the actual nodes (their background was already changed, but not their src)
@@ -8635,7 +8676,7 @@ function main(){
 		forEach(overlay.ownerDocument.querySelectorAll('[data-html-studio-text-being-edited=true]'), function(element) {
 			element.style.boxShadow = '0 0 20px ' + (currentFrame) + 'px rgba(' + selectionColor[0] + ',' + selectionColor[1] + ',' + selectionColor[2] + ',' + progress * userPrefs.nodeSelectionColor[0][3] + ')';
 		});
-		forEach(overlay.ownerDocument.querySelectorAll('html-entity-replacer, html-element-replacer'), function(element) {
+		forEach(overlay.ownerDocument.querySelectorAll('[data-html-studio-entity-replacer], [data-html-studio-element-replacer]'), function(element) {
 			element.style.color = 'rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 			element.style.textShadow = '0 0 1px rgba(' + replacerColor[0] + ',' + replacerColor[1] + ',' + replacerColor[2] + ',' + replacerColor[3] + ')';
 		});
